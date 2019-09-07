@@ -1,0 +1,38 @@
+ S: GREP TEMPLATE: '%s' S: cd %d
+ S: GREP TEMPLATE: '%s' S: %#t grep -H -n -I -s -i -d recurse * -e '%s'
+
+ M:  M: 4
+ S: GREP EXACT : '%s' S: cd %d
+ S: GREP EXACT : '%s' S: echo "DIR:\n%d\n"\ngrep -F -H -n -I -s -d skip * -e '%s'
+
+ S: GREP REGEXP: '%s' S: cd %d
+ S: GREP REGEXP: '%s' S: echo "DIR:\n%d\n"\ngrep -E -H -n -I -s -d skip * -e '%s'
+
+ M:  M: 4
+ S: GREP EXACT  recursive: '%s' S: cd %d
+ S: GREP EXACT  recursive: '%s' S: echo "DIR:\n%d\n"\ngrep -F -H -n -I -s -d recurse * -e '%s'
+
+ S: GREP REGEXP recursive: '%s' S: cd %d
+ S: GREP REGEXP recursive: '%s' S: echo "DIR:\n%d\n"\ngrep -E -H -n -I -s -d recurse * -e '%s'
+
+ M:  M: 4
+ S: GREP EXACT  ignoring case: '%s' S: cd %d
+ S: GREP EXACT  ignoring case: '%s' S: echo "DIR:\n%d\n"\ngrep -F -H -n -I -s -i -d skip * -e '%s'
+
+ S: GREP REGEXP ignoring case: '%s' S: cd %d
+ S: GREP REGEXP ignoring case: '%s' S: echo "DIR:\n%d\n"\ngrep -E -H -n -I -s -i -d skip * -e '%s'
+
+ M:  M: 4
+ S: GREP EXACT  recursive ignoring case: '%s' S: cd %d
+ S: GREP EXACT  recursive ignoring case: '%s' S: echo "DIR:\n%d\n"\ngrep -F -H -n -I -s -i -d recurse * -e '%s'
+
+ S: GREP REGEXP recursive ignoring case: '%s' S: cd %d
+ S: GREP REGEXP recursive ignoring case: '%s' S: echo "DIR:\n%d\n"\ngrep -E -H -n -I -s -i -d recurse * -e '%s'
+
+[OPTIONS]
+w=70
+o=0
+n=< grep >
+in=1.0
+%#t geo=1112x553+211+87;pos=2.47 cd %PD|!|grep -E -H -n -I -s -d recurse --include '*tcl' --include '*html' -e "%s"|!||!|#cd %d|!|#grep -E -H -n -I -s -d recurse * -e "aplsimple"|!||!|# selected text of TKE:|!|#grep -E -H -n -I -s -i -d recurse * -e '%s'|!|#grep -E -H -n -I -s -d recurse --include '*tcl' --include '*html' -e "%s"|!||!|# year 1900-2099|!|# grep -E -H -n -I -s -i -d recurse * -e '(^|[^[:digit:]])(19|20)[[:digit:]]{2}([^[:digit:]]|$)'|!||!|# domain|!|# grep -E -H -n -I -s -i -d recurse * -e '([a-z][a-z0-9-]+(\\.|-*\\.))+[a-z]{2,6}'|!||!|# email|!|#grep -E -H -n -I -s -i -d recurse * -e '[_]*([a-z0-9]+(\\.|_*)?)+@([a-z][a-z0-9-]+(\\.|-*\\.))+[a-z]{2,6}'|!||!|echo "\n################################################################################\nfound in:"|!|pwd|!|################################################################################
+

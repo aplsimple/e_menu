@@ -1,0 +1,112 @@
+ S:fossil status %PD S: cd %PD
+ S:fossil status %PD S: echo %PD\ndir\necho ---\nfossil status
+
+ S:fossil changes S: cd %PD
+ S:fossil changes S: pwd\necho ---\necho --+%PD+--\ndir\necho ---\nfossil changes
+
+ S:fossil extras S: cd %PD
+ S:fossil extras S: pwd\necho ---\ndir\necho ---\nfossil extras
+
+ R:fossil ui R: cd %PD
+ R:fossil ui R: fossil ui
+
+ R: R: 2
+
+ S:fossil diff S: cd %PD
+ S:fossil diff S: fossil diff
+
+ R:fossil gdiff %F R: cd %PD
+ R:fossil gdiff %F R: fossil gdiff %f
+
+ S:fossil add %F S: cd %PD
+ R:fossil add %F R: %C if {{%f}=={}} {set ::EMSELTD "*"} {set ::EMSELTD "%f"}
+ R:fossil add %F R: %Q "ADD" "Add the file\n\n  $::EMSELTD\n\nto the Fossil repository?"
+ S:fossil add %F S: fossil add $::EMSELTD
+
+ S:fossil forget %F S: cd %PD
+ R:fossil forget %F R: %Q "FORGET" "Forget the file\n\n  %f\n\nin the Fossil repository?"
+ S:fossil forget %F S: fossil forget %f
+
+ S:fossil revert %F S: cd %PD
+ R:fossil revert %F R: %q "REVERT" "Revert changes of\n\n  %f?\n\n(This restores a last check-in contents of the file.\nYou can undo this with 'fossil undo'.)" yesno warn NO
+ S:fossil revert %F S: fossil revert %f
+
+ R: R: 2
+
+ S:fossil timeline S: cd %PD
+ S:fossil timeline S: fossil timeline
+
+ S:fossil timeline --showfiles S: cd %PD
+ S:fossil timeline --showfiles S: fossil timeline --showfiles -n 0
+
+ R: R: 2
+
+ S:fossil commit S: cd %PD
+ R:fossil commit R: %q "Committing changes" \
+   " Commit with a message to be edited ?\n\n You may leave the message empty."
+ S:fossil commit S: fossil commit --allow-empty
+
+ S:fossil commit -f -tag ? S: cd %PD
+ R:fossil commit -f -tag ? R: %C set ::COMTAG "%s"
+ R:fossil commit -f -tag ? R:  %I warn "TAG COMMIT" { \
+   ent1 {{Tag for the last commit:} {} {}} {"$::COMTAG"} \
+   v_} -head {\n This will TAG the last commit.\n} -weight bold == ::COMTAG
+ S:fossil commit -f -tag ? S: echo fossil commit -f -tag "COMTAG" -bgcolor '#F8A4F6'
+
+ R:fossil commit -m ? --branch ? R: cd %PD
+ R:fossil commit -m ? --branch ? R: %C set ::COMMES "%s"
+ R:fossil commit -m ? --branch ? R: %I warn "COMMIT & BRANCH" { \
+   ent1 {{Commit message:}} {"$::COMMES"} \
+   ent2 {{Branch name   :}} {$::FSLBRANCH} \
+   v_} -head {\n This will COMMIT and create a new BRANCH \
+   \n from a current check-in.\n} -weight bold == ::COMMES ::FSLBRANCH
+ R:fossil commit -m ? --branch ? R: %C if {$::FSLBRANCH=={} || $::FSLBRANCH=={}} exit
+SW:fossil commit -m ? --branch ? SW: fossil commit -m "$::COMMES" --branch "$::FSLBRANCH" -bgcolor 0xffc0ff
+
+ R: R: 2
+
+ S:fossil stash S: cd %PD
+ R:fossil stash R: %q "Stash" "Stash the current project?"
+ R:fossil stash R: fossil stash
+
+ S:fossil stash snapshot "%F" S: cd %PD
+ R:fossil stash snapshot "%F" R: %q "Stash" "Stash snapshot the file\n  '%f'?"
+ S:fossil stash snapshot "%F" S: fossil stash snapshot "%f"
+
+ S:fossil stash list -v S: cd %PD
+ S:fossil stash list -v S: fossil stash list -v
+
+ S:fossil stash show S: cd %PD
+ S:fossil stash show S: fossil stash show
+
+ S:fossil stash pop S: cd %PD
+ R:fossil stash pop R: %q "Stash pop" "Stash pop the current project?\n\nThis saves the stashed changes and \n deletes a changeset from the stash."
+ S:fossil stash pop S: fossil stash pop
+
+ S:fossil stash apply S: cd %PD
+ R:fossil stash apply R: %q "Stash apply" "Stash apply the current project?\n\nThis saves the stashed changes and \n retains the changeset in the stash."
+ S:fossil stash apply S: fossil stash apply
+
+ S:fossil stash drop --all S: cd %PD
+ R:fossil stash drop --all R: %q "Stash pop" "Stash drop the current project?\n\nThis forgets the whole stash."
+ S:fossil stash drop --all S: fossil stash drop --all
+
+ S:fossil stash gdiff S: cd %PD
+ S:fossil stash gdiff S: fossil stash gdiff
+
+ R:  R: 2
+M:Next M:m=fossil2.mnu
+
+[OPTIONS]
+n=< fossil >
+b3=0
+b2=7
+w=64
+t4==%b-%Y/%U-week
+u=%s
+o=0
+in=1.0
+pos=24.41
+g=+500+50
+::FSLUSER=aplsimple
+::FSLBRANCH=""
