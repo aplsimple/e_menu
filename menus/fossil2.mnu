@@ -46,6 +46,11 @@ SW:fossil uv sync SW: if test -f ./4uvadd ; then ./4uvadd ; else fossil uv add *
   \nfossil uv ls\necho ---------------------------\necho Press Return to run UV SYNC \
   \nread\nfossil uv sync
 
+ S:fossil uv sync %F S: cd %PD/.BIN
+ R:fossil uv sync %F R: %q "UNVERSIONED FILE" " DO\n\n    fossil uv add %F \
+   \n    fossil uv sync\n\n ( for .BIN/%F ) ?"
+SW:fossil uv sync %F SW: fossil uv add %F\nfossil uv sync
+
  S:fossil config pull shun S: cd %PD
  R:fossil config pull shun R: %C if {![info exist ::FSLREPO]}  {set ::FSLREPO %PN; set ::FSLPASS ""}
  R:fossil config pull shun R: \
@@ -153,7 +158,7 @@ SW:fossil undo SW: fossil undo -n
  S:fossil addremove * S: cd %PD
  S:fossil addremove * S: fossil addremove -n
  R:fossil addremove * R:  %q "ADDREMOVE" " Repository's Add and Remove for all files in \
-  \n\n    %PD\n\n (see the supposed changes by 'fossil addremove -n')" yesno warn NO
+  \n\n    %PD\n\n (the supposed changes were shown by 'fossil addremove -n')" yesno warn NO
  S:fossil addremove * S: fossil addremove
 
  S:fossil all list S: cd %PD

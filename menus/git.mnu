@@ -6,8 +6,20 @@
  R:git gui R: cd %PD
  R:git gui R: git gui
 
- R:git add * R: cd %PD
- S:git add * S: git add *
+ R: R: 3
+
+ R:git difftool %F R: cd %PD
+ R:git difftool %F R: git difftool -x meld -y -- "%f"
+
+ S:git add %F S: cd %PD
+ R:git add %F R: %q "Adding changes" "Add changes in\n\n%f\n\nto a local repository ?"
+ S:git add %F S: git add %f
+
+ S:git add * S: cd %PD
+ R:git add * R: %q "Adding changes" "Add all changes in\n\n%PD\n\nto a local repository ?"
+ S:git add * S: git add *\ngit status
+
+ R: R: 3
 
  R:git commit R: %q "Committing changes" "Commit with message to be edited ?"
  R:git commit R: cd %PD
@@ -25,6 +37,8 @@
  R:git commit --amend -am "%s %t1 #%i1" R: cd %PD
  S:git commit --amend -am "%s %t1 #%i1" S: git commit --amend -am "%s %t1 #%i1"
 
+ R: R: 3
+
  R:git log "1 hour ago" R: cd %PD
  S:git log "1 hour ago" S: git log --since="1 hour ago"
 
@@ -41,6 +55,8 @@
  S:git log S: git log
 
  S:git log --merge S: git log --merge
+
+ R: R: 3
 
  R:git branch R: cd %PD
  S:git branch S: git branch
