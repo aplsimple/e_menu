@@ -1176,6 +1176,7 @@ proc ::em::get_P_ {} {
 proc ::em::read_f_file {} {
   if {$::em::filecontent=={} && [info exists ::em::arr_geany(f)]} {
     if {![file isfile $::em::arr_geany(f)] || \
+    [file size $::em::arr_geany(f)]>1048576 || \
     [catch {set chan [open $::em::arr_geany(f)]}]} {
       set ::em::filecontent - ;# no content
       return 0

@@ -71,6 +71,11 @@ SW:fossil uv sync %F SW: fossil uv add %F\nfossil uv sync
 
  R: R: 2
 
+ S:fossil commit S: cd %PD
+ R:fossil commit R: %q "Committing changes" \
+   " Commit with a message to be edited ?\n\n You may leave the message empty."
+ S:fossil commit S: fossil commit --allow-empty
+
  R:fossil commit -m ? --branch ? R: cd %PD
  R:fossil commit -m ? --branch ? R: %C set ::COMMES "%s"
  R:fossil commit -m ? --branch ? R: %I warn "COMMIT & BRANCH" { \
