@@ -26,7 +26,7 @@ package require Tk
 package require tooltip
 
 namespace eval em {
-  variable e_menu_version "e_menu 1.30"
+  variable e_menu_version "e_menu 1.33"
   variable menuttl "$::em::e_menu_version"
   variable exedir [file normalize [file dirname [info script]]]
   variable srcdir [file join $::em::exedir "src"]
@@ -42,7 +42,6 @@ namespace eval em {
 }
 
 source [file join $::em::srcdir "e_help.tcl"]
-source [file join $::em::srcdir "obbit.tcl"]
 
 #source ~/PG/bb.tcl ;# degu-bb-ing
 
@@ -375,8 +374,11 @@ proc ::em::edit {fname {prepost ""}} {
   set fname [string trim $fname]
   if {$::em::editor == ""} {
     set ::em::skipfocused 1
-    return [::edit_file $fname $::em::clrfE $::em::clrbE $::em::clrcc \
-      $prepost {*}[::em::theming_pave]]
+    PaveInput create dialog "" $::em::srcdir
+    set res [dialog editfile $fname $::em::clrfE $::em::clrbE $::em::clrcc \
+      $prepost {*}[::em::theming_pave] -w {110 80} -h 24]
+    dialog destroy
+    return $res
   } else {
     if {[catch {exec $::em::editor {*}$fname &} e]} {
       em_message "ERROR: couldn't call $::em::editor'\n
@@ -910,6 +912,7 @@ proc ::em::IF {rest} {
       set comm $thencomm
     }
     set comm [string trim $comm]
+    catch {set comm [subst -nobackslashes $comm]}
     if {$comm!=""} {
       switch [string range $comm 0 2] {
         "%Q " -
@@ -1033,7 +1036,7 @@ proc ::em::shell_run { from typ c1 s1 amp {inpsel ""} } {
     }
   }
   if {$doexit > 0} {::em::on_exit}
-  if {$inc} {                          ;# all buttons texts may need to update
+  if {$inc} {                        ;# all buttons texts may need to update
     update_itname $::em::lasti $inc  ;# because all may include %s1, %s2...
   }
   update_buttons_pn
@@ -1069,6 +1072,7 @@ proc ::em::callmenu { typ s1 {amp ""} {from ""}} {
   set pars "$::em::inherited a= a0= a1= a2= ah= n= pa=0 $pars"
   set pars [string map [list "b=%b" "b=$::eh::my_browser"] $pars]
   set pars "ch=1 g=+[expr 10+[winfo x .]]+[expr 15+[winfo y .]] $pars"
+  if {$::em::ontop} {append pars " t=1"}
   prepr_1 pars "cb" [::em::get_callback]      ;# %cb is callback of caller
   prepr_1 pars "in" [string range $s1 1 end]  ;# %in is menu's index
   set sel "wish \"$::argv0\""
@@ -1515,7 +1519,9 @@ proc ::em::menuof { commands s1 domenu} {
       }
       "RE/" -
       "RE:"  { set prom "EXEC        "
-        set runp "::em::run $typ";   set amp "&$::em::mute ; ::em::on_exit"
+        set runp "::em::run $typ"
+        set amp "&$::em::mute"
+        if {!$::em::ontop} {append amp "; ::em::on_exit"}
       }
       "RW/" -
       "RW:" { set prom "RUN & WAIT  "
@@ -1527,7 +1533,9 @@ proc ::em::menuof { commands s1 domenu} {
       }
       "SE/" -
       "SE:"  { set prom "SHELL       "
-        set runp "::em::shell $typ"; set amp "&$::em::mute ; ::em::on_exit"
+        set runp "::em::shell $typ"
+        set amp "&$::em::mute"
+        if {!$::em::ontop} {append amp "; ::em::on_exit"}
       }
       "SW/" -
       "SW:" { set prom "SHELL & WAIT"
@@ -1659,7 +1667,7 @@ proc ::em::prepare_buttons {refcommands} {
 proc ::em::staytop_toggle {} {
   if {$::em::ncmd > [expr $::em::begsel+1]} {
     set ::em::begin [expr {$::em::begin == 1} ? ($::em::begsel+1) : 1]
-    set ::em::start0 1
+    set ::em::start0 2
     reread_menu
     set ::em::start0 0
   }
@@ -2196,7 +2204,7 @@ proc ::em::initmenu {} {
   update
   set isgeom [string len $::em::geometry]
   wm title . "${::em::menuttl}"
-  if {$::em::start0} {
+  if {$::em::start0==1} {
     if {![iswindows] || !$isgeom} {
       wm geometry . $::em::geometry
     }
@@ -2296,7 +2304,6 @@ proc ::em::initauto {} {
 }
 #=== begin inits
 proc ::em::initbegin {} {
-  oo::define PaveMe {mixin ObjectTheming}
   try {ttk::style theme use clam}
   if {[iswindows]} { ;# maybe nice to hide all windows manipulations
     wm attributes . -alpha 0.0
