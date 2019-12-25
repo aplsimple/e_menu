@@ -163,8 +163,8 @@ oo::class create pave::PaveInput {
     return $res
   }
 
-  # edit/view a file
-  method editviewFile {fname {prepost ""} args} {
+  # view/edit a file
+  method vieweditFile {fname {prepost ""} args} {
     return [my editfile $fname "" "" "" $prepost {*}$args]
   }
 

@@ -34,21 +34,23 @@
  RW:fossil diff ? RW: fossil tim -t ci -n 11 > $::EMENUTMPFILE
  R:fossil diff ? R: %I {} "DIFF" { \
    v_ {{} {-pady 4} {}} {} \
-   fco1 {{From:} {} {-h 10 -inpval "$::EMENUCOMMIT1"}} \
+   fco1  {{From :} {} {-h 10 -inpval "$::EMENUCOMMIT1"}} \
      {/@-div1 "\[" -div2 "\]" -ret 1 $::EMENUTMPFILE/@    INFO: /@-div1 "\] " $::EMENUTMPFILE/@} \
-   fco2 {{To  :} {} {-h 10 -inpval "$::EMENUCOMMIT2"}} \
+   fco2  {{To   :} {} {-h 10 -inpval "$::EMENUCOMMIT2"}} \
      {/@-div1 "\[" -div2 "\]" -ret 1 $::EMENUTMPFILE/@    INFO: /@-div1 "\] " $::EMENUTMPFILE/@} \
+   chbBr {{Brief:} {-pady 4} {-var ::EMENUBRIEF}} {} \
    seh {{} {-pady 3} {}} {} \
    texc {{Hint:} {} {-h 9 -w 70 -ro 1 -wrap word}} \
    {\n Select versions from the comboboxes to be compared.\n\n By default, 'tip' is compared to current files.\n\n A version may be 'tip', 'current', 'next', 'prev'.\n\n (temp file: $::EMENUTMPFILE)} \
    } -head {\n This will compare selected versions of\n     %PD} \
-   -weight bold == ::EMENUCOMMIT1 ::EMENUCOMMIT2
+   -weight bold == ::EMENUCOMMIT1 ::EMENUCOMMIT2 ::EMENUBRIEF
  R:fossil diff ? R: %C if {"$::EMENUCOMMIT1" eq ""} \
    {set ::EMENUTMP1 ""} {set ::EMENUTMP1 "--from $::EMENUCOMMIT1"}
  R:fossil diff ? R: %C if {"$::EMENUCOMMIT2" eq ""} \
    {set ::EMENUTMP2 ""} {set ::EMENUTMP2 "--to $::EMENUCOMMIT2"}
  R:fossil diff ? R: %C if {"$::EMENUCOMMIT1$::EMENUCOMMIT2" eq "$::EMENUCOMMIT2"} \
    {set ::EMENUTMP1 "--from current"; set ::EMENUTMP2 "--to tip"}
+ R:fossil diff ? R: %C if {$::EMENUBRIEF} {append ::EMENUTMP2 " -brief"}
  S:fossil diff ? S: fossil diff $::EMENUTMP1 $::EMENUTMP2
 
  S:fossil add %F ? S: cd %PD
@@ -64,7 +66,7 @@
    v_ {{} {-pady 4} {}} {} \
    fil1 {{   File:} {} {-w 70}} {"$::EMENUFILE"} \
    } -head {\n This will forget a file in the Fossil repository. \
-   \n Use wildcards to forget a few.} -hfg ::em::clrhot -weight bold == ::EMENUFILE
+   \n Use wildcards to forget a few.} -hfg $::em::clrhotk -weight bold == ::EMENUFILE
  S:fossil forget %F S: fossil forget $::EMENUFILE
 
  S:fossil revert %F ? S: cd %PD
@@ -74,7 +76,7 @@
    } -head {\n This will revert changes of a file in the Fossil repository \
    \n thus restoring a last check-in contents of the file. \
    \n\n Use wildcards to revert a few. \
-   \n\n You can undo this with 'fossil undo'.} -hfg ::em::clrhot -weight bold == ::EMENUFILE
+   \n\n You can undo this with "fossil undo".} -hfg $::em::clrhotk -weight bold == ::EMENUFILE
  S:fossil revert %F ? S: fossil revert $::EMENUFILE
 
  R: R: 2
@@ -152,10 +154,11 @@ t4==%b-%Y/%U-week
 u=%s
 o=0
 in=1.0
-pos=77.64
+pos=41.47
 g=+500+50
 ::FSLUSER=aplsimple
 ::FSLBRANCH=""
 ::EMENUTMPFILE=%mn.tmp~
+::EMENUBRIEF=1
 %C if {{%F}=={*} && ![info exist ::EMENUFILE]} {set ::EMENUFILE "*"}
 %C if {![info exist ::EMENUFILE]} {set ::EMENUFILE "%f"}
