@@ -90,7 +90,13 @@ proc doctest::ERR {args} { MES ERROR {*}$args }
 
 proc doctest::strip_upcase {st} {
 
-  return [string trim [string toupper [string map {{ } _} $st]] { _}]
+  return [string toupper [string map {{ } _} [string trim $st { _}]]]
+}
+
+# previous proc's value, with \n (to find an exact "-b" block name)
+proc doctest::strip_upcase_nn {st} {
+
+  return "\n[strip_upcase $st]\n"
 }
 
 ###################################################################
@@ -151,7 +157,7 @@ proc doctest::get_test_blocks {} {
       if {$block_begins} {
         return [list 1 [list]]     ;# unpaired begins
       }
-      set tname \n[string toupper [string range $st [string len $BL_BEGIN] end]]\n
+      set tname [strip_upcase_nn [string range $st [string len $BL_BEGIN] end]]
       set doit [expr {$options(-b)=="" || [string first $tname $options(-b)]>=0}]
       if {$doit} {
         lappend test_blocks [expr {$ind + 1}] ;# begin of block
@@ -293,7 +299,7 @@ proc doctest::execute_and_check {block safe commands results} {
 ###################################################################
 # Test block of commands and their results
 
-proc doctest::test_block {begin end blk safe verbose} {
+proc doctest::do_block {begin end blk safe verbose} {
 
   variable UNDER
   variable options
@@ -336,7 +342,7 @@ proc doctest::test_block {begin end blk safe verbose} {
   return $block_ok
 }
 
-proc doctest::test_blocks {blocks safe verbose} {
+proc doctest::do_test {blocks safe verbose} {
 
   variable HINT1
   variable UNDER
@@ -344,7 +350,7 @@ proc doctest::test_blocks {blocks safe verbose} {
   set all_ok -1
   set ptested [set ntested [set ntestedany 0]]
   foreach {begin end blk} $blocks {
-    set block_ok [test_block $begin $end $blk $safe $verbose]
+    set block_ok [do_block $begin $end $blk $safe $verbose]
     if {$block_ok!=-1} {
       if {$block_ok} {
         incr ptested
@@ -386,7 +392,7 @@ proc doctest::init {args} {
     }
     switch -glob $opt {
       -s - -v { set options($opt) $val }
-      -b      { set options($opt) "$options($opt) \n[strip_upcase $val]\n " }
+      -b      { set options($opt) "$options($opt) [strip_upcase_nn $val] " }
       --      { set off 1 }
       default {
         append options(fn) " $opt $val"
@@ -434,7 +440,7 @@ proc doctest::do {} {
   variable options
   lassign [get_test_blocks] error blocks
   switch $error {
-    0 { test_blocks $blocks $options(-s) $options(-v)}
+    0 { do_test $blocks $options(-s) $options(-v)}
     1 { ERR "Unpaired: $TEST_BEGIN$HINT1" }
     2 { ERR "Unpaired: $TEST_END$HINT1" }
   }

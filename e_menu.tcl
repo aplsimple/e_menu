@@ -9,21 +9,21 @@
 
 # Test cases:
 
-  #% doctest
+  # run doctest in console to view all debugging "puts"
 
-  # run xterm to view all debugging "puts" in terminal
+  #% doctest 1
+  #% exec xterm -e tclsh /home/apl/PG/github/e_menu/e_menu.tcl z5=~ "s0=PROJECT" "x0=EDITOR" "x1=THEME" "x2=SUBJ" b=firefox PD=~/.tke d=~/.tke s1=~/.tke "F=*" f=/home/apl/PG/Tcl-Tk/projects/mulster/mulster.tcl md=~/.tke/plugins/e_menu/menus m=menu.mnu fs=8 w=30 o=0 c=0 s=selected g=+0+30 &
+  #> doctest
 
-  #% exec xterm -e tclsh /home/apl/TKE-clone/TKE-clone/plugins/e_menu/e_menu/e_menu.tcl z5=~ "s0=PROJECT" "x0=EDITOR" "x1=THEME" "x2=SUBJ" b=firefox PD=~/.tke d=~/.tke s1=~/.tke "F=*" f=/home/apl/PG/Tcl-Tk/projects/mulster/mulster.tcl md=~/.tke/plugins/e_menu/menus m=menu.mnu fs=8 w=30 o=0 c=0 s=selected g=+0+30 &
-
-  #% exec lxterminal -e tclsh /home/apl/TKE-clone/TKE-clone/plugins/e_menu/e_menu/e_menu.tcl z5=~ "s0=PROJECT" "x0=EDITOR" "x1=THEME" "x2=SUBJ" b=firefox PD=~/.tke d=~/.tke s1=~/.tke "F=*" md=~/.tke/plugins/e_menu/menus m=side.mnu o=1 c=4 fs=8 s=selected g=+200+100 &
+  #% doctest 2
+  #% exec lxterminal -e tclsh /home/apl/PG/github/e_menu/e_menu.tcl z5=~ "s0=PROJECT" "x0=EDITOR" "x1=THEME" "x2=SUBJ" b=firefox PD=~/.tke d=~/.tke s1=~/.tke "F=*" md=~/.tke/plugins/e_menu/menus m=side.mnu o=1 c=4 fs=8 s=selected g=+200+100 &
   # ------ no result is waited here ------
-
   #> doctest
 
 #####################################################################
 
 namespace eval em {
-  variable e_menu_version "e_menu v1.41"
+  variable e_menu_version "e_menu v1.42"
   variable exedir [file normalize [file dirname [info script]]]
   variable srcdir [file join $::em::exedir "src"]
 }
@@ -45,7 +45,7 @@ set colorschemes {
   { #FEEC9A #FFFFFF #262626 #2E2D2B #FEEC9A #A0A0A0 #000000  #FFA500 grey}
   { #3D2B06 #000000 #FFFFFF #EAF5D7 #3D2B06 #84987D #FFFFFF  #B66425 grey}
   { #122B05 #000000 #FFFFFF #D9F3D9 #562222 #84987D #FFFFFF  #B66425 #D9F3D8}
-  { #FEEFA8 #FFFFFF #222A2F #2D435B #FEEFA8 #8CC6D9 #000000  #A8EFEF grey}
+  { #FEEFA8 #FFFFFF #222A2F #2D435B #FEEFA8 #8CC6D9 #000000  #4EADAD grey}
   { white   white   #340202 #440702 yellow  #EE7C7C black    yellow  magenta}
   { #FEEC9A #FFFFFF #2D3634 #33423C #FEEC9A #A4C2AD #000000  #FFA500 grey}
   { #FEEC9A #FFFFFF #251D08 #302202 #FEEC9A #B7A78C #000000  #FFA500 grey}
@@ -58,7 +58,7 @@ set colorschemes {
   { #122B05 #000000 #FFFFFF #D9F3D9 #562222 #84987D #FFFFFF  #B66425 grey}
   { #2B1E05 #000000 #FFFFFF #CBD6C4 #2B1E05 #84987D #FFFFFF  #B66425 grey}
 } ;# = text1 text2    bg     items  itemsHL  actbg   actfg    hot   greyed
-   # clr     clrinaf    clrtitb    clrinab   clrhelp  clractb   clractf   clrhotk clrgrey
+   # clr    clrinaf clrtitb clrinab clrhelp clractb clractf clrhotk clrgrey
 
 # *******************************************************************
 # internal trifles:
@@ -373,7 +373,7 @@ proc ::em::edit {fname {prepost ""}} {
     set ::em::skipfocused 1
     ::pave::PaveInput create dialog
     set res [dialog editfile $fname $::em::clrtitf $::em::clrinab \
-      $::em::clrtitf $prepost {*}[::em::theming_pave] -w {110 80} -h 24 -ro 0]
+      $::em::clrtitf $prepost {*}[::em::theming_pave] -w {80 100} -h {10 30} -ro 0]
     dialog destroy
     return $res
   } else {
@@ -501,7 +501,8 @@ proc ::em::save_options {} {
   }
 }
 #=== initialize values of menu's variables
-proc ::em::init_menuvars {} {
+proc ::em::init_menuvars {domenu options} {
+  if {!($domenu && $options)} return
   set opt 0
   foreach line $::em::menufile {
     if {$line=="\[OPTIONS\]"} {
@@ -793,7 +794,9 @@ proc ::em::checkForShell {rsel} {
 proc ::em::shell0 {sel amp {silent -1}} {
   set ret true
   catch {set sel [subst -nobackslashes -nocommands $sel]}
-  if {[::iswindows]} {
+  if {[run_Tcl_code $sel]} {
+    # processed
+  } elseif {[::iswindows]} {
     set composite "$::win_console $sel $amp"
     catch {
       # here we construct new .bat containing all lines of the command
@@ -831,7 +834,11 @@ proc ::em::shell0 {sel amp {silent -1}} {
 }
 #=== run a code of Tcl
 proc ::em::run_Tcl_code {sel {dosubst false}} {
-  if {[string first "%C " $sel] == 0} {
+  if {[string first "%U" $sel] == 0} {
+    ::em::reread_menu  ;# updating menu (items' names depending on variables)
+    return true
+  }
+  if {[string first "%C" $sel] == 0} {
     if {$dosubst} {prepr_pn sel}
     try {
       set sel [string range $sel 3 end]
@@ -1077,9 +1084,10 @@ proc ::em::callmenu { typ s1 {amp ""} {from ""}} {
   set pars [get_seltd $s1]
   set pars [before_callmenu $pars]
   if {$pars==""} return
+  set cho ch=[expr {[string range $typ 0 1] ne "ME" || $::em::ontop}]
   set pars "$::em::inherited a= a0= a1= a2= ah= n= pa=0 $pars"
   set pars [string map [list "b=%b" "b=$::eh::my_browser"] $pars]
-  set pars "ch=1 g=+[expr 10+[winfo x .]]+[expr 15+[winfo y .]] $pars"
+  set pars "$cho g=+[expr 10+[winfo x .]]+[expr 15+[winfo y .]] $pars"
   if {$::em::ontop} {append pars " t=1"}
   prepr_1 pars "cb" [::em::get_callback]      ;# %cb is callback of caller
   prepr_1 pars "in" [string range $s1 1 end]  ;# %in is menu's index
@@ -1450,9 +1458,7 @@ proc ::em::menuof { commands s1 domenu} {
   set doafter false
   set lappend "lappend comms"
   set ::em::commhidden {0}
-  set hidden 0
-  set options 0
-  set ilmenu 0
+  set hidden [set options [set ilmenu 0]]
   set separ ""
   while {1} {
     if {$domenu} {
@@ -1479,6 +1485,7 @@ proc ::em::menuof { commands s1 domenu} {
     }
     set line [set origline [string trimleft $line]]
     if {$line == "\[MENU\]"} {
+      ::em::init_menuvars $domenu $options
       set options [set hidden 0]
       continue
     }
@@ -1488,6 +1495,7 @@ proc ::em::menuof { commands s1 domenu} {
       continue
     }
     if {$line == "\[HIDDEN\]"} {
+      ::em::init_menuvars $domenu $options
       set hidden 1
       set options 0
       set lappend "lappend ::em::commhidden"
@@ -1517,6 +1525,7 @@ proc ::em::menuof { commands s1 domenu} {
     prepr_init name
     prepr_init prog
     prepr_win prog $typ
+    catch {set name [subst $name]}  ;# any substitutions in names
     switch $typ {
       "I:" {   ;#internal (M, Q, S, T)
         prepr_pn prog
@@ -1622,7 +1631,8 @@ proc ::em::menuof { commands s1 domenu} {
   if {$doafter} { ;# after N sec: check times/dates
     ::em::repeate_update_buttons
   }
-  if {$domenu} {close $chan} else ::em::init_menuvars
+  if {$domenu} {close $chan}
+  ::em::init_menuvars $domenu $options
 }
 #=== prepare buttons' contents
 proc ::em::prepare_buttons {refcommands} {
@@ -2403,6 +2413,7 @@ proc ::em::initbegin {} {
   update idletasks
   encoding system "utf-8"
   bind . <F1> {::em::help}
+  pave::setAppIcon . [file join $::em::srcdir e_menu.png]
 }
 #=== end up inits
 proc ::em::initend {} {
