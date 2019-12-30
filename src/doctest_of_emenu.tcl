@@ -189,7 +189,6 @@ proc doctest::get_line {type i prevcontinuedName} {
   upvar $prevcontinuedName prevcontinued
   variable NOTHING
   variable TEST_RESULT
-  set st [string trimleft [get_line_contents $i]]
   set st [get_line_contents $i]
   set strimmed [string trimleft $st]
   set tpos [string first $type $strimmed]
@@ -375,6 +374,33 @@ proc doctest::do_test {blocks safe verbose} {
   }
 }
 
+  ###################################################################
+  # check if "doctest source" and return sourced name or ""
+
+  proc doctest::sourced_line {line} {
+
+    variable TEST_COMMAND
+    return [regexp -nocase -inline \
+        "^\\s*$TEST_COMMAND\\s+DOCTEST\\s+SOURCE\\s+" $line]
+
+  }
+
+  ###################################################################
+  # check if the line is "doctest quote"
+
+  proc doctest::is_quoted_line {line} {
+
+    variable BL_BEGIN
+    variable BL_END
+    if {[sourced_line $line] eq ""} {
+      set st [strip_upcase $line]
+      if {[string first $BL_BEGIN $st]==0} { return 1 }
+      if {[string first $BL_END $st]==0}   { return 2 }
+    }
+    return 0
+
+  }
+
 ###################################################################
 # Get text of file and options
 
@@ -382,6 +408,10 @@ proc doctest::init {args} {
 
   variable options
   variable TEST_COMMAND
+  variable TEST_BEGIN
+  variable TEST_END
+  variable BL_BEGIN [strip_upcase $TEST_BEGIN]
+  variable BL_END   [strip_upcase $TEST_END]
   array set options {fn "" cnt {} -s 1 -v 1 -b {}}
   if {[llength $args] == 0} exit_on_error
   set off 0
@@ -410,17 +440,26 @@ proc doctest::init {args} {
   set cnt [split [read $ch] \n]
   close $ch
   # source all tests (by #% source ...)
+  set isany [set isopen 0]
+  foreach line $cnt {
+    if {[is_quoted_line $line]==1} { set isany 1;  break }
+  }
   set options(cnt) {}
   foreach line $cnt {
-    set foundptn [regexp -nocase -inline \
-      "^\\s*$TEST_COMMAND\\s+DOCTEST\\s+SOURCE\\s+" $line]
-    if {[set sl [string length $foundptn]]} {
-      set fn [string trim [string range $line $sl-2 end]]
-      if {[catch {set ch [open $fn]}]} {
-        exit_on_error "PWD: [pwd]\n\"$fn\" not open by\n $line"
+    set sll [string length [sourced_line $line]]
+    if {$isany && !$sll} {
+      if {[is_quoted_line $line]==1} { set isopen 1 }
+      if {[is_quoted_line $line]==2} { set isopen 0 }
+    }
+    if {$sll} {
+      if {!$isany || $isopen} {  ;# ignore 'source' outside of any blocks
+        set fn [string trim [string range $line $sll-2 end]]
+        if {[catch {set ch [open $fn]}]} {
+          exit_on_error "PWD: [pwd]\n\"$fn\" not open by\n $line"
+        }
+        foreach l [split [read $ch] \n] { lappend options(cnt) $l }
+        close $ch
       }
-      foreach l [split [read $ch] \n] { lappend options(cnt) $l }
-      close $ch
     } else {
       lappend options(cnt) $line
     }
@@ -435,8 +474,6 @@ proc doctest::do {} {
   variable TEST_BEGIN
   variable TEST_END
   variable HINT1
-  variable BL_BEGIN [strip_upcase $TEST_BEGIN]
-  variable BL_END   [strip_upcase $TEST_END]
   variable options
   lassign [get_test_blocks] error blocks
   switch $error {

@@ -23,7 +23,7 @@
 #####################################################################
 
 namespace eval em {
-  variable e_menu_version "e_menu v1.42"
+  variable e_menu_version "e_menu v1.43"
   variable exedir [file normalize [file dirname [info script]]]
   variable srcdir [file join $::em::exedir "src"]
 }
@@ -471,9 +471,13 @@ proc ::em::FileAttributes {fname {attrs "-"} {atime ""} {mtime ""} } {
    file atime $fname $atime
    file mtime $fname $mtime
   }
-#=== save options in the menu file
-proc ::em::save_options {} {
-  if {$::em::savelasti<0} return
+#=== save options in the menu file (by default - current selected item)
+proc ::em::save_options {{setopt "in="} {setval ""}} {
+  if {$setopt eq "in="} {
+    if {$::em::savelasti<0} return
+    set setval $::em::lasti.$::em::begsel
+  }
+  set setval "$setopt$setval"
   set menudata [::em::read_menufile]
   set opt [set i [set ifnd [set ifnd1 0]]]
   foreach line $menudata {
@@ -481,7 +485,7 @@ proc ::em::save_options {} {
       set opt 1
     } elseif {$opt} {
       set ifnd $i
-      if [string match "in=*" $line] {
+      if {[string match "${setopt}*" $line]} {
         set ifnd1 $i
         break
       }
@@ -490,15 +494,15 @@ proc ::em::save_options {} {
     }
     incr i
   }
-  if {$ifnd} {  ;# if no OPTIONS section, nothing to do
-    set opt1 in=$::em::lasti.$::em::begsel
-    if {$ifnd1} {
-      set menudata [lreplace $menudata $ifnd1 $ifnd1 $opt1]
-    } else {
-      set menudata [linsert $menudata $ifnd1 $opt1]
-    }
-    ::em::write_menufile $menudata
+  if {!$ifnd} {  ;# no OPTIONS section - add it
+    lappend menudata \n "\[OPTIONS\]"
   }
+  if {$ifnd1} {
+    set menudata [lreplace $menudata $ifnd1 $ifnd1 $setval]
+  } else {
+    lappend menudata $setval
+  }
+  ::em::write_menufile $menudata
 }
 #=== initialize values of menu's variables
 proc ::em::init_menuvars {domenu options} {
@@ -1888,6 +1892,8 @@ proc ::em::initcommands { lmc amc osm {domenu 0} } {
         if {$s1=="s="} {
           set seltd [string map [ list \" \\\" "\\" "\\\\" "\$" "\\\$" \
           "\}" "\\\}"  "\{" "\\\{"  "\]" "\\\]"  "\[" "\\\[" ] $seltd]
+        } elseif {$s1 in {f= d=}} {
+          set seltd [string trim $seltd \'\"\`]  ;# for some FM peculiarities
         }
         set ::em::inherited "$::em::inherited \"$s1$seltd\""
       }
@@ -2177,13 +2183,13 @@ proc ::em::initpopup {} {
       -command ::em::reread_init
   .popupMenu add command -accelerator Ctrl+D -label "Destroy other menus" \
       -command ::em::destroy_emenus
-  .popupMenu add command -accelerator Ctrl+G -label "Show the menu's geometry" \
-      -command ::em::show_menu_geometry
   .popupMenu add separator
   .popupMenu add command -accelerator Ctrl+> -label "Increase the menu's width" \
       -command {::em::win_width 1}
   .popupMenu add command -accelerator Ctrl+< -label "Decrease the menu's width" \
       -command  {::em::win_width -1}
+  .popupMenu add command -accelerator Ctrl+G -label "Set the menu's geometry" \
+      -command ::em::set_menu_geometry
   .popupMenu add separator
   .popupMenu add command -accelerator F1 -label "About" -command ::em::help
   foreach {t e r d g} {t e r d g T E R D G} {
@@ -2191,7 +2197,7 @@ proc ::em::initpopup {} {
     bind . <Control-$e> {::em::edit_menu}
     bind . <Control-$r> {::em::reread_init}
     bind . <Control-$d> {::em::destroy_emenus}
-    bind . <Control-$g> {::em::show_menu_geometry}
+    bind . <Control-$g> {::em::set_menu_geometry}
   }
   option add *Menu.tearOff 1
   .popupMenu configure -tearoff 0
@@ -2335,9 +2341,15 @@ proc ::em::help {} {
     ::eh::browse $site
   }
 }
-#=== show the menu's geometry
-proc ::em::show_menu_geometry {} {
-  M "   WxH+X+Y = [wm geometry .]  "
+#=== save the menu's geometry
+proc ::em::set_menu_geometry {} {
+  set geo [wm geometry .]
+  if {[::em::em_question "Set the geometry" \
+  "\n The current menu's geometry is\n     WxH+X+Y = $geo
+  \n This geometry will be set for all calls of it.\n" \
+  okcancel ques CANCEL]} {
+    save_options "g=" $geo
+  }
 }
 #=== exit (end of e_menu)
 proc ::em::on_exit {{really 1}} {

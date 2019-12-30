@@ -3,7 +3,7 @@
 [OPTIONS]
 n=< git >
 in=1.0
-pos=28.3
+pos=5.3
 ::GITCOMMIT=""
 ::EMENUTMPFILE=%mn.tmp~
 %C if {![info exist ::EMENUCOMMIT]} {set ::EMENUCOMMIT [set ::EMENUCOMMIT2 ""]}
