@@ -62,7 +62,6 @@
  S: GREP REGEXP recursive ignoring case ? S: echo "DIR:\n%d\n"\ngrep -E -H -n -I -s -i -d recurse * -e '$::EMENUFIND'
 
 [OPTIONS]
-n=< grep >
 w=45
 o=0
 in=1.0

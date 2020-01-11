@@ -1,7 +1,6 @@
  ; git menu for e_menu.tcl
 
 [OPTIONS]
-n=< git >
 in=1.0
 pos=5.3
 ::GITCOMMIT=""

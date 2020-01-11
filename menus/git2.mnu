@@ -55,7 +55,6 @@
 [OPTIONS]
 
 # git directory #2
-n=< git 2 >
 d=~/.tke
 x1=plugins
 x2=: add_shortcut, e_menu

@@ -23,7 +23,7 @@
 #####################################################################
 
 namespace eval em {
-  variable e_menu_version "e_menu v1.45"
+  variable e_menu_version "e_menu v1.46"
   variable exedir [file normalize [file dirname [info script]]]
   variable srcdir [file join $::em::exedir "src"]
 }
@@ -1901,7 +1901,7 @@ proc ::em::initcommands { lmc amc osm {domenu 0} } {
         y0= y1= y2= y3= y4= y5= y6= y7= y8= y9= \
         z0= z1= z2= z3= z4= z5= z6= z7= z8= z9= \
         a= d= e= f= p= l= h= b= c= t= g= n= \
-        fg= bg= fE= bE= fS= bS= fI= bI= cc= gr= ht= \
+        fg= bg= fE= bE= fS= bS= fI= bI= cc= gr= ht= rt= \
         m= om= ts= TF= yn= cb= in=} { ;# the processing order is important
     if {($s1 in {o= s= m=}) && !($s1 in $osm)} {
       continue
@@ -2037,6 +2037,13 @@ proc ::em::initcommands { lmc amc osm {domenu 0} } {
         ln= { set ::em::ln [::getN $seltd]}
         cn= { set ::em::cn [::getN $seltd]}
         yn= { set ::em::yn [::getN $seltd]}
+        rt= { ;# ratio "min.size / init.size"
+          lassign [split $seltd /] i1 i2
+          if {[string is integer $i1] &&[string is integer $i2] && \
+              $i1!= 0 && $i2!= 0 && $i1/$i2<=1} {
+            set ::em::ratiomin "$i1/$i2"
+          }
+        }
         default {
           if {$s1 in {TF=} || [string range $s1 0 0] in {x y z}} {
             ;# x* y* z* general substitutions

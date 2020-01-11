@@ -75,7 +75,6 @@ RW: Differences of %F (fossil/git) RW: fossil tim -t ci -n 11 > $::EMENUTMPFILE
  ME: Utils ME: m=utils.mnu
 
 [OPTIONS]
-n=< e_menu >
 in=1.0
 bd=1
 b1=0
