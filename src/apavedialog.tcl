@@ -1,13 +1,13 @@
 ###########################################################################
 #
-# This script contains the PaveDialog class that provides a batch of
+# This script contains the APaveDialog class that provides a batch of
 # standard dialogs with advanced features.
 #
 # Use:
-#   package require pave
+#   package require apave
 #   ...
 #   catch {pdlg destroy}
-#   pave::PaveDialog create pdlg win
+#   apave::APaveDialog create pdlg win
 #   pdlg DIALOG ARGS
 # where:
 #   DIALOG stands for the following dialog types:
@@ -39,21 +39,21 @@
 
 package require Tk
 
-source [file join [file dirname [info script]] paveme.tcl]
+source [file join [file dirname [info script]] apave.tcl]
 
-namespace eval pave {
-  source [file join [file dirname [info script]] paveimg.tcl]
+namespace eval apave {
+  source [file join [file dirname [info script]] apaveimg.tcl]
 }
 
 
-oo::class create pave::PaveDialog {
+oo::class create apave::APaveDialog {
 
-  superclass pave::PaveMe
+  superclass apave::APave
 
   variable _pdg
 
   constructor {{win ""} args} {
-    # keep the 'important' data of PaveDialog object in array
+    # keep the 'important' data of APaveDialog object in array
     array set _pdg {}
     # dialogs are bound to "$win" window e.g. ".mywin.fra", default "" means .
     set _pdg(win) $win
@@ -61,7 +61,7 @@ oo::class create pave::PaveDialog {
     # namespace in object namespace for safety of its 'most important' data
     namespace eval ${_pdg(ns)}PD {}
     foreach icon {err info warn ques} {
-      image create photo ${_pdg(ns)}PD::img$icon -data [set pave::img_$icon]
+      image create photo ${_pdg(ns)}PD::img$icon -data [set apave::img_$icon]
     }
     if {[llength [self next]]} { next {*}$args }
   }
@@ -139,12 +139,12 @@ oo::class create pave::PaveDialog {
   method misc {icon ttl msg butts {defb ""} args} {
     # butts is a list of pairs "title of button" "number/ID of button"
     foreach {nam num} $butts {
-      lappend pave_msc_bttns but$num "$nam" $num
+      lappend apave_msc_bttns but$num "$nam" $num
       if {$defb==""} {
         set defb $num
       }
     }
-    return [my Query $icon $ttl $msg $pave_msc_bttns but$defb {} [my PrepArgs $args]]
+    return [my Query $icon $ttl $msg $apave_msc_bttns but$defb {} [my PrepArgs $args]]
   }
 
   #########################################################################

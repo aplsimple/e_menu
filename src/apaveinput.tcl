@@ -1,12 +1,12 @@
 ###########################################################################
 #
-# This script contains the PaveInput class that allows:
+# This script contains the APaveInput class that allows:
 #   - to create input dialogs
 #   - to edit text files
 #
 # Use for input dialogs:
-#   package require pave
-#   pave::PaveInput create pinp $win
+#   package require apave
+#   apave::APaveInput create pinp $win
 #   pinp input $icon $ttl $iopts $args
 # where:
 #   win     - window's path
@@ -16,11 +16,11 @@
 #     - name of field
 #     - prompt (and possibly gridopts, widopts) of field
 #     - options for value of field
-#   args - PaveDialog options
+#   args - APaveDialog options
 #
 # Use for editing files:
-#   package require pave
-#   pave::PaveInput create pinp $win
+#   package require apave
+#   apave::APaveInput create pinp $win
 #   pinp editfile $fname $fg $bg $cc $prepost $args
 # where:
 #   fname - name of edited file
@@ -34,16 +34,16 @@
 
 package require Tk
 
-package provide pave 1.5
+package provide apave 2.0
 
-source [file join [file dirname [info script]] pavedialog.tcl]
+source [file join [file dirname [info script]] apavedialog.tcl]
 
-namespace eval pave {
+namespace eval apave {
 }
 
-oo::class create pave::PaveInput {
+oo::class create apave::APaveInput {
 
-  superclass pave::PaveDialog
+  superclass apave::APaveDialog
 
   variable _pdg
 
@@ -119,7 +119,8 @@ oo::class create pave::PaveInput {
           lappend inopts [list fraM.fra$name.sbv$name $ff L - - "pack -fill y"]
         }
         la {
-          lappend inopts [list $ff - - - - "pack $gopts" "$attrs"]
+          if {$prompt ne ""} { set prompt "-t \"$prompt\" " } ;# prompt as -text
+          lappend inopts [list $ff - - - - "pack $gopts" "$prompt$attrs"]
           continue
         }
         default {
