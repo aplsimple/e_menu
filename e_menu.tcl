@@ -23,7 +23,7 @@
 #####################################################################
 
 namespace eval em {
-  variable e_menu_version "e_menu v1.44"
+  variable e_menu_version "e_menu v1.45"
   variable exedir [file normalize [file dirname [info script]]]
   variable srcdir [file join $::em::exedir "src"]
 }
@@ -1439,8 +1439,7 @@ proc ::em::menuof { commands s1 domenu} {
   upvar $commands comms
   set seltd [get_seltd $s1]
   if {$domenu} {
-    set ::em::menuttl \
-        "[string map {"\\" "/"} [file tail $seltd]] - $::em::e_menu_version"
+    set ::em::menuttl "< [file rootname $seltd] >"
     set seltd [file normalize [get_menuname $seltd]]
     if { [catch {set chan [open "$seltd"]} e] } {
       ::em::initcolorscheme
@@ -1978,7 +1977,7 @@ proc ::em::initcommands { lmc amc osm {domenu 0} } {
           lassign [split $seltd \n] seltd
           set ::em::arr_geany([string range $s1 0 0]) $seltd
         }
-        n= { set ::em::menuttl $seltd }
+        n= { if {$seltd ne ""} {set ::em::menuttl $seltd} }
         ah= { set ::em::autohidden $seltd}
         a0= { if {$::em::start0} { run_tcl_commands seltd } }
         a1= { set ::em::commandA1 $seltd}
@@ -2371,6 +2370,7 @@ proc ::em::set_menu_geometry {} {
 proc ::em::on_exit {{really 1}} {
   if {!$really && $::em::ontop} return  ;# let a menu stay on top, if so decided
   if {$::em::cb!=""} {    ;# callback the menu (i.e. the caller)
+    set ::em::cb [string map {< = > =} $::em::cb]
     if { [catch {exec tclsh {*}$::em::cb "&"} e] } { d $e }
   }
   # remove temporary files, at closing a parent menu
