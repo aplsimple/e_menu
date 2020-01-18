@@ -23,7 +23,7 @@
 #####################################################################
 
 namespace eval em {
-  variable e_menu_version "e_menu v1.46"
+  variable e_menu_version "e_menu v1.47"
   variable exedir [file normalize [file dirname [info script]]]
   variable srcdir [file join $::em::exedir "src"]
 }
@@ -512,9 +512,11 @@ proc ::em::init_menuvars {domenu options} {
       set opt 1
     } elseif {$opt && [run_Tcl_code $line true]} {
       # line of Tcl code - processed already
-    } elseif {$opt && [string match "::*=*" $line]} {
+    } elseif {$opt && [string match "::?*=*" $line]} {
       set ::em::ismenuvars 1
-      lassign [regexp -inline "::(.+)=(.*)" $line] ==> vname vvalue
+      set ieq [string first "=" $line]
+      set vname [string range $line 0 $ieq-1]
+      set vvalue [string range $line $ieq+1 end]
       if {![info exists $vname]} {
         catch {
           set ::$vname ""
@@ -592,6 +594,7 @@ proc ::em::vip {refcmd} {
   if { ([::iswindows] && [string toupper $cd] == "CD ") || $cd == "cd " } {
     prepr_win cmd "M/"  ;# force converting
     if {[set cd [string trim [string range $cmd 3 end]]] != "."} {
+      catch {set cd [subst -nobackslashes -nocommands $cd]}
       catch {cd $cd}
     }
     return true
@@ -1091,8 +1094,11 @@ proc ::em::callmenu { typ s1 {amp ""} {from ""}} {
   set pars "$::em::inherited a= a0= a1= a2= ah= n= pa=0 $pars"
   set pars [string map [list "b=%b" "b=$::eh::my_browser"] $pars]
   set pars "$cho g=+[expr 10+[winfo x .]]+[expr 15+[winfo y .]] $pars"
-  if {$::em::ontop} {append pars " t=1"}
-  prepr_1 pars "cb" [::em::get_callback]      ;# %cb is callback of caller
+  if {$::em::ontop} {
+    append pars " t=1"    ;# "ontop" means also "all menus stay on"
+  } else {
+    prepr_1 pars "cb" [::em::get_callback]    ;# %cb is callback of caller
+  }
   prepr_1 pars "in" [string range $s1 1 end]  ;# %in is menu's index
   set sel "wish \"$::argv0\""
   prepr_win sel "M/"  ;# force converting
@@ -2311,7 +2317,7 @@ proc ::em::initmenu {} {
   set isgeom [string len $::em::geometry]
   wm title . "${::em::menuttl}"
   if {$::em::start0==1} {
-    if {![iswindows] || !$isgeom} {
+    if {!$isgeom} {
       wm geometry . $::em::geometry
     }
   }
@@ -2324,11 +2330,9 @@ proc ::em::initmenu {} {
   wm minsize . $::em::minwidth $minheight
   if {$::em::start0} {
     wm geometry . [winfo width .]x${minheight}
-    if {[iswindows] && $isgeom} {
-      wm geometry . $::em::geometry
-    } elseif {$::em::wc || [iswindows]} { ;# this can be omitted in Linux
-      center_window . 0
-    }               ;# as 'wish' is centered in it
+    if {$::em::wc || [iswindows] && $::em::start0==1} {
+      center_window . 0   ;# omitted in Linux as 'wish' is centered in it
+    }
   }
 }
 #=== edit current menu
