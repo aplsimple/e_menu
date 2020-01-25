@@ -23,7 +23,7 @@
 #####################################################################
 
 namespace eval em {
-  variable e_menu_version "e_menu v1.47"
+  variable e_menu_version "e_menu v1.48"
   variable exedir [file normalize [file dirname [info script]]]
   variable srcdir [file join $::em::exedir "src"]
 }
@@ -162,6 +162,7 @@ namespace eval em {
   variable arr_i09     ; array set arr_i09 {}
   variable arr_geany   ; array set arr_geany {}
   variable arr_tformat ; array set arr_tformat {}
+  variable arr_macros  ; array set arr_macros {}
   #---------------
   variable itviewed 0
   variable geometry ""
@@ -1440,12 +1441,74 @@ proc ::em::create_template {fname} {
     close $chan
   }
 }
+#=== expand $macro for $line, starting from $im
+proc ::em::expand_macro {macro line im} {
+  set mc [string range $macro 0 2]  ;# $macro = %M1 arg1 %M1 arg2 ...
+  if {![info exist ::em::arr_macros($mc)]} {
+    set ::em::arr_macros($mc) {}
+    set itemname [string range $line 0 $im]
+    foreach st $::em::menufile {
+      set st [string trimleft $st]
+      if {[string match $mc* $st]} {
+        lappend ::em::arr_macros($mc) [string trimleft [string range $st 4 end]]
+      }
+    }
+  }
+  set pal [string map [list $mc \n] [lindex $::em::arr_macros($mc) 0]]
+  set arl [string map [list $mc \n] [string range $macro 3 end]]
+  set arglist [split "$arl " \n]
+  set parlist [split "$pal " \n]
+  if {[set n1 [llength $parlist]] != [set n2 [llength $arglist]]} {
+    ::em::dialog_box ERROR \
+      "Macro $mc parameters and arguments don't agree:\n  $n1 not equal $n2"
+    return 
+  }
+  set lmark [string range $line 0 [set i [string first " " $line]]]
+  set lname [string range $line $i+1 [string first $lmark $line 3]-1]
+  foreach line [lrange $::em::arr_macros($mc) 1 end] {
+    set lmark [string range $line 0 [set i [string first " " $line]]]
+    set line "$lmark$lname$lmark[string range $line $i+1 end]"
+    foreach par $parlist arg $arglist {
+      set par "\$[string trim $par]"
+      if {$par ne "\$"} {
+        set line [string map [list $par [string trim $arg]] $line]
+      }
+    }
+    lappend ::em::menufile $line
+  }
+}
+#=== check for and insert macro, if any
+proc ::em::check_macro {line} {
+  set line [string trimleft $line]
+  set s1 "I:"
+  if {[string first $s1 $line] != 0} {
+    set s1 ""
+    foreach marker \
+    {S: R: M: S/ R/ M/ SE: RE: ME: SE/ RE/ ME/ SW: RW: MW: SW/ RW/ MW/} {
+      if {[string first $marker $line] == 0} {
+        set s1 $marker
+        break
+      }
+    }
+  }
+  if {$s1 ne ""} {
+    #check for macro %M1..%M9, %Ma..%Mz, %MA..%MZ
+    set im [expr {[string first $s1 $line 3]+[string length $s1]}]
+    set s1 [string trimleft [string range $line $im end]]
+    if {[string range $s1 0 1] eq "%M"} {
+      ::em::expand_macro $s1 $line $im
+      return
+    }
+  }
+  lappend ::em::menufile $line
+}
 #=== read menu file
 proc ::em::menuof { commands s1 domenu} {
   upvar $commands comms
   set seltd [get_seltd $s1]
   if {$domenu} {
-    set ::em::menuttl "< [file rootname $seltd] >"
+	if {$::em::ischild} {set ps "\u220e"} {set ps "\u23cf"}
+    set ::em::menuttl "$ps [file rootname $seltd]"
     set seltd [file normalize [get_menuname $seltd]]
     if { [catch {set chan [open "$seltd"]} e] } {
       ::em::initcolorscheme
@@ -1485,7 +1548,7 @@ proc ::em::menuof { commands s1 domenu} {
         }
       }
       if {$doit==0} break
-      lappend ::em::menufile $line
+      ::em::check_macro $line
     } else {
       incr ilmenu
       if {$ilmenu >= [llength $::em::menufile]} {break}
@@ -2110,6 +2173,8 @@ proc ::em::initcommhead {} {
 #=== initialize commands
 proc ::em::initcomm {} {
   initcommhead
+  array unset ::em::arr_macros *
+  array set ::em::arr_macros {}
   set ::em::menuoptions {0}
   if {[lsearch $::argv "ch=1"]>=0} { set ::em::ischild 1 }
   # external E_MENU_OPTIONS are in the beginning of ::argv (being default)
