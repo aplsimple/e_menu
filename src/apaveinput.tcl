@@ -34,7 +34,7 @@
 
 package require Tk
 
-package provide apave 2.1
+package provide apave 2.2
 
 source [file join [file dirname [info script]] apavedialog.tcl]
 
@@ -45,6 +45,7 @@ oo::class create apave::APaveInput {
 
   superclass apave::APaveDialog
 
+  variable _pav
   variable _pdg
   variable _savedvv
 
@@ -64,6 +65,7 @@ oo::class create apave::APaveInput {
       catch {unset $vn}
     }
     set _savedvv [list]
+    set _pav(widgetopts) [list]
   }
 
   # return variables made and filled in previous session
@@ -71,6 +73,15 @@ oo::class create apave::APaveInput {
   # where varname is of form: [namespace current]::var$widgetname
   method varInput {} {
     return $_savedvv
+  }
+
+  # return variables' values
+  method valueInput {} {
+    set _values {}
+    foreach {vnam -} [my varInput] {
+      lappend _values [set $vnam]
+    }
+    return $_values
   }
 
   # input dialog
@@ -108,13 +119,31 @@ oo::class create apave::APaveInput {
       set vv [my varname $name]
       set ff [my fieldname $name]
       switch $typ {
+        lb {
+          set vlist {}
+          foreach vo [lrange $valopts 1 end] {
+            lappend vlist $vo
+          }
+          set $vv $vlist
+          lappend attrs -lvar $vv
+          if {[set vsel [lindex $valopts 0]] ni {"" "-"}} {
+            lappend attrs -lbxsel $vsel
+          }
+          lappend inopts [list $ff - - - - \
+            "pack -side left -expand 1 -fill both $gopts" $attrs]
+          lappend inopts [list fraM.fra$name.sbv$name $ff L - - "pack -fill y"]
+        }
         cb {
           if {![info exist $vv]} {catch {set $vv ""}}
           set vlist {}
           foreach vo [lrange $valopts 1 end] {
             lappend vlist $vo
           }
-          lappend inopts [list $ff - - - - "pack -fill x $gopts" "-tvar $vv -values \{$vlist\} $attrs"]
+          lappend attrs -tvar $vv -values $vlist
+          if {[set vsel [lindex $valopts 0]] ni {"" "-"}} {
+            lappend attrs -cbxsel $vsel
+          }
+          lappend inopts [list $ff - - - - "pack -fill x $gopts" $attrs]
         }
         fc {
           if {![info exist $vv]} {catch {set $vv ""}}

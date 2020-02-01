@@ -1441,12 +1441,11 @@ proc ::em::create_template {fname} {
     close $chan
   }
 }
-#=== expand $macro for $line, starting from $im
-proc ::em::expand_macro {macro line im} {
+#=== expand $macro (%M1, %MA ...) for $line marked with $lmark (R:, R/ ...)
+proc ::em::expand_macro {lmark macro line} {
   set mc [string range $macro 0 2]  ;# $macro = %M1 arg1 %M1 arg2 ...
   if {![info exist ::em::arr_macros($mc)]} {
     set ::em::arr_macros($mc) {}
-    set itemname [string range $line 0 $im]
     foreach st $::em::menufile {
       set st [string trimleft $st]
       if {[string match $mc* $st]} {
@@ -1463,10 +1462,16 @@ proc ::em::expand_macro {macro line im} {
       "Macro $mc parameters and arguments don't agree:\n  $n1 not equal $n2"
     return 
   }
-  set lmark [string range $line 0 [set i [string first " " $line]]]
-  set lname [string range $line $i+1 [string first $lmark $line 3]-1]
+  set i1 [string first $lmark $line]
+  set i2 [string first $lmark $line $i1+1]
+  set lname [string range $line $i1+[string length $lmark] $i2-1]
   foreach line [lrange $::em::arr_macros($mc) 1 end] {
-    set lmark [string range $line 0 [set i [string first " " $line]]]
+    if {[set i [string first ":" $line]]<0 && \
+        [set i [string first "/" $line]]<0} {
+      ::em::dialog_box ERROR "Macro $mc error in line:\n  $line"
+      return 
+    }
+    set lmark [string range $line 0 $i]
     set line "$lmark$lname$lmark[string range $line $i+1 end]"
     foreach par $parlist arg $arglist {
       set par "\$[string trim $par]"
@@ -1494,9 +1499,9 @@ proc ::em::check_macro {line} {
   if {$s1 ne ""} {
     #check for macro %M1..%M9, %Ma..%Mz, %MA..%MZ
     set im [expr {[string first $s1 $line 3]+[string length $s1]}]
-    set s1 [string trimleft [string range $line $im end]]
-    if {[string range $s1 0 1] eq "%M"} {
-      ::em::expand_macro $s1 $line $im
+    set s2 [string trimleft [string range $line $im end]]
+    if {[string range $s2 0 1] eq "%M"} {
+      ::em::expand_macro $s1 $s2 $line
       return
     }
   }
