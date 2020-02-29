@@ -23,7 +23,7 @@
 #####################################################################
 
 namespace eval em {
-  variable e_menu_version "e_menu v1.48"
+  variable e_menu_version "e_menu v1.48.1"
   variable exedir [file normalize [file dirname [info script]]]
   variable srcdir [file join $::em::exedir "src"]
 }
@@ -1225,7 +1225,7 @@ proc ::em::get_AR {} {
     return [string map {\n \\n \" \\\"} $::em::seltd]
   }
   if {[::em::read_f_file]} {
-    set re "^#\[ \]?ARGS\[0-9\]+:\[ \]*(.+)"
+    set re "^#\[ \]?ARGS\[0-9\]+:\[ \]*(.*)"
     foreach st $::em::filecontent {
       if {[regexp $re $st]} {
         lassign [regexp -inline $re $st] => res
