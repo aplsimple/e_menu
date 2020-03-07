@@ -23,7 +23,7 @@
 #####################################################################
 
 namespace eval em {
-  variable e_menu_version "e_menu v1.48.1"
+  variable e_menu_version "e_menu v1.49"
   variable exedir [file normalize [file dirname [info script]]]
   variable srcdir [file join $::em::exedir "src"]
 }
@@ -31,7 +31,7 @@ source [file join $::em::srcdir "e_help.tcl"]
 
 # use "d message1 message2 ..." to show debug messages
 # at worst, uncomment the next line to use "bb message1 message2 ..."
-#source ~/PG/bb.tcl
+# catch {source ~/PG/bb.tcl}
 
 # *******************************************************************
 # customized block
@@ -843,6 +843,15 @@ proc ::em::shell0 {sel amp {silent -1}} {
 proc ::em::run_Tcl_code {sel {dosubst false}} {
   if {[string first "%U" $sel] == 0} {
     ::em::reread_menu  ;# updating menu (items' names depending on variables)
+    if {[set fn [string range $sel 3 end]] ne ""} {
+      if {[info exist ::em::arr_geany(TF)] && [info exist ::em::arr_geany(f)]
+      && $::em::arr_geany(TF) eq $::em::arr_geany(f)} {
+        set ::em::arr_geany(TF) $fn  ;# here 'selection' is a whole file
+      }
+      set ::em::arr_geany(f) $fn
+      prepare_main_wilds true
+      catch {cd [file dirname $fn]}
+    }
     return true
   }
   if {[string first "%C" $sel] == 0} {
@@ -905,6 +914,7 @@ proc ::em::run0 {sel amp silent} {
 proc ::em::run1 {typ sel amp silent} {
   prepr_prog sel $typ  ;# prep
   prepr_idiotic sel 0
+  catch {set sel [subst -nobackslashes -nocommands $sel]}
   return [run0 $sel $amp $silent]
 }
 #=== call command in shell
@@ -1512,7 +1522,7 @@ proc ::em::menuof { commands s1 domenu} {
   upvar $commands comms
   set seltd [get_seltd $s1]
   if {$domenu} {
-	if {$::em::ischild} {set ps "\u220e"} {set ps "\u23cf"}
+	  if {$::em::ischild} {set ps "\u220e"} {set ps "\u23cf"}
     set ::em::menuttl "$ps [file rootname $seltd]"
     set seltd [file normalize [get_menuname $seltd]]
     if { [catch {set chan [open "$seltd"]} e] } {
@@ -1597,9 +1607,8 @@ proc ::em::menuof { commands s1 domenu} {
     set line [menuit $line $typ 0]
     set name [menuit $line $typ 1 -1]
     set prog [string trimleft [menuit $line $typ 0]]
-    set origprog $prog
     prepr_init name
-    prepr_init prog
+    # prepr_init prog  ;# v1.49: don't preprocess commands till their call
     prepr_win prog $typ
     catch {set name [subst $name]}  ;# any substitutions in names
     switch $typ {
@@ -1961,6 +1970,18 @@ proc ::em::init_header {s1 seltd} {
   }
   set ::em::begsel [expr [llength $::em::commands] - 1]
 }
+#=== initialize main wildcards
+proc ::em::prepare_main_wilds {{doit false}} {
+  set from [file dirname $::em::arr_geany(f)]
+  foreach {c attr} {d nativename D tail F tail e rootname x extension} {
+    if {![info exists ::em::arr_geany($c)] || $::em::arr_geany($c) eq "" \
+    || $doit} {
+      set ::em::arr_geany($c) [file $attr $from]
+    }
+    if {$c eq "D"} {set from [file tail $::em::arr_geany(f)]}
+  }
+  set ::em::arr_geany(F_) [::em::get_underlined_name $::em::arr_geany(F)]
+}
 #=== initialize ::em::commands from argv and menu
 proc ::em::initcommands { lmc amc osm {domenu 0} } {
   set resetpercent2 0
@@ -2131,14 +2152,7 @@ proc ::em::initcommands { lmc amc osm {domenu 0} } {
   if {![info exists ::em::arr_geany(f)]} {
     set ::em::arr_geany(f) $::em::menufilename  ;# %f wildcard is a must
   }
-  set from [file dirname $::em::arr_geany(f)]
-  foreach {c attr} {d nativename D tail F tail e rootname x extension} {
-    if {![info exists ::em::arr_geany($c)] || $::em::arr_geany($c) eq "" } {
-      set ::em::arr_geany($c) [file $attr $from]
-    }
-    if {$c eq "D"} {set from [file tail $::em::arr_geany(f)]}
-  }
-  set ::em::arr_geany(F_) [::em::get_underlined_name $::em::arr_geany(F)]
+  prepare_main_wilds
   prepare_wilds $resetpercent2
   set ::em::ncmd [llength $::em::commands]
   initPD [pwd]

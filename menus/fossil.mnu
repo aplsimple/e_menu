@@ -8,7 +8,7 @@ t4==%b-%Y/%U-week
 u=%s
 o=0
 in=1.0
-pos=58.50
+pos=85.7
 ::FSLUSER=aplsimple
 ::FSLBRANCH=""
 ::EMENUTMPFILE=%mn.tmp~
@@ -45,10 +45,10 @@ RW:fossil gdiff $::FILETAIL ? RW: fossil tim -t ci -n 99 > $::EMENUTMPFILE
    texc {{   Hint:} {} {-h 9 -w 70 -ro 1 -wrap word}} \
    {\n Select a version from the combobox to be compared to tip.\n\n If it's blank, the current file is compared to tip.\n\n No response means no differences.\n\n (temp file: $::EMENUTMPFILE)} \
    } -head {\n This will compare a selected version\n of file to its tip:} -weight bold == ::EMENUFILE ::EMENUCOMMIT
+ R:fossil gdiff $::FILETAIL ? R: %U $::EMENUFILE
  R:fossil gdiff $::FILETAIL ? R: %C if {"$::EMENUCOMMIT" eq ""} \
    {set ::EMENUTMP ""} {set ::EMENUTMP "--from $::EMENUCOMMIT --to tip"}
  R:fossil gdiff $::FILETAIL ? R: fossil gdiff $::EMENUTMP "$::EMENUFILE"
- R:fossil gdiff $::FILETAIL ? R: %U
 
  S:fossil diff ? S: cd %PD
 RW:fossil diff ? RW: fossil tim -t ci -n 99 > $::EMENUTMPFILE
@@ -81,8 +81,8 @@ RW:fossil diff ? RW: fossil tim -t ci -n 99 > $::EMENUTMPFILE
    fil1 {{   File:} {} {-w 70}} {"$::EMENUFILE"} \
    } -head {\n This will \"$COMMAND\" file(s) in the Fossil repository:\n %PD $MSG1 \
    \n\n Use wildcards to $COMMAND a few.} $COLOR -weight bold == ::EMENUFILE
+%MC S: %U $::EMENUFILE
 %MC S: fossil $COMMAND $::EMENUFILE
-%MC S: %U
 
  S:fossil add $::FILETAIL ? S: %MC ADD FILE %MC add %MC %MC
 
