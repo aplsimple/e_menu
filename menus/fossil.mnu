@@ -7,7 +7,7 @@ t4==%b-%Y/%U-week
 u=%s
 o=0
 in=1.0
-pos=124.79
+pos=123.61
 ::FSLUSER=aplsimple
 ::FSLBRANCH=exact-glob-re
 ::EMENUTMPFILE=%mn.tmp~
@@ -120,7 +120,7 @@ RW:fossil diff ? RW: fossil tim -t ci -n 99 > $::EMENUTMPFILE
    ent2 {{Branch name   :}} {$::FSLBRANCH} \
    } -head {\n This will COMMIT and create a new BRANCH \
    \n from a current check-in:} -weight bold == ::COMMES ::FSLBRANCH
- R:fossil commit -m ? --branch ? R: %C if {"$::FSLBRANCH"=={} || "$::FSLBRANCH"=={}} exit
+ R:fossil commit -m ? --branch ? R: %C if {"$::FSLBRANCH" eq {}} exit
 SW:fossil commit -m ? --branch ? SW: fossil commit -m "$::COMMES" --branch "$::FSLBRANCH" -bgcolor 0xffc0ff
 
  R: R: 2
