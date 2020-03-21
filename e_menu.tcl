@@ -23,7 +23,7 @@
 #####################################################################
 
 namespace eval em {
-  variable e_menu_version "e_menu v1.50"
+  variable e_menu_version "e_menu v1.51"
   variable exedir [file normalize [file dirname [info script]]]
   variable srcdir [file join $::em::exedir "src"]
 }
@@ -2335,6 +2335,7 @@ proc ::em::initpopup {} {
 proc ::em::initmenu {} {
   initpopup
   prepare_buttons ::em::commands
+  set capsbeg [expr {36 + $::em::begsel}]
   for_buttons {
     set hotkey [string range $::em::hotkeys $i $i]
     set comm [lindex $::em::commands $i]
@@ -2342,7 +2343,11 @@ proc ::em::initmenu {} {
     set prkeybutton [ctrl_alt_off $prbutton]  ;# for hotkeys without ctrl/alt
     set comtitle [string map {"\n" " "} [lindex $comm 0]]
     if {$i > $::em::begsel} {
-      if {$i < 10} { bind . <KP_$hotkey> "$prkeybutton" }
+      if {$i < ($::em::begsel+10)} {
+        bind . <KP_$hotkey> "$prkeybutton"
+      } elseif {($capsbeg-$i)>0} {
+        bind . <KeyPress-[string toupper $hotkey]> "$prkeybutton"
+      }
       bind . <KeyPress-$hotkey> "$prkeybutton"
       set t [string trim $comtitle]
       set hotk [lindex $comm 2]
