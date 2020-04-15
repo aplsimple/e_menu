@@ -1,6 +1,11 @@
 # Last changes:
 
 
+Version `1.52 (15 Apr'20)`
+
+  - apave package v2.4
+
+
 Version `1.51 (21 Mar'20)`
 
   - bugfix: disabling "undo to blank" in editor

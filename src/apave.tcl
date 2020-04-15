@@ -52,6 +52,7 @@
 # proc d {args} {tk_messageBox -title "INFO" -icon info -message "$args"}
 
 package require Tk
+package require tablelist
 package require widget::calendar
 catch {package require tooltip} ;# optional (though necessary everywhere:)
 
@@ -109,6 +110,22 @@ oo::class create apave::APave {
 
     # This trick with 'proc' inside an object is discussed at
     # https://stackoverflow.com/questions/54804964/proc-in-tcl-ooclass
+    #
+    # See also: https://wiki.tcl-lang.org/page/listbox+selection
+    proc ListboxSelect {W} {
+      selection clear -displayof $W
+      selection own -command {} $W
+      selection handle -type UTF8_STRING \
+        $W [list [namespace current]::ListboxHandle $W]
+      selection handle \
+        $W [list [namespace current]::ListboxHandle $W]
+    }
+    proc ListboxHandle {W offset maxChars} {
+      set list {}
+      foreach index [$W curselection] { lappend list [$W get $index] }
+      set text [join $list \n]
+      return [string range $text $offset [expr {$offset+$maxChars-1}]]
+    }
     proc WinResize {win} {
       # restrict the window's sizes (fixing Tk's issue with a menubar)
       if {[lindex [$win configure -menu] 4]!=""} {
@@ -385,6 +402,23 @@ oo::class create apave::APave {
 
   #########################################################################
   #
+  # Append selection attributes for listboxes
+  #
+  # See also:
+  #   1. https://wiki.tcl-lang.org/page/listbox+selection
+  #   2. https://stackoverflow.com, the question:
+  #        the-tablelist-curselection-goes-at-calling-the-directory-dialog
+
+  method ListboxesAttrs {w attrs} {
+
+    if {"-exportselection" ni $attrs} {
+      append attrs " -ListboxSel $w -selectmode extended -exportselection 0"
+    }
+    return $attrs
+  }
+
+  #########################################################################
+  #
   # Get the widget type based on 2 initial letters of its name
 
   method GetWidgetType {wnamefull options attrs} {
@@ -443,11 +477,8 @@ oo::class create apave::APave {
         if {$nam3 eq "flb"} {  ;# file content listbox
           set attrs [my FCfieldValues $wnamefull $attrs]
         }
-        # -exportselection = 0 to allow multiple selections
-        if {"-exportselection" ni $attrs} {
-          append attrs " -exportselection 0"
-        }
         set attrs "[my FCfieldAttrs $wnamefull $attrs -lvar]"
+        set attrs "[my ListboxesAttrs $wnamefull $attrs]"
       }
       "meb" {set widget "ttk::menubutton"}
       "meB" {set widget "menubutton"}
@@ -491,6 +522,11 @@ oo::class create apave::APave {
       "siz" {set widget "ttk::sizegrip"}
       "spx" {set widget "ttk::spinbox"}
       "spX" {set widget "spinbox"}
+      "tbl" { ;# tablelist
+        set widget "tablelist::tablelist"
+        set attrs "-labelcommand tablelist::sortByColumn -stretch all $attrs"
+        set attrs "[my ListboxesAttrs $wnamefull $attrs]"
+      }
       "tex" {                       ;# Tk 8.6.7 restored "-undo 0"
         set widget "text"           ;# of text widget by default
         set attrs "-undo 1 $attrs"  ;# => here undo is enabled by default
@@ -584,6 +620,9 @@ oo::class create apave::APave {
 
   method colorChooser {tvar args} {
 
+    if {[set _ [string trim [set $tvar]]] ne ""} {
+      set _pav(initialcolor) $_
+    }
     if {[catch {lassign [tk_chooseColor -moveall $_pav(moveall) \
     -tonemoves $_pav(tonemoves) -initialcolor $_pav(initialcolor) {*}$args] \
     res _pav(moveall) _pav(tonemoves)}]} {
@@ -1016,9 +1055,8 @@ oo::class create apave::APave {
     set attrs_ret [set _pav(prepost) {}]
     foreach {a v} $attrs {
       switch $a {
-        -disabledtext - -rotext - -lbxsel - -cbxsel {
-          # get a text of disabled widget processed below in "Post"
-          # processed below in "Post"
+        -disabledtext - -rotext - -lbxsel - -cbxsel - -ListboxSel {
+          # attributes specific to apave, processed below in "Post"
           lappend _pav(prepost) [list $a [string trim $v {\{\}}]]
         }
         default {
@@ -1059,12 +1097,16 @@ oo::class create apave::APave {
           if {$v>=0} {
             $w selection set $v
             $w yview $v
+            $w activate $v
           }
         }
         -cbxsel {
           set cbl [$w cget -values]
           set v [lsearch -glob $cbl "$v*"]
           if {$v>=0} { $w set [lindex $cbl $v] }
+        }
+        -ListboxSel {
+          bind $v <<ListboxSelect>> [list [namespace current]::ListboxSelect %W]
         }
       }
     }
@@ -1139,6 +1181,16 @@ oo::class create apave::APave {
 
   #########################################################################
   #
+  # Set focus on a widget (possibly, assigned with [my Widget])
+
+  method setFocus {wnext} {
+
+      focus [subst $wnext]
+
+  }
+
+  #########################################################################
+  #
   # Get additional commands (for non-standard attributes)
 
   method AdditionalCommands {w attrsName} {
@@ -1158,7 +1210,7 @@ oo::class create apave::APave {
     }
     if {[set wnext [my getOption -tabnext {*}$attrs]] ne ""} {
       after idle [list bind $w <Key> \
-        [list if {{%K} == {Tab}} "focus $wnext ; break" ]]
+        [list if {{%K} == {Tab}} "[self] setFocus $wnext ; break" ]]
       set attrs [my RemoveSomeOptions $attrs -tabnext]
     }
     return $addcomms

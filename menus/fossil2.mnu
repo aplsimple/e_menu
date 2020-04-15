@@ -80,11 +80,13 @@ SW:fossil uv sync %F SW: fossil uv add %F\nfossil uv sync
  R:fossil commit -m ? --branch ? R: %C set ::COMMES "%s"
  R:fossil commit -m ? --branch ? R: %I warn "COMMIT & BRANCH" { \
    ent1 {{Commit message:}} {"$::COMMES"} \
-   ent2 {{Branch name   :}} {$::FSLBRANCH} \
+   ent2 {{   Branch name:}} {"$::FSLBRANCH"} \
+   clr1 {{  Branch color:\n    (or empty)}} {"$::FSLBRANCHCOLOR"} \
    v_} -head {\n This will COMMIT and create a new BRANCH \
-   \n from a current check-in.\n} -weight bold == ::COMMES ::FSLBRANCH
+   \n from a current check-in.\n} -weight bold == ::COMMES ::FSLBRANCH ::FSLBRANCHCOLOR
  R:fossil commit -m ? --branch ? R: %C if {"$::FSLBRANCH" eq {}} exit
-SW:fossil commit -m ? --branch ? SW: fossil commit -m "$::COMMES" --branch "$::FSLBRANCH" -bgcolor 0xffc0ff
+ R:fossil commit -m ? --branch ? R: %C if {"$::FSLBRANCHCOLOR" eq {}} {set ::TMPBG ""} {set ::TMPBG "-bgcolor \"$::FSLBRANCHCOLOR\""}
+SW:fossil commit -m ? --branch ? SW: echo fossil commit -m "$::COMMES" --branch "$::FSLBRANCH" $::TMPBG
 
  S:fossil checkout ? S: cd %PD
  R:fossil checkout ? R: %I {} "CHECKOUT" { \
@@ -179,6 +181,7 @@ R: R: 2
 [OPTIONS]
 o=0
 in=1.0
-pos=86.61
+pos=84.30
 ::FSLUSER=aplsimple
-::FSLBRANCH=exact-glob-re
+::FSLBRANCH=tablelist
+::FSLBRANCHCOLOR=#ffc0ff
