@@ -86,7 +86,7 @@ SW:fossil uv sync %F SW: fossil uv add %F\nfossil uv sync
    \n from a current check-in.\n} -weight bold == ::COMMES ::FSLBRANCH ::FSLBRANCHCOLOR
  R:fossil commit -m ? --branch ? R: %C if {"$::FSLBRANCH" eq {}} exit
  R:fossil commit -m ? --branch ? R: %C if {"$::FSLBRANCHCOLOR" eq {}} {set ::TMPBG ""} {set ::TMPBG "-bgcolor \"$::FSLBRANCHCOLOR\""}
-SW:fossil commit -m ? --branch ? SW: echo fossil commit -m "$::COMMES" --branch "$::FSLBRANCH" $::TMPBG
+SW:fossil commit -m ? --branch ? SW: fossil commit -m "$::COMMES" --branch "$::FSLBRANCH" $::TMPBG
 
  S:fossil checkout ? S: cd %PD
  R:fossil checkout ? R: %I {} "CHECKOUT" { \
