@@ -1,6 +1,14 @@
 # Last changes:
 
 
+Version `1.53 (20 Apr'20)`
+
+  - apave package v2.5
+  - bug fix: focusing items at hotkey pressing (pr_button)
+  - fossil mnu corr.
+  - clean-ups
+
+
 Version `1.52 (15 Apr'20)`
 
   - apave package v2.4
