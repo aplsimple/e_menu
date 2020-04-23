@@ -23,7 +23,7 @@
 #####################################################################
 
 namespace eval em {
-  variable e_menu_version "e_menu v1.53"
+  variable e_menu_version "e_menu v1.54"
   variable exedir [file normalize [file dirname [info script]]]
   variable srcdir [file join $::em::exedir "src"]
 }
@@ -2300,26 +2300,34 @@ AAAASUVORK5CYII=}
   . configure -bg $::em::clrtitb
 }
 #=== make popup menu
-proc ::em::initpopup {} {
+proc ::em::iconA {{icon none}} {
+  return "-image [apave::iconImage $icon] -compound left"
+}
+proc ::em::createpopup {} {
+  if {$::em::ontop} {set tgl down} {set tgl up}
   menu .popupMenu
-  .popupMenu add command -accelerator Ctrl+T -label "Toggle \"On top\"" \
-      -command {.cb invoke}
+  .popupMenu add command {*}[iconA $tgl] -accelerator Ctrl+T \
+    -label "Toggle \"On top\"" -command {.cb invoke}
   .popupMenu add separator
-  .popupMenu add command -accelerator Ctrl+E -label "Edit the menu" \
-      -command {after 50 ::em::edit_menu}
-  .popupMenu add command -accelerator Ctrl+R -label "Reread the menu" \
-      -command ::em::reread_init
-  .popupMenu add command -accelerator Ctrl+D -label "Destroy other menus" \
-      -command ::em::destroy_emenus
+  .popupMenu add command {*}[iconA change] -accelerator Ctrl+E \
+    -label "Edit the menu" -command {after 50 ::em::edit_menu}
+  .popupMenu add command {*}[iconA retry] -accelerator Ctrl+R \
+    -label "Reread the menu" -command ::em::reread_init
+  .popupMenu add command {*}[iconA delete] -accelerator Ctrl+D \
+    -label "Destroy other menus" -command ::em::destroy_emenus
   .popupMenu add separator
-  .popupMenu add command -accelerator Ctrl+> -label "Increase the menu's width" \
-      -command {::em::win_width 1}
-  .popupMenu add command -accelerator Ctrl+< -label "Decrease the menu's width" \
-      -command  {::em::win_width -1}
-  .popupMenu add command -accelerator Ctrl+G -label "Set the menu's geometry" \
-      -command ::em::set_menu_geometry
+  .popupMenu add command {*}[iconA plus] -accelerator Ctrl+> \
+    -label "Increase the menu's width" -command {::em::win_width 1}
+  .popupMenu add command {*}[iconA minus] -accelerator Ctrl+< \
+    -label "Decrease the menu's width" -command  {::em::win_width -1}
+  .popupMenu add command {*}[iconA misc] -accelerator Ctrl+G \
+    -label "Set the menu's geometry" -command ::em::set_menu_geometry
   .popupMenu add separator
-  .popupMenu add command -accelerator F1 -label "About" -command ::em::help
+  .popupMenu add command {*}[iconA view] -accelerator F1 \
+    -label "About" -command ::em::help
+  .popupMenu configure -tearoff 0
+}
+proc ::em::initpopup {} {
   foreach {t e r d g} {t e r d g T E R D G} {
     bind . <Control-$t> {.cb invoke}
     bind . <Control-$e> {::em::edit_menu}
@@ -2328,7 +2336,6 @@ proc ::em::initpopup {} {
     bind . <Control-$g> {::em::set_menu_geometry}
   }
   option add *Menu.tearOff 1
-  .popupMenu configure -tearoff 0
   initcolors
 }
 #=== make e_menu's menu
@@ -2564,6 +2571,7 @@ proc ::em::initend {} {
   bind . <Control-d> {::em::destroy_emenus}
   bind . <Button-3> {
     set ::em::skipfocused 1
+    if {![winfo exist .popupMenu]} ::em::createpopup
     tk_popup .popupMenu %X %Y
   }
   bind . <Escape> {

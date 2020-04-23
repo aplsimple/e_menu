@@ -1,6 +1,13 @@
 # Last changes:
 
 
+Version `1.54 (20 Apr'20)`
+
+  - apave package v2.6
+  - icons added to popups & dialogs
+  - fossil mnu corr.
+
+
 Version `1.53 (20 Apr'20)`
 
   - apave package v2.5
