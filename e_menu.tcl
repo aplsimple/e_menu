@@ -23,7 +23,7 @@
 #####################################################################
 
 namespace eval em {
-  variable e_menu_version "e_menu v1.54"
+  variable e_menu_version "e_menu v1.55"
   variable exedir [file normalize [file dirname [info script]]]
   variable srcdir [file join $::em::exedir "src"]
 }
@@ -219,7 +219,7 @@ proc ::em::dialog_box {ttl mes {typ ok} {icon info} {defb OK} args} {
   ::apave::APaveDialog create pdlg
   set a1 ""; foreach a2 $args {append a1 $a2 " "}
   append opts " -t 1 -w 80 $a1 " [::em::theming_pave]
-  switch -glob $typ {
+  switch -glob -- $typ {
     okcancel - yesno - yesnocancel {
       if {$defb eq "OK" && $typ ne "okcancel" } {
         set defb YES
@@ -629,7 +629,7 @@ proc ::em::ttask {oper ind {inf 0} {typ 0} {c1 0} {sel 0} {tsec 0} {ipos 0} {iN 
 
   set task [list $inf $typ $c1 $sel]
   set it [list [expr [clock seconds] + abs(int($tsec))] $ipos $iN]
-  switch $oper {
+  switch -- $oper {
     "add"   {
       set i [lsearch $::em::tasks $task]
       if {$i >= 0} {return [list $i 0]}  ;# already exists, no new adding
@@ -950,7 +950,7 @@ proc ::em::IF {rest} {
     set comm [string trim $comm]
     catch {set comm [subst -nobackslashes $comm]}
     if {$comm ne ""} {
-      switch [string range $comm 0 2] {
+      switch -- [string range $comm 0 2] {
         "%Q " -
         "%q " {
           set comm "Q [string range $comm 3 end]"
@@ -1624,7 +1624,7 @@ proc ::em::menuof { commands s1 domenu} {
     # prepr_init prog  ;# v1.49: don't preprocess commands till their call
     prepr_win prog $typ
     catch {set name [subst $name]}  ;# any substitutions in names
-    switch $typ {
+    switch -- $typ {
       "I:" {   ;#internal (M, Q, S, T)
         prepr_pn prog
         set prom "RUN         "
@@ -1863,7 +1863,7 @@ proc ::em::ctrl_alt_off {cmd} {
 }
 #=== drag window by snatching header
 proc ::em::mouse_drag {mode x y} {
-  switch $mode {
+  switch -- $mode {
     1 { lassign [list $x $y] ::em::mx ::em::my }
     2 -
     3 {
@@ -2025,7 +2025,7 @@ proc ::em::initcommands { lmc amc osm {domenu 0} } {
         }
         set ::em::inherited "$::em::inherited \"$s1$seltd\""
       }
-      switch $s1 {
+      switch -- $s1 {
         P= {
           if {$seltd ne ""} {
             set ::em::percent2 $seltd  ;# set % substitution
@@ -2050,7 +2050,7 @@ proc ::em::initcommands { lmc amc osm {domenu 0} } {
         }
         b= {set ::eh::my_browser $seltd}
         c= {
-          set ::ncolor [::getN $seltd]
+          set ::ncolor [::getN $seltd 0 0 [llength $::colorschemes]-1]
           set ::em::clrSet 1
         }
         o= {set ::em::ornament [::getN $seltd]}
@@ -2459,24 +2459,24 @@ proc ::em::edit_menu {} {
 }
 #=== help
 proc ::em::help {} {
-  set site "https://aplsimple.github.io/en/tcl/e_menu"
+  ::em::focused_win 1
+  set ::em::skipfocused 1
+  set textTags [list [list "red" " -font {-weight bold -size 14} \
+    -foreground $::em::clrinab -background $::em::clrinaf"]]
   ::apave::APaveInput create dialog
-  set res [dialog input info "About e_menu" {
-    textAbout {{} {} {-h 9 -w 50 -ro 1 -wrap word}} "{
-    $::em::e_menu_version
+  set res [dialog misc info "About e_menu" "
+  <red> $::em::e_menu_version </red>
 
-    by Alex Plotnikov
-    aplsimple@gmail.com
+  by Alex Plotnikov
+  aplsimple@gmail.com
 
-    https://aplsimple.github.io
-    https://chiselapp.com/user/aplsimple}"
-  } {*}[::em::theming_pave] -focus butCANCEL \
-    -titleOK "Help" -titleCANCEL "Close" -weight bold \
-    -head "\n Menu system for editors and file managers.\n"]
+  https://aplsimple.github.io
+  https://chiselapp.com/user/aplsimple  \n" \
+    {Help 1 Close 0} 0 -t 1 -w 60 -tags textTags -weight bold -head \
+    "\n Menu system for editors and file managers. \n" {*}[theming_pave]]
   dialog destroy
-  set r [lindex $res 0]
-  if {$r} {
-    ::eh::browse $site
+  if {[lindex $res 0]} {
+    ::eh::browse "https://aplsimple.github.io/en/tcl/e_menu"
   }
 }
 #=== save the menu's geometry

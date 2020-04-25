@@ -7,12 +7,13 @@ t4==%b-%Y/%U-week
 u=%s
 o=0
 in=1.0
-pos=13.0
+pos=70.28
 ::FSLUSER=aplsimple
-::FSLBRANCH=tablelist
-::FSLBRANCHCOLOR=#e2ffba
+::FSLBRANCH=cleanup-6.2
+::FSLBRANCHCOLOR=#96fa80
 ::EMENUTMPFILE=%mn.tmp~
 ::EMENUBRIEF=0
+%C if {![info exist ::EMENUGREP]} {set ::EMENUGREP ""}
 %C if {![info exist ::EMENUCOMMIT]} {set ::EMENUCOMMIT [set ::EMENUCOMMIT2 ""]}
 %C if {![info exist ::EMENUCOMMIT1]} {set ::EMENUCOMMIT1 tip}
 %C if {![info exist ::EMENUFILE]} {set ::EMENUFILE "%f"}
@@ -54,25 +55,36 @@ RW:fossil gdiff $::FILETAIL ? RW: fossil tim -t ci -n 99 > $::EMENUTMPFILE
 RW:fossil diff ? RW: fossil tim -t ci -n 99 > $::EMENUTMPFILE
  R:fossil diff ? R: %I {} "DIFF" { \
    v_ {{} {-pady 4} {}} {} \
-   fco1  {{From :} {} {-h 10 -state readonly -cbxsel "$::EMENUCOMMIT1"}} \
+   fco1  {{         From:} {} {-h 10 -state readonly -cbxsel "$::EMENUCOMMIT1"}} \
      {/@-div1 "\[" -div2 "\]" -ret 1 -list {"" tip} $::EMENUTMPFILE/@ \
      INFO: /@-div1 "\] " $::EMENUTMPFILE/@} \
-   fco2  {{To   :} {} {-h 10 -state readonly -cbxsel "$::EMENUCOMMIT2"}} \
+   fco2  {{           To:} {} {-h 10 -state readonly -cbxsel "$::EMENUCOMMIT2"}} \
      {/@-div1 "\[" -div2 "\]" -ret 1 -list {"" tip} $::EMENUTMPFILE/@ \
      INFO: /@-div1 "\] " $::EMENUTMPFILE/@} \
-   chbBr {{Brief:} {-pady 4} {-var ::EMENUBRIEF}} {} \
+   ent1  {{Regexp filter:} {} {}} {"$::EMENUGREP"} \
+   chbBr {{        Brief:} {-pady 4} {-var ::EMENUBRIEF}} {} \
    seh {{} {-pady 3} {}} {} \
-   texc {{Hint:} {} {-h 9 -w 70 -ro 1 -wrap word}} \
-   {\n Select versions from the comboboxes to be compared.\n\n By default, 'tip' is compared to current files.\n\n A 'from' version is older than 'to'. Empty means 'current files'.\n\n (temp file: $::EMENUTMPFILE)} \
+   texc  {{         Hint:} {} {-h 11 -w 67 -ro 1 -wrap word}} \
+   { Select versions from the comboboxes to be compared. \
+  \n\n By default, 'tip' is compared to current files. \
+  \n\n A 'to' version is later than 'from'. Empty means 'current files'. \
+  \n\n When 'regexp filter' set, an additional console shows \
+  \n the filtered lines. \
+  \n\n temp file:\n $::EMENUTMPFILE} \
    } -head {\n This will compare selected versions of file:} \
-   -weight bold == ::EMENUCOMMIT1 ::EMENUCOMMIT2 ::EMENUBRIEF
+   -weight bold == ::EMENUCOMMIT1 ::EMENUCOMMIT2 ::EMENUGREP ::EMENUBRIEF
  R:fossil diff ? R: %C \
    if {"$::EMENUCOMMIT1" eq ""} {set ::EMENUTMP1 ""} {set ::EMENUTMP1 "--from $::EMENUCOMMIT1"}; \
    if {"$::EMENUCOMMIT2" eq ""} {set ::EMENUTMP2 ""} {set ::EMENUTMP2 "--to $::EMENUCOMMIT2"}; \
    if {"$::EMENUCOMMIT1$::EMENUCOMMIT2" eq ""} \
      {set ::EMENUTMP1 "--from current"; set ::EMENUTMP2 "--to tip"}
  R:fossil diff ? R: %C if {$::EMENUBRIEF} {append ::EMENUTMP2 " -brief"}
- S:fossil diff ? S: fossil diff $::EMENUTMP1 $::EMENUTMP2
+ R:fossil diff ? R: %C set ::EMENUTMP "fossil diff $::EMENUTMP1 $::EMENUTMP2"
+ R:fossil diff ? R: %IF {$::EMENUGREP} eq "" %THEN %T $::EMENUTMP
+RW:fossil diff ? RW: $::EMENUTMP | grep -n "$::EMENUGREP" > "$::EMENUTMPFILE"
+SW:fossil diff ? SW: cat "$::EMENUTMPFILE"
+ R:fossil diff ? R: %C file delete "$::EMENUTMPFILE"
+ R:fossil diff ? R: %IF !$::EMENUBRIEF %THEN %T $::EMENUTMP
 
 %MC TITLE %MC COMMAND %MC COLOR %MC MSG1
 %MC S: cd %PD

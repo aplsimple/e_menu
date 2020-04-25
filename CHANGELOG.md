@@ -1,6 +1,14 @@
 # Last changes:
 
 
+Version `1.55 (25 Apr'20)`
+
+  - apave package v2.6.2
+  - getN function upd. (min, max args)
+  - help function upd. ("About")
+  - clean-ups
+
+
 Version `1.54 (23 Apr'20)`
 
   - apave package v2.6.1
