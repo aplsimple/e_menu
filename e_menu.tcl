@@ -23,7 +23,7 @@
 #####################################################################
 
 namespace eval ::em {
-  variable e_menu_version "e_menu v2.0.1"
+  variable e_menu_version "e_menu v2.0.2"
   variable exedir [file normalize [file dirname [info script]]]
   variable srcdir [file join $::em::exedir src]
 }
@@ -534,6 +534,7 @@ proc ::em::shell0 {sel amp {silent -1}} {
   } elseif {[run_Tcl_code $sel]} {
     # processed
   } elseif {[::iswindows]} {
+    if {[string trim "$sel"] eq ""} {return true}
     set composite "$::win_console $sel $amp"
     catch {
       # here we construct new .bat containing all lines of the command
@@ -551,6 +552,7 @@ proc ::em::shell0 {sel amp {silent -1}} {
       }
     }
   } else {
+    if {[string trim "$sel"] eq ""} {return true}
     set lang [::eh::get_language]
     if {$::em::linuxconsole ne "" && [string first \\n $sel]<0} {
       set composite "$::lin_console $sel $amp"
