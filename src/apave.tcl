@@ -79,7 +79,7 @@ namespace eval ::apave {
     "lab" {{-st w} {}} \
     "laB" {{-st w} {}} \
     "lfr" {{} {}} \
-    "lfR" {{} {-relief ridge -fg maroon}} \
+    "lfR" {{} {-relief groove}} \
     "lbx" {{} {}} \
     "flb" {{} {}} \
     "meb" {{} {}} \
@@ -224,7 +224,7 @@ oo::class create ::apave::APave {
     namespace eval ${_pav(ns)}PN {}
     array set ${_pav(ns)}PN::AR {}
     # set/reset a color scheme if it is/was requested
-    if {$cs<-1} {set cs [my csCurrent]}
+    #if {$cs<-1} {set cs [my csCurrent]}
     if {$cs>=-1} {my csSet $cs}
 
     # This trick with 'proc' inside an object is discussed at
@@ -329,19 +329,17 @@ oo::class create ::apave::APave {
 
   #########################################################################
   #
-  # Theme for non-ttk widgets (to be redefined in descendants/mixins)
+  # Methods to be redefined in descendants/mixins
 
-  method NonTtkTheme {win} {
-
+  method themePopup {mnu} {
     return
   }
 
-  #########################################################################
-  #
-  # Style for non-ttk widgets (to be redefined in descendants/mixins)
+  method NonTtkTheme {win} {
+    return
+  }
 
   method NonTtkStyle {typ {dsbl 0}} {
-
     return ""
   }
 
@@ -417,7 +415,7 @@ oo::class create ::apave::APave {
 
     lassign [my parseOptions $attrs $varopt "" -retpos "" -inpval ""] \
       vn rp iv
-    if {[string first "-state disabled" $attrs]<0} {
+    if {[string first "-state disabled" $attrs]<0 && $vn ne ""} {
       set all ""
       if {$varopt eq "-lvar"} {
         lassign [my parseOptions $attrs -values "" -ALL 0] iv a
@@ -627,7 +625,7 @@ oo::class create ::apave::APave {
   #
   # Get the widget type based on 2 initial letters of its name
 
-  method GetWidgetType {wnamefull options attrs} {
+  method getWidgetType {wnamefull options attrs} {
 
     set disabled 0
     catch {
@@ -639,8 +637,8 @@ oo::class create ::apave::APave {
     set nam3 [string tolower [string index $name 0]][string range $name 1 2]
     if {[string index $nam3 1] eq "_"} {set k [string range $nam3 0 1]} {set k $nam3}
     lassign [dict get $::apave::_Defaults $k] defopts defattrs
-    set options "$defopts $options"
-    set attrs "$defattrs $attrs"
+    set options "[subst $defopts] $options"
+    set attrs "[subst $defattrs] $attrs"
     switch -glob -- $nam3 {
       "but" {
         set widget "ttk::button"
@@ -671,8 +669,7 @@ oo::class create ::apave::APave {
       "sta" -
       "too" -
       "fra" {
-        # + frame for choosers (of file, directory, color, font, date)
-        # and bars
+        # + frame for choosers and bars
         set widget "ttk::frame"
       }
       "ftx" {set widget "ttk::labelframe"}
@@ -1272,21 +1269,28 @@ oo::class create ::apave::APave {
         set wid1 [list .[my rootwname [my Transname Lab ${name}_[incr j]]] - - - - "pack -side left -in $w.$name" "-t [lindex $v1 0]"]
         set wid2 [list .[my rootwname [my Transname Lab $name$j]] - - - - "pack -side left $expand -in $w.$name" "-relief sunken -w $v2 [lrange $v1 1 end]"]
       } elseif {$typ=="toolBar"} {  ;# toolbar
-        if {[string match -nocase opc* $v1]} { ;# tk_optionCascade widget
-          lset v2 2 "[lindex $v2 2] -takefocus 0"
-          set wid1 [list $name.$v1 - - - - "pack -side left" "$v2"]
-        } else {
-          if {[string is lower [string index $v1 0]]} { ;# button with -image
-            set but buT
-          } else {
-            set but BuT
+        switch -nocase -glob -- $v1 {
+          opc* { ;# tk_optionCascade
+            lset v2 2 "[lindex $v2 2] -takefocus 0"
+            set wid1 [list $name.$v1 - - - - "pack -side left" "$v2"]
           }
-          set v2 "-image $v1 -command $v2 -relief flat -highlightthickness 0 -takefocus 0"
-          set v1 [my Transname $but _$v1]
+          spx* - chb* { ;# spinbox etc.
+            set v2 "$v2 -takefocus 0"
+            set wid1 [list $name.$v1 - - - - "pack -side left" "$v2"]
+          }
+          default {
+            if {[string is lower [string index $v1 0]]} { ;# button with -image
+              set but buT
+            } else {
+              set but BuT
+            }
+            set v2 "-image $v1 -command $v2 -relief flat -highlightthickness 0 -takefocus 0"
+            set v1 [my Transname $but _$v1]
+          }
         }
         set wid1 [list $name.$v1 - - - - "pack -side left" $v2]
         if {[incr wasseh]==1} {
-          set wid2 [list [my Transname seh $name$j] - - - - "pack -side top -expand 1 -fill x"]
+          set wid2 [list [my Transname seh $name$j] - - - - "pack -side top -fill x"]
         } else {
           set lwidgets [linsert $lwidgets [incr itmp] $wid1]
           continue
@@ -1418,8 +1422,9 @@ oo::class create ::apave::APave {
       $pop add separator
       $pop add command {*}[my IconA none] -accelerator Ctrl+A -label "Select All" \
         -command "$w tag add sel 1.0 end"
+      bind $w <Control-a> "$w tag add sel 1.0 end; break"
     }
-    bind $w <Button-3> [list tk_popup $w.popupMenu %X %Y]
+    bind $w <Button-3> "[self] themePopup $w.popupMenu; tk_popup $w.popupMenu %X %Y"
     return
   }
 
@@ -1741,7 +1746,7 @@ oo::class create ::apave::APave {
       }
       set options [uplevel 2 subst -nocommand -nobackslashes [list $options1]]
       set attrs [uplevel 2 subst -nocommand -nobackslashes [list $attrs1]]
-      lassign [my GetWidgetType $wname $options $attrs] \
+      lassign [my getWidgetType $wname $options $attrs] \
         widget options attrs nam3 dsbl
       # The type of widget (if defined) means its creation
       # (if not defined, it was created after "makewindow" call
@@ -1862,7 +1867,7 @@ oo::class create ::apave::APave {
 
     set shal [::apave::shadowAllowed 0]
     if {[my getOption -themed {*}$args] in {"" "0"} && \
-    [my csCurrent] != $::apave::_CS_(NOTCS)} {
+    [my csCurrent] != [apave::cs_Non]} {
       my csSet [my csCurrent] $win -doit
     }
     ::apave::setAppIcon $win

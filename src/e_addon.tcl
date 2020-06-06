@@ -7,6 +7,31 @@
 
 #####################################################################
 
+proc ::em::countCh {str ch} {
+
+  # Counts a character in a string.
+  #   str - a string
+  #   ch - a character
+  #
+  # Returns a number of non-escaped occurences of character *ch* in
+  # string *str*.
+  #
+  # See also:
+  # [wiki.tcl-lang.org](https://wiki.tcl-lang.org/page/Reformatting+Tcl+code+indentation)
+
+  set icnt 0
+  while {[set idx [string first $ch $str]] >= 0} {
+    set backslashes 0
+    set nidx $idx
+    while {[string equal [string index $str [incr nidx -1]] \\]} {
+      incr backslashes
+    }
+    if {$backslashes % 2 == 0} { incr icnt }
+    set str [string range $str [incr idx] end]
+  }
+  return $icnt
+}
+
 #=== toggle 'stay on top' mode
 proc ::em::staytop_toggle {} {
   if {$::em::ncmd > [expr $::em::begsel+1]} {
@@ -48,7 +73,7 @@ proc ::em::createpopup {} {
 proc ::em::popup {X Y} {
     set ::em::skipfocused 1
     if {![winfo exist .popupMenu]} ::em::createpopup
-    ::apave::themeObj themePopup .popupMenu
+    ::apave::paveObj themePopup .popupMenu
     tk_popup .popupMenu $X $Y
 }
 
@@ -57,8 +82,8 @@ proc ::em::edit {fname {prepost ""}} {
   set fname [string trim $fname]
   if {$::em::editor eq ""} {
     ::apave::APaveInput create dialog
-    set res [dialog editfile $fname $::em::clrtitf $::em::clrinab \
-      $::em::clrtitf $prepost {*}[::em::theming_pave] -w {80 100} -h {10 24} -ro 0]
+    set res [dialog editfile $fname $::em::clrtitf $::em::clrinab $::em::clrtitf \
+      $prepost {*}[::em::theming_pave] -w {80 100} -h {10 24} -ro 0 -centerme 1]
     dialog destroy
     return $res
   } else {
@@ -116,7 +141,15 @@ proc ::em::edit_menu {} {
     if {$::em::ischild} {
       ::em::on_exit 0
     } else {
-      ::em::reread_menu $::em::lasti
+      # colors can be changed, so "reread_menu" with setting colors
+      foreach w [winfo children .] {  ;# remove Tcl/Tk menu items
+        destroy $w
+      }
+      ::em::initdefaultcolors
+      initcomm
+      ::em::initcolorscheme
+      initmenu
+      mouse_button $::em::lasti
     }
   } else {
     repaintForWindows
@@ -166,15 +199,14 @@ proc ::em::destroy_emenus {} {
 }
 #=== get color scheme's attributes for 'Project...' dialog
 proc ::em::change_PD_Spx {} {
-  lassign [::apave::themeObj csGet $::ncolor] - fg - bg
+  lassign [::apave::paveObj csGet $::ncolor] - fg - bg
   set ret "-selectforeground $fg -selectbackground $bg -fieldbackground $bg"
   [dialog LabMsg] configure -foreground $fg -background $bg \
-    -padding {16 5 16 5} -text "[::apave::themeObj csGetName $::ncolor]"
+    -padding {16 5 16 5} -text "[::apave::paveObj csGetName $::ncolor]"
   return $ret
 }
 #=== change a project's directory and other parameters
 proc ::em::change_PD {} {
-  set themecolors [::em::theming_pave]
   if {![file isfile $::em::PD]} {
     set em_message "  WARNING:
   \"$::em::PD\" isn't a file.
@@ -207,7 +239,7 @@ proc ::em::change_PD {} {
     seh_2 {{} {-pady 10}} {} \
     ent2 {"Geometry of menu:"} "$geo" \
     chb2 {"Use for this menu"} {0} \
-  ] -head $em_message -weight bold -centerme 1 {*}$themecolors]
+  ] -head $em_message -weight bold -centerme 1 {*}[theming_pave]]
   ::apave::shadowAllowed $sa
   set r [lindex $res 0]
   set ::ncolor [::apave::getN $::ncolor $ncolorsav -1 $::apave::_CS_(MAXCS)]
@@ -228,7 +260,6 @@ proc ::em::change_PD {} {
         lappend ::argv "${p}=${a}"
       }
     }
-    set ::argc [llength $::argv]
 
     # the main problems of e_menu's colorizing to solve are:
     #
@@ -246,19 +277,22 @@ proc ::em::change_PD {} {
     #  - e_menu allows to set fI=, bI= arguments for active item's colors;
     #    it's not related to apave's CS and used by e_menu only;
     #    this way is followed in TKE editor's e_menu plugin
+    set instead [::em::insteadCS]
     array unset ::em::ar_geany
-    if {$::em::insteadCS} {
+    set ::em::insteadCSlist [list]
+    set ::argv [dialog removeOptions $::argv c=*]
+    lappend ::argv c=$::ncolor
+    if {$instead} {
       # when all colors are set as e_menu's arguments instead of CS,
       # just set the selected CS and remove the 'argumented' colors
-      set ::em::insteadCS 0
-      set ::em::insteadCSlist [list]
       set ::argv [dialog removeOptions $::argv \
-        fg=* bg=* fE=* bE=* fS=* bS=* cc=* fI=* bI=* ht=* hh=*]
+        fg=* bg=* fE=* bE=* fS=* bS=* cc=* fI=* bI=* fM=* bM=* ht=* hh=* gr=*]
       set ::argc [llength $::argv]
       initcolorscheme true
       # this reads and shows the menu, with the new CS
       reread_menu $::em::lasti
     } else {
+      set ::argc [llength $::argv]
       unsetdefaultcolors
       initdefaultcolors
       initcolorscheme
@@ -281,6 +315,10 @@ proc ::em::input {cmd} {
   set data [string range $cmd $dp+4 end]
   set cmd "dialog input [string range $cmd 2 $dp-1] -centerme 1"
   catch {set cmd [subst $cmd]}
+  if {[set lb [countCh $cmd \{]] != [set rb [countCh $cmd \}]]} {
+    dialog_box ERROR " Number of left braces : $lb\n Number of right braces: $rb \
+      \n\n     are not equal!" ok err OK -centerme 1
+  }
   set res [eval $cmd [::em::theming_pave]]
   dialog destroy
   set r [lindex $res 0]
@@ -518,7 +556,8 @@ proc ::em::IF {sel {callcommName ""}} {
       set callcomm $comm
       return true
     }
-    if {$comm ne ""} {
+    set ::em::IF_exit [expr {$comm ne ""}]
+    if {$::em::IF_exit} {
       switch -- [string range $comm 0 2] {
         "%I " {
           # ::Input variable can be used for the input

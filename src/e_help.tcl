@@ -48,7 +48,10 @@ namespace eval ::eh {
 # common procedures
 
 #====== debug messages (several params)
-proc d {args} {::eh::message_box "$args"}
+proc ddd {args} {
+  set msg ""; foreach l $args {append msg " $l\n"}
+  ::apave::paveObj ok info DEBUG $msg -text 1 -h 10 -centerme .
+}
 
 #====== debug messages (array passed by name)
 proc a {a} {set m [array get $a]; d $m}

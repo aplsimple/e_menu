@@ -163,6 +163,7 @@ RW: 5. APLinkee      RW: sleep 1
  R: 5. APLinkee      R: python3 /home/apl/PROGRAMS/run_APLinkee/run_APLinkee.py /media/windows/APLinkee.Shk/APLinkee.arli /media/apl/KINGSTON/APLinkee.Shk/APLinkee.arli 10
  R: 6. FVords        R: sleep 1
  R: 6. FVords        R: /home/apl/PROGRAMS/C_COMM/commw /media/apl/KINGSTON/FVords_Prepare fvords.exe
+ R: 7. poApps        R: ~/UTILS/poApps-2.5.2-Linux64 --dirdiff
 
 R: ------------------------------------ R:
 

@@ -502,7 +502,6 @@ oo::class create ::apave::APaveDialog {
     set optsFont [string trim $optsFont]
     set optsHeadFont $optsFont
     set fs [my basicFontSize]
-    incr fs 2 ;# for texts
     set textfont "-font \"-family {[my basicTextFont]}"
     if {$optsFont ne ""} {
       if {[string first "-size " $optsFont]<0} {
@@ -626,7 +625,8 @@ oo::class create ::apave::APaveDialog {
             \$pop configure -tearoff 0
             \$pop add separator
             \$pop add command [my IconA none] -accelerator Ctrl+A \\
-            -label \"Select All\" -command \"$wt tag add sel 1.0 end\""
+            -label \"Select All\" -command \"$wt tag add sel 1.0 end\"
+             bind $wt <Control-a> \"$wt tag add sel 1.0 end; break\""
         }
       }
     }
@@ -729,8 +729,8 @@ oo::class create ::apave::APaveDialog {
           -background white -selectforeground black \
           -selectbackground gray -insertbackground black] v0 v1 v2 v3 v4
         # the rest colors should be added, namely:
-        #   tfg2 tbg2 tfgS tbgS tfgD tbgD tcur bclr
-        lappend themecolors $v0 $v1 $v2 $v3 $v3 $v1 $v4 $v4 $v3 $v0 $v1
+        #   tfg2 tbg2 tfgS tbgS tfgD tbgD tcur bclr help fI bI fM bM
+        lappend themecolors $v0 $v1 $v2 $v3 $v3 $v1 $v4 $v4 $v3 $v2 $v3 $v0 $v1
       }
       catch {
         my themeWindow $_pdg(win).dia {*}$themecolors false

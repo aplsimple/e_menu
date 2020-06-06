@@ -23,7 +23,7 @@
 #####################################################################
 
 namespace eval ::em {
-  variable e_menu_version "e_menu v2.0.2"
+  variable e_menu_version "e_menu v2.1b2"
   variable exedir [file normalize [file dirname [info script]]]
   variable srcdir [file join $::em::exedir src]
 }
@@ -96,7 +96,7 @@ namespace eval ::em {
   variable thisapp emenuapp
   variable appname $::em::thisapp
   variable fs 9           ;# font size
-  variable font1 "Sans" font2 "Mono"   ;# font of header & item
+  variable font1 "TkHeadingFont" font2 "TkDefaultFont"   ;# font of header & item
   variable viewed 40      ;# width of item (in characters)
   variable maxitems 64    ;# maximum of menu.txt items
   variable timeafter 10   ;# interval (in sec.) for updating times/dates
@@ -111,11 +111,15 @@ namespace eval ::em {
   variable bd 1 b0 0 b1 1 b2 1 b3 1 b4 1
   variable incwidth 15
   variable wc 0
-  variable tf 15
-  variable tg 80x24+200+200
+  variable tf 10 tg 80x24+200+200
   variable om 1
   #---------------
-  variable mute "*S*"
+  variable R_mute "*S*"
+  variable R_exit "; ::em::on_exit 0"
+  variable R_ampmute "&$::em::R_mute"
+  variable R_ampexit "&$::em::R_exit"
+  variable R_ampmuteexit "$::em::R_ampmute$::em::R_exit"
+  variable IF_exit 0 ;# false when %IF performed neither %THEN nor %ELSE
   variable begin 1 begtcl 3
   variable begsel $::em::begtcl
   #---------------
@@ -159,9 +163,8 @@ namespace eval ::em {
   variable ismenuvars 0
   variable savelasti -1
   variable linuxconsole ""
-  variable insteadCSlist [list] insteadCS 0
+  variable insteadCSlist [list]
   variable source_addons true
-  variable themecolors [list]
 }
 #=== source addons and call a function of these
 proc ::em::addon {func args} {
@@ -171,20 +174,29 @@ proc ::em::addon {func args} {
   }
   $func {*}$args
 }
+#=== get a mode of coloring (with c= or fg=/bg=)
+proc ::em::insteadCS {} {
+  # check a completeness of colors replacing CS
+  return [expr {[llength $::em::insteadCSlist]==14}]
+}
 #=== set colors for dialogs
 proc ::em::theming_pave {} {
   # ALL colors set as arguments of e_menu: fg=, bg=, fE=, bE=, fS=, bS=, cc=, ht=
-  if {$::em::insteadCS} {
-    if {$::em::themecolors eq [list]} {
-      set ::em::themecolors [list $::em::clrfg $::em::clrbg $::em::clrfE \
-        $::em::clrbE $::em::clrfS $::em::clrbS #182020 #dcdad5 \
-        $::em::clrcc $::em::clrht $::em::clrhh $::em::clrfI $::em::clrbI]
-      ::apave::themeObj themeWindow . {*}$::em::themecolors false
-    }
-    foreach clr $::em::themecolors {append thclr "-theme $clr "}
-    return $thclr
+  if {[::em::insteadCS]} {
+    set themecolors [list $::em::clrfg $::em::clrbg $::em::clrfE \
+      $::em::clrbE $::em::clrfS $::em::clrbS grey $::em::clrbg \
+      $::em::clrcc $::em::clrht $::em::clrhh $::em::fI $::em::bI \
+      $::em::fM $::em::bM]
+    ::apave::paveObj themeWindow . {*}$themecolors false
+  } else {
+    set themecolors [list $::em::clrinaf $::em::clrinab $::em::clrtitf \
+      $::em::clrtitb $::em::clractf $::em::clractb grey $::em::clrinab \
+      $::em::clrcurs $::em::clrhotk $::em::clrhelp $::em::fI $::em::bI \
+      $::em::fM $::em::bM]
   }
-  return ""
+  ::apave::paveObj themeWindow . {*}$themecolors [expr {![::em::insteadCS]}]
+  foreach clr $themecolors {append thclr "-theme $clr "}
+  return $thclr
 }
 #=== own message/question box
 proc ::em::dialog_box {ttl mes {typ ok} {icon info} {defb OK} args} {
@@ -225,23 +237,6 @@ proc ::em::color_button {i {fgbg "fg"}} {
   }
   return $clr
 }
-#=== get a selected item's color
-proc ::em::color_selected_button {i {fgbg "fg"}} {
-  if {$fgbg eq "fg"} {
-    if {[info exists ::em::clrfI]} {
-      set clr $::em::clrfI   ;# fI= argument overrides CS color
-    } else {
-      set clr $::em::clractf
-    }
-  } else {
-    if {[info exists ::em::clrbI]} {
-      set clr $::em::clrbI  ;# bI= argument overrides CS color
-    } else {
-      set clr $::em::clractb
-    }
-  }
-  return $clr
-}
 #=== get next button index
 proc ::em::next_button {i} {
   if {$i>=$::em::ncmd} {set i $::em::begin}
@@ -254,7 +249,6 @@ proc ::em::isMenuFocused {} {
 }
 #=== put i-th button in focus
 proc ::em::focus_button {i {doit true}} {
-  set leave [expr {$i<0}]
   set last $::em::lasti
   set i [next_button $i]
   if {![winfo exists .frame.fr$i.butt]} return
@@ -270,12 +264,10 @@ proc ::em::focus_button {i {doit true}} {
         .frame.fr$::em::lasti.butt configure \
           -bg [color_button $::em::lasti bg] -fg [color_button $::em::lasti]
       }
-      #if {$leave} return
     }
-    set fg [color_selected_button $i]
-    set bg [color_selected_button $i bg]
+    set fg $::em::fI
+    set bg $::em::bI
   }
-  #if {$leave} return
   .frame.fr$i.butt configure -fg $fg -bg $bg \
     -activeforeground $fg -activebackground $bg
   if {[winfo exists .frame.fr$i.arr]} {
@@ -309,9 +301,9 @@ proc ::em::get_seltd {s1} {
 }
 #=== get a calling mode
 proc ::em::silent_mode {amp} {
-  set silent [string first $::em::mute " $amp"]
+  set silent [string first $::em::R_mute " $amp"]
   if {$silent > 0} {
-    set amp [string map [list $::em::mute ""] "$amp"]
+    set amp [string map [list $::em::R_mute ""] "$amp"]
   }
   return [list $amp $silent]
 }
@@ -430,6 +422,7 @@ proc ::em::vip {refcmd} {
   }
   set cd [string range $cmd 0 2]
   if {([::iswindows] && [string toupper $cd] eq "CD ") || $cd eq "cd "} {
+    set ::em::IF_exit 0
     prepr_win cmd "M/"  ;# force converting
     if {[set cd [string trim [string range $cmd 3 end]]] ne "."} {
       catch {set cd [subst -nobackslashes -nocommands $cd]}
@@ -519,6 +512,31 @@ proc ::em::checkForShell {rsel} {
   }
   return false
 }
+#=== call command in xterm
+proc ::em::xterm {sel amp {term ""}} {
+  if {$term eq ""} {set term [auto_execok xterm]}
+  if {[set lang [::eh::get_language]] ne ""} {set lang "-fa $lang"}
+  if {[set _ [string first " " $sel]]<0} {set _ xterm} {set _ [string range $sel 0 $_]}
+  set sel "### \033\[32;1mTo copy a text, select it and press Shift+PrtSc\033\[m ###\\n
+    \\n[::eh::escape_quotes $sel]"
+  set composite "$::lin_console $sel $amp"
+  set tpars [string range $::em::linuxconsole 6 end]
+  set ::em::_tmp "xterm"
+  foreach {o v s} {-fs fs tf -geometry geo tg -title ttl _tmp} {
+    if {[string first $o $tpars]>=0} {set $v ""} {set $v "$o [set ::em::$s]"}
+  }
+  exec -ignorestderr {*}$term {*}$lang {*}$fs {*}$geo {*}$ttl {*}$tpars \
+    -e {*}$composite
+}
+#=== call command in terminal
+proc ::em::term {sel amp {term ""}} {
+  if {[string match "xterm *" "$::em::linuxconsole "]} {
+    ::em::xterm $sel $amp
+  } else {
+    set composite "$::lin_console $sel $amp"
+    exec -ignorestderr {*}$::em::linuxconsole -e {*}$composite
+  }
+}
 #=== call command in shell
 proc ::em::shell0 {sel amp {silent -1}} {
   set ret true
@@ -550,20 +568,14 @@ proc ::em::shell0 {sel amp {silent -1}} {
     }
   } else {
     if {[string trim "$sel"] eq ""} {return true}
-    set lang [::eh::get_language]
-    if {$::em::linuxconsole ne "" && [string first \\n $sel]<0} {
-      set composite "$::lin_console $sel $amp"
-      #set composite [string map [list \\n " ; "] $composite]
-      exec -ignorestderr {*}$::em::linuxconsole -e {*}$composite
+    if {$::em::linuxconsole ne ""} {
+      ::em::term $sel $amp
     } elseif {[set term [auto_execok lxterminal]] ne "" } {
       set sel [string map [list "\""  "\\\""] $sel]
       set composite "$::lin_console $sel $amp"
       exec -ignorestderr {*}$term --geometry=$::em::tg -e {*}$composite
     } elseif {[set term [auto_execok xterm]] ne "" } {
-      set sel [::eh::escape_quotes $sel]
-      set composite "$::lin_console $sel $amp"
-      exec -ignorestderr {*}$term -fa "$lang" -fs $::em::tf \
-      -geometry $::em::tg -bg white -fg black -title $sel -e {*}$composite
+      ::em::xterm $sel $amp $term
     } else {
       set ret false
       set e "Not found lxterminal nor xterm.\nInstall any."
@@ -702,6 +714,7 @@ proc ::em::shell_run {from typ c1 s1 amp {inpsel ""}} {
     }
   }
   foreach seltd [split $inpsel "\n"] {
+    set doexit 0
     if {[set r [string first "\r" $seltd]] > 0} {
       lassign [split $seltd "\r"] runp seltd
       if {[string first "::em::run" $runp] != -1} {
@@ -709,16 +722,17 @@ proc ::em::shell_run {from typ c1 s1 amp {inpsel ""}} {
       } else {
         set c1 "shell1"
       }
-      if {[string last "&$::em::mute" $runp]>0} {set amp &} {set amp ""}
-      if {[string last "; exit$::em::mute" $runp$::em::mute] > 0} {
-        set doexit 1
-        set amp "&"
-      }
+      if {[string last $::em::R_ampmute $runp]>0 ||
+          [string last $::em::R_ampexit $runp]>0} {set amp &} {set amp ""}
+      if {[string last $::em::R_exit $runp]>0} {set doexit 1}
     }
     prepr_09 seltd ::em::ar_i09 "i"   ;# set N of runs in command
-    if {![ $c1 $typ "$seltd" $amp $silent ] || $doexit > 0} {
-      set inc 0  ;# unsuccessful run
-      break
+    set ::em::IF_exit 1
+    if {![$c1 $typ "$seltd" $amp $silent] || $doexit > 0} {
+      if {$::em::IF_exit} {
+        set inc 0  ;# unsuccessful run
+        break
+      }
     }
   }
   if {$doexit > 0} {::em::on_exit}
@@ -841,6 +855,7 @@ proc ::em::get_callback {} {
 }
 #=== get working (project's) dir
 proc ::em::get_PD {} {
+  set PName ""
   if {[llength $::em::prjdirlist]>0} {
     # workdir got from a current file (if not passed, got a current dir)
     if {[catch {set ::em::workdir $::em::ar_geany(d)}] && \
@@ -848,14 +863,23 @@ proc ::em::get_PD {} {
       set ::em::workdir [pwd]
     }
     foreach wd $::em::prjdirlist {
+      lassign $wd wd pn  ;# second item may set %PN
       if {[string first [string toupper $wd] [string toupper $::em::workdir]]==0} {
-        set ::em::workdir "$wd"
+        set ::em::workdir $wd
+        set PName $pn
         break
       }
     }
   }
   if {![file isdirectory $::em::workdir]} {
     set ::em::workdir [pwd]
+  }
+  if {$::em::prjset != 2} {
+    if {$PName eq ""} {
+      set ::em::prjname [::eh::get_underlined_name [file tail $::em::workdir]]
+    } else {
+      set ::em::prjname $PName
+    }
   }
   return $::em::workdir
 }
@@ -878,20 +902,25 @@ proc ::em::read_f_file {} {
   }
   return [llength $::em::filecontent]
 }
-#=== get contents of #ARGS1: ..#ARGS99: line
+#=== get contents of #ARGS1: ..#ARGS99: and #RUNF1: ..#RUNF99: line
 proc ::em::get_AR {} {
   if {$::em::truesel && $::em::seltd ne ""} {
     ;# %s is preferrable for ARGS (ts= rules)
-    return [string map {\n \\n \" \\\"} $::em::seltd]
+    return "[string map {\n \\n \" \\\"} $::em::seltd]"
   }
   if {[::em::read_f_file]} {
     set re "^#\[ \]?ARGS\[0-9\]+:\[ \]*(.*)"
+    set rf "^#\[ \]?RUNF\[0-9\]+:\[ \]*(.*)"
+    set AR [set RF ""]
     foreach st $::em::filecontent {
-      if {[regexp $re $st]} {
-        lassign [regexp -inline $re $st] => res
-        return $res
+      if {[regexp $re $st] && $AR eq ""} {
+        lassign [regexp -inline $re $st] => AR
+      } elseif {[regexp $rf $st] && $RF eq ""} {
+        lassign [regexp -inline $rf $st] => RF
       }
+      if {$AR ne "" && $RF ne ""} break
     }
+    return [list $AR $RF]
   }
   return ""
 }
@@ -1033,9 +1062,6 @@ proc ::em::prepr_pn {refpn {dt 0}} {
   }
   init_swc
   set PD [get_PD]
-  if {$::em::prjname eq ""} {
-    set ::em::prjname [::eh::get_underlined_name [file tail $PD]]
-  }
   prepr_1 pn "PD" $PD                 ;# %PD is passed project's dir (PD=)
   prepr_1 pn "P_" [get_P_]            ;# ...underlined PD
   prepr_1 pn "PN" $::em::prjname      ;# %PN is passed dir's tail
@@ -1045,7 +1071,9 @@ proc ::em::prepr_pn {refpn {dt 0}} {
   prepr_1 pn "s"  $::em::seltd        ;# %s is a selected text
   prepr_1 pn "u"  $::em::useltd       ;# %u is %s underscored
   prepr_1 pn "lg" [::eh::get_language] ;# %lg is a locale (e.g. ru_RU.utf8)
-  prepr_1 pn "AR" [get_AR]            ;# %AR is contents of #ARGS1: ..#ARGS99: line
+  lassign [get_AR] AR RF
+  prepr_1 pn "AR" $AR                 ;# %AR is contents of #ARGS1: ..#ARGS99: line
+  prepr_1 pn "RF" $RF                 ;# %AF is contents of #RUNF1: ..#RUNF99: line
   prepr_1 pn "L"  [get_L]             ;# %L is contents of %l-th line
   prepr_1 pn "TT" [::eh::get_tty $::em::linuxconsole] ;# %TT is a terminal
   set pndt [prepr_dt pn]
@@ -1247,36 +1275,34 @@ proc ::em::menuof {commands s1 domenu} {
     switch -- $typ {
       "I:" {   ;#internal (M, Q, S, T)
         prepr_pn prog
-        set prom "RUN         "
+        set prom "RUN INTERNAL"
         set runp "$prog"
       }
       "R/" -
       "R:"  {set prom "RUN         "
-        set runp "::em::run $typ";   set amp "&$::em::mute"
+        set runp "::em::run $typ";   set amp $::em::R_ampmute
       }
       "RE/" -
-      "RE:"  {set prom "EXEC        "
+      "RE:"  {set prom "RUN & EXIT  "
         set runp "::em::run $typ"
-        set amp "&$::em::mute"
-        append amp "; ::em::on_exit 0"
+        set amp "$::em::R_ampmuteexit $line"
       }
       "RW/" -
       "RW:" {set prom "RUN & WAIT  "
-        set runp "::em::run $typ";   set amp "$::em::mute"
+        set runp "::em::run $typ";   set amp $::em::R_mute
       }
       "S/" -
       "S:"  {set prom "SHELL       "
-        set runp "::em::shell $typ"; set amp "&$::em::mute"
+        set runp "::em::shell $typ"; set amp $::em::R_ampmute
       }
       "SE/" -
-      "SE:"  {set prom "SHELL       "
+      "SE:"  {set prom "SHELL & EXIT"
         set runp "::em::shell $typ"
-        set amp "&$::em::mute"
-        append amp "; ::em::on_exit 0"
+        set amp $::em::R_ampmuteexit
       }
       "SW/" -
       "SW:" {set prom "SHELL & WAIT"
-        set runp "::em::shell $typ"; set amp "$::em::mute"
+        set runp "::em::shell $typ"; set amp $::em::R_mute
       }
       "M/" -
       "M:"  {set prom "MENU        "
@@ -1288,7 +1314,7 @@ proc ::em::menuof {commands s1 domenu} {
       }
       "ME/" -
       "ME:" {set prom "MENU & EXIT "
-        set runp "::em::callmenu $typ"; set amp "& ; ::em::on_exit 0"
+        set runp "::em::callmenu $typ"; set amp $::em::R_ampexit
       }
       default {
         set prname "?"
@@ -1374,7 +1400,7 @@ proc ::em::prepare_buttons {refcommands} {
     }
     if {$::em::itviewed < 5} {set ::em::itviewed $::em::viewed}
   }
-  set ::em::font1a "\"[string trim $::em::font1 \"]\" $::em::fs"
+  set ::em::font1a "\"[string trim $::em::font1 \"]\" [expr {$::em::fs-1}]"
   set ::em::font2a "\"[string trim $::em::font2 \"]\" $::em::fs"
   checkbutton .cb -text "On top" -variable ::em::ontop -fg $::em::clrhotk \
       -bg $::em::clrtitb -takefocus 0 -command {::em::addon staytop_toggle} \
@@ -1383,7 +1409,11 @@ proc ::em::prepare_buttons {refcommands} {
       -bg $::em::clrinab] -row 0 -column 0 -sticky nsew
   grid .cb -row 0 -column 1 -sticky ne
   if {$::em::ncmd < 2} { ;# check the call string of e_menu
-    if {$::em::start0} {puts "Run:\n tclsh e_menu.tcl \"s=%s\" m=menu"}
+    if {$::em::start0} {
+      puts "To run e_menu, use a command: \
+      \n\033\[34;1m  tclsh e_menu.tcl \"s=%s\" m=menu \033\[m \
+      \nDetails here: \
+      \n\033\[32;1m  https://aplsimple.github.io/en/tcl/e_menu\033\[m"}
     exit
   }
   label .frame -bg $::em::clrinab -fg $::em::clrinab -state disabled \
@@ -1528,9 +1558,9 @@ proc ::em::init_header {s1 seltd} {
       set ::em::pars($s1) $seltd
     }
     lappend ::em::commands [list " EXEC        \"$::em::seltd\"" \
-        "::em::run RE: $s1 & ; ::em::on_exit"]
+        "::em::run RE: $s1 $::em::R_ampexit"]
     lappend ::em::commands [list " SHELL       \"$::em::seltd\"" \
-        "::em::shell RE: $s1 & ; ::em::on_exit"]
+        "::em::shell RE: $s1 $::em::R_ampexit"]
     set ::em::hotkeys "000$::em::hotsall"
   }
   set ::em::begsel [expr [llength $::em::commands] - 1]
@@ -1561,7 +1591,7 @@ proc ::em::initcommands {lmc amc osm {domenu 0}} {
         y0= y1= y2= y3= y4= y5= y6= y7= y8= y9= \
         z0= z1= z2= z3= z4= z5= z6= z7= z8= z9= \
         a= d= e= f= p= l= h= b= cs= c= t= g= n= \
-        fg= bg= fE= bE= fS= bS= fI= bI= cc= gr= ht= hh= rt= \
+        fg= bg= fE= bE= fS= bS= fI= bI= fM= bM= cc= gr= ht= hh= rt= \
         m= om= ts= TF= yn= cb= in=} { ;# the processing order is important
     if {($s1 in {o= s= m=}) && !($s1 in $osm)} {
       continue
@@ -1604,12 +1634,14 @@ proc ::em::initcommands {lmc amc osm {domenu 0}} {
           ::em::menuof ::em::commands $s1 $domenu
         }
         b= {set ::eh::my_browser $seltd}
-        cs= {::apave::themeObj csAdd $seltd}
+        cs= {::apave::paveObj csAdd $seltd}
         c= {
           set ::ncolor [::apave::getN $seltd -1 -1 $::apave::_CS_(MAXCS)]
           ::em::initdefaultcolors
         }
-        o= {set ::em::ornament [::apave::getN $seltd]}
+        o= {set ::em::ornament [::apave::getN $seltd 0 0 3]
+          if {$::em::ornament>1} {set ::em::font2 Mono}
+        }
         g= {
           lassign [split $seltd x+] w h x y
           if {$w ne "" && $x ne "" && $y ne ""} {
@@ -1681,7 +1713,7 @@ proc ::em::initcommands {lmc amc osm {domenu 0}} {
             }
           }
         }
-        fg= - bg= - fE= - bE= - fS= - bS= - fI= - bI= - ht= - hh= - cc= - gr= {
+        fg= - bg= - fE= - bE= - fS= - bS= - fI= - bI= - fM= - bM= - ht= - hh= - cc= - gr= {
           set ::em::clr$s01 $seltd
           if {[lsearch -glob $::em::insteadCSlist $s1*]<0} {
             lappend ::em::insteadCSlist $s1$seltd
@@ -1696,7 +1728,7 @@ proc ::em::initcommands {lmc amc osm {domenu 0}} {
             set ::em::ratiomin "$i1/$i2"
           }
         }
-        tt= { ;# command for terminal (e.g. qterminal)
+        tt= { ;# terminal (e.g. "tt=xterm -fs 12 -geometry 90x30+400+100")
           set ::em::linuxconsole $seltd
         }
         default {
@@ -1720,20 +1752,20 @@ proc ::em::initcommands {lmc amc osm {domenu 0}} {
 #=== get a list of colors used by e_menu
 proc ::em::colorlist {} {
   return [list clrtitf clrinaf clrtitb clrinab clrhelp \
-    clractb clractf clrcurs clrgrey clrhotk fI bI]
+    clractb clractf clrcurs clrgrey clrhotk fI bI fM bM]
 }
 #=== clear off default colors
 proc ::em::unsetdefaultcolors {} {
-    foreach c {fg bg fE bE fS bS fI bI ht hh cc gr} {catch {unset ::em::clr$c}}
+  foreach c {fg bg fE bE fS bS fI bI ht hh cc gr fM bM} {catch {unset ::em::clr$c}}
 }
 #=== set default colors from color scheme
 proc ::em::initcolorscheme {{nothemed false}} {
   if {$nothemed} unsetdefaultcolors
   set clrs [::em::colorlist]
-  lassign [::apave::themeObj csGet $::ncolor] {*}$clrs
+  lassign [::apave::paveObj csGet $::ncolor] {*}$clrs
   foreach clr $clrs {set ::em::$clr [set $clr]}
-  ::apave::themeObj basicFontSize $::em::fs
-  ::apave::themeObj basicTextFont $::em::font1
+  ::apave::paveObj basicFontSize $::em::fs
+  ::apave::paveObj basicTextFont $::em::font1
   # set real colors, based on fg=, bg=, fS=, bS=, gr= arguments of e_menu
   if {[info exist ::em::clrfg]} {set ::em::clrinaf $::em::clrfg}
   if {[info exist ::em::clrbg]} {set ::em::clrinab $::em::clrbg}
@@ -1745,8 +1777,10 @@ proc ::em::initcolorscheme {{nothemed false}} {
   if {[info exist ::em::clrgr]} {set ::em::clrgrey $::em::clrgr}
   if {[info exist ::em::clrcc]} {set ::em::clrcurs $::em::clrcc}
   if {[info exist ::em::clrht]} {set ::em::clrhotk $::em::clrht}
-  if {$fI ne ""} {set ::em::clrfI $fI}
-  if {$bI ne ""} {set ::em::clrbI $bI}
+  if {[info exist ::em::clrfI]} {set ::em::fI $::em::clrfI}
+  if {[info exist ::em::clrbI]} {set ::em::bI $::em::clrbI}
+  if {[info exist ::em::clrfM]} {set ::em::fM $::em::clrfM}
+  if {[info exist ::em::clrbM]} {set ::em::bM $::em::clrbM}
   if {[winfo exist .frame]} {
     . configure -bg [.frame cget -bg]
   } else {
@@ -1756,7 +1790,7 @@ proc ::em::initcolorscheme {{nothemed false}} {
 #=== set default colors if not set by call of e_menu
 proc ::em::initdefaultcolors {} {
   if {$::ncolor>=$::apave::_CS_(MINCS) && $::ncolor<=$::apave::_CS_(MAXCS)} {
-    lassign [::apave::themeObj csSet $::ncolor] \
+    lassign [::apave::paveObj csSet $::ncolor] \
       ::em::clrfg ::em::clrbg ::em::clrfE ::em::clrbE \
       ::em::clrfS ::em::clrbS ::em::clrhh ::em::clrgr ::em::clrcc
   }
@@ -1851,11 +1885,12 @@ PbBCAPABKF9B+b41+J0AAAAASUVORK5CYII=}
   set ::win_console [file join $::em::exedir "$::win_console"]
   set ::img [image create photo -data $imgArr]
   for {set i 0} {$i <=9} {incr i} {set ::em::ar_i09(i$i=) 1 }
-  if {[set ::em::insteadCS [expr {[llength $::em::insteadCSlist]==12}]]} {
-    ::em::theming_pave
-    set ::ncolor [::apave::themeObj csCurrent]
+  ::em::theming_pave
+  if {[::em::insteadCS]} {
+    set ::ncolor [::apave::paveObj csCurrent]
     ::em::initcolorscheme
   }
+  ::apave::paveObj untouchWidgets .frame* .h* .cb
 }
 #=== initialize hotkeys for popup menu etc.
 proc ::em::inithotkeys {} {
@@ -1923,13 +1958,12 @@ proc ::em::initmenu {} {
       -font $::em::font2a -width $::em::itviewed -borderwidth $::em::bd \
       -relief flat -overrelief flat -highlightthickness $::em::b0 \
       -fg [color_button $i] -bg [color_button $i bg] -command "$prbutton" \
-      -activeforeground [color_selected_button $i] \
-      -activebackground [color_selected_button $i bg]
+      -activeforeground $::em::fI -activebackground $::em::bI
     if {$img eq "" && \
     [string len $comtitle] > [expr $::em::itviewed * $::em::ratiomin]} \
       {tooltip::tooltip $b "$comtitle"}
     grid [label .frame.l$i -text $hotkey -font "$::em::font1a bold" -bg \
-      $::em::clrinab -fg $::em::clrhotk] -column 0 -row [expr $i+$::em::isep] -sticky ew
+      $::em::clrinab -fg $::em::clrhotk] -column 0 -row [expr $i+$::em::isep] -sticky sew
     grid .frame.fr$i -column 1 -row  [expr $i+$::em::isep] -sticky ew \
         -pady $::em::b3 -padx $::em::b4
     pack $b -expand 1 -fill both -side left
@@ -1987,7 +2021,7 @@ proc ::em::initmenu {} {
   }
 }
 #=== exit (end of e_menu)
-proc ::em::on_exit {{really 1}} {
+proc ::em::on_exit {{really 1} args} {
   if {!$really && $::em::ontop} return  ;# let a menu stay on top, if so decided
   if {$::em::cb ne ""} {    ;# callback the menu (i.e. the caller)
     set ::em::cb [string map {< = > =} $::em::cb]
@@ -2102,19 +2136,20 @@ proc ::em::initend {} {
   set ::em::start0 0
   ::apave::shadowAllowed true
 }
+#=== get an external CS to put into apave CSs (sort of tuning CS list)
+#proc testCS {} {
+# set cc [::apave::paveObj csCurrent]; set ca [::apave::cs_Max]; if {[catch {::em::em_message "[::apave::paveObj csGetName $cc]: $cc of $ca:\n\n CS-$ca: [::apave::paveObj csGet $ca]\n\n[string map {{ } \n} $::argv]" ok "CS" -text 1 -w 99 -h 15} e]} {M $e}
+#}
+
 ::apave::initWM
 ::em::initbegin
 ::em::initdefaultcolors
 ::em::initcolorscheme
 ::em::initcomm
 ::em::initmain
+# testCS
 ::em::initmenu
 ::em::initauto
 ::em::initend
-# *****************************   EOF   *****************************
-############# getting an external CS to put into apave CSs:
-# set cc [::apave::themeObj csCurrent]
-# set ca [::apave::themeObj csMax]
-# if {[catch {::em::em_message "[::apave::themeObj csGetName $cc]: $cc \
-   of $ca:\n\n[::apave::themeObj csGet $ca]" ok "CS" -text 1 -w 99} e]} {M $e}
+
 # *****************************   EOF   *****************************

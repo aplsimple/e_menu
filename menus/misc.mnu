@@ -35,5 +35,8 @@ in=1.0
    -i "$::EMENUDIR1" -o "$::EMENUDIR2" $::EMENUOPTS
 
 
+ S: Ruff! %PN S: cd %PD
+ S: Ruff! %PN S: tclsh ~/UTILS/ruff_apl.tcl "%PN"
+
 [OPTIONS]
 pos=5.4

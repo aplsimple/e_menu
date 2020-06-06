@@ -34,7 +34,7 @@
 
 package require Tk
 
-package provide apave 2.9b4
+package provide apave 2.9b8
 
 source [file join [file dirname [info script]] apavedialog.tcl]
 
@@ -140,7 +140,7 @@ oo::class create ::apave::APaveInput {
           } else {
             set _ $name
           }
-          set focusopt "-focus $_" 
+          set focusopt "-focus $_"
         }
         if {$typ in {lb tb te}} {set anc nw} {set anc w}
         lappend inopts [list fraM.fra$name.labB$name - - - - \
@@ -313,4 +313,20 @@ oo::class create ::apave::APaveInput {
     return $res
   }
 
+}
+
+# ------------------------------------------------------------------------
+
+proc ::apave::paveObj {com args} {
+
+  # Calls a command of APaveInput class.
+  #   com - a command
+  #   args - arguments of the command
+  #
+  # Returns the command's result.
+
+  set pobj [::apave::APaveInput new]
+  set res [$pobj $com {*}$args]
+  $pobj destroy
+  return $res
 }

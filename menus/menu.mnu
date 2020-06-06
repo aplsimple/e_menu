@@ -5,7 +5,7 @@ b1=0
 b2=3
 b3=1
 w=28
-pos=64.95
+pos=21.28
 ::EMENUTMPFILE=%mn.tmp~
 %C set ::EMENUFILE "%f"
 %C set ::FILETAIL \"[file tail $::EMENUFILE]\"
@@ -17,13 +17,14 @@ pos=64.95
  # menu for e_menu.tcl
 
  M:  M: 3
- RE: Run me (with %AR) RE: cd %d
- RE: Run me (with %AR) RE: %IF "%x"==".htm" || "%x"==".html" %THEN %B $::EMENUFILE
- RE: Run me (with %AR) RE: %IF "%x"==".md" %THEN ghostwriter "$::EMENUFILE"
- RE: Run me (with %AR) RE: %IF "%x"==".tcl" %THEN %T tclsh "$::EMENUFILE" %AR
- RE: Run me (with %AR) RE: %IF "%x"==".py"  %THEN %t python3 "$::EMENUFILE" %AR
- RE: Run me (with %AR) RE: ###########################################################
-  S: Run me (with %AR) S: $::EMENUFILE %AR
+ RE: Run me (+ selection) RE: cd %d
+ RE: Run me (+ selection) RE: %IF "%x"==".tcl" && "%RF" ne "" %THEN %T tclsh %RF
+ RE: Run me (+ selection) RE: %IF "%x"==".tcl" %THEN %T tclsh "$::EMENUFILE" %AR
+ RE: Run me (+ selection) RE: %IF "%x"==".htm" || "%x"==".html" %THEN %B $::EMENUFILE
+ RE: Run me (+ selection) RE: %IF "%x"==".md" %THEN ghostwriter "$::EMENUFILE"
+ RE: Run me (+ selection) RE: %IF "%x"==".py"  %THEN %t python3 "$::EMENUFILE" %AR
+  R: Run me (+ selection) R: ###########################################################
+ S: Run me (+ selection) S: $::EMENUFILE %AR
 
  SE: Run Tcl {all selection} SE: cd %d
  SE: Run Tcl {all selection} SE: tclsh %m/src/ch_.tcl "%TF"
@@ -55,7 +56,7 @@ pos=64.95
 
  R: Commit "%s" R: %C if {![info exist ::EM_MSG]} {set ::EM_MSG "%s"}
  R: Commit "%s" R:  %I {} "COMMIT" { \
-   tex1 {{ Message for commit:} {} {-w 50 -h 7 -tabnext butOK}} {$::EM_MSG} \
+   tex1 {{ Message for commit:} {} {-w 50 -h 7 -tabnext OK}} {$::EM_MSG} \
    } -head {\n This will try to FOSSIL & GIT committing.\n\n A message for commit is required.\
    \n NOTE: quotes and newlines will be removed.\n} \
    -hfg $::em::clrhotk -weight bold == ::EM_MSG
