@@ -5,13 +5,53 @@
 # Additional functions for e_menu.tcl.
 # These are put here to source them at need only.
 
+proc ::em::mergePosList {none args} {
+
+  # Merges lists of numbers that are not-coinciding and sorted.
+  #   none - a number to be not allowed in the lists (e.g. less than minimal)
+  #   args - list of the lists to be merged
+  # Returns a list of pairs: index of list + item of list.
+  # E.g. 
+  #   mergePosList -1 {1 5 8} {2 3 9 12} {0 6 10}
+  #   => {2 0} {0 1} {1 2} {1 3} {0 5} {2 6} {0 8} {1 9} {2 10} {1 12}
+
+  set itot [set ilist 0]
+  set lind [set lout [list]]
+  foreach lst $args {
+    incr ilist
+    incr itot [set llen [llength $lst]]
+    lappend lind [list 0 $llen]
+  }
+  for {set i 0} {$i<$itot} {incr i} {
+    set min $none
+    set ind -1
+    for {set k 0} {$k<$ilist} {incr k} {
+      lassign [lindex $lind $k] li llen
+      if {$li < $llen} {
+        set e [lindex [lindex $args $k] $li]
+        if {$min == $none || $min > $e} {
+          set ind $k
+          set min $e
+          set savli [incr li]
+          set savlen $llen
+        }
+      }
+    }
+    if {$ind == -1} {return -code error {Error: probably in the input data}}
+    lset lind $ind [list $savli $savlen]
+    lappend lout [list $ind $min]
+  }
+  return $lout
+}
+
 #####################################################################
 
-proc ::em::countCh {str ch} {
+proc ::em::countCh {str ch {plistName ""}} {
 
   # Counts a character in a string.
   #   str - a string
   #   ch - a character
+  #   plistName - variable name for a list of positions of *ch*
   #
   # Returns a number of non-escaped occurences of character *ch* in
   # string *str*.
@@ -19,29 +59,75 @@ proc ::em::countCh {str ch} {
   # See also:
   # [wiki.tcl-lang.org](https://wiki.tcl-lang.org/page/Reformatting+Tcl+code+indentation)
 
-  set icnt 0
+  if {$plistName ne ""} {
+    upvar 1 $plistName plist
+    set plist [list]
+  }
+  set icnt [set begidx 0]
   while {[set idx [string first $ch $str]] >= 0} {
     set backslashes 0
     set nidx $idx
     while {[string equal [string index $str [incr nidx -1]] \\]} {
       incr backslashes
     }
-    if {$backslashes % 2 == 0} { incr icnt }
-    set str [string range $str [incr idx] end]
+    if {$backslashes % 2 == 0} {
+      incr icnt
+      if {$plistName ne ""} {lappend plist [expr {$begidx+$idx}]}
+    }
+    incr begidx [incr idx]
+    set str [string range $str $idx end]
   }
   return $icnt
 }
 
-#=== toggle 'stay on top' mode
-proc ::em::staytop_toggle {} {
-  if {$::em::ncmd > [expr $::em::begsel+1]} {
-    set ::em::begin [expr {$::em::begin == 1} ? ($::em::begsel+1) : 1]
-    set ::em::start0 2
-    reread_menu
-    set ::em::start0 0
-    after 50 [list ::em::mouse_button $::em::begin]
+###########################################################################
+
+proc ::em::matchedBrackets {inplist curpos schar dchar dir} {
+
+  # Finds a match of characters (dchar for schar).
+  #   inplist - list of strings where to find a match
+  #   curpos - position of schar in nl.nc form where nl=1.., nc=0..
+  #   schar - source character
+  #   dchar - destination character
+  #   dir - search direction: 1 to the end, -1 to the beginning of list
+
+  lassign [split $curpos .] nl nc
+  if {$dir==1} {set rng1 "$nc end"} else {set rng1 "0 $nc"; set nc 0}
+  set retpos ""
+  set scount [set dcount 0]
+  incr nl -1
+  set inplen [llength $inplist]
+  while {$nl>=0 && $nl<$inplen} {
+    set line [lindex $inplist $nl]
+    set line [string range $line {*}$rng1]
+    set sc [countCh $line $schar slist]
+    set dc [countCh $line $dchar dlist]
+    set plen [llength [set plist [mergePosList -1 $slist $dlist]]]
+    for {set i [expr {$dir>0?0:($plen-1)}]} {$i>=0 && $i<$plen} {incr i $dir} {
+      lassign [lindex $plist $i] src pos
+      if {$src} {incr dcount} {incr scount} 
+      if {$scount <= $dcount} {
+        set retpos [incr nl].[incr pos $nc]
+        break
+      }
+    }
+    if {$retpos ne ""} break
+    set nc 0
+    set rng1 "0 end"
+    incr nl $dir
   }
-  wm attributes . -topmost $::em::ontop
+  return $retpos
+}
+#=== toggle 'stay on top' mode
+proc ::em::toggle_ontop {} {
+  #? if {$::em::ncmd > [expr $::em::begsel+1]} {
+    #? set ::em::begin [expr {$::em::begin == 1} ? ($::em::begsel+1) : 1]
+    #? set ::em::start0 2
+    #? reread_menu
+    #? set ::em::start0 0
+    #? after 50 [list ::em::mouse_button $::em::begin]
+  #? }
+  wm attributes .em -topmost $::em::ontop
 }
 
 #=== make popup menu
@@ -76,14 +162,100 @@ proc ::em::popup {X Y} {
     ::apave::paveObj themePopup .popupMenu
     tk_popup .popupMenu $X $Y
 }
+#=== highlights R/S/M in menu's text
+proc ::em::menuTextModified {w} {
 
+  # Handles modifications of menu's text: highlights R/S/M
+  #   w - text's path
+  # The `w` might be omitted because it's a `my TexM` of APaveDialog.
+  # It's here only to provide a template for similar handlers.
+
+  set curpos [$w index insert]
+  set text [$w get 1.0 end]
+  if {[catch {set fs [font configure [$w cget -font] -size]}]} {set fs 10}
+
+  $w tag config tagRSM -font "-weight bold -size $fs"
+  # firstly, to highlight R/S/M
+  foreach line [split $text \n] {
+    incr il
+    set nomarkers 1
+    foreach marker [::em::allMarkers] {
+      lassign [regexp -indices -inline \s*${marker}(.*)${marker}.* $line] - pp
+      if {$pp ne ""} {
+        set nomarkers 0
+        lassign $pp p1 p2
+        $w tag add tagRSM $il.$p1 [$w index "$il.$p2 + 1 chars"]
+        break
+      }
+    }
+    if {$nomarkers} {
+      foreach section {MENU OPTIONS HIDDEN} {
+        lassign [regexp -indices -inline "^\\s*(\\\[${section}\\\]).*" $line] - pp
+        if {$pp ne ""} {
+          set nomarkers 0
+          lassign $pp p1 p2
+          $w tag add tagRSM $il.$p1 [$w index "$il.$p2 + 1 chars"]
+          break
+        }
+      }
+    }
+    if {$nomarkers} {
+      $w tag remove tagRSM $il.0 [$w index "$il.0 lineend"]
+    }
+  }
+}
+#=== bindings to highlight brackets
+proc ::em::menuTextBrackets {w fg bg} {
+
+  # Makes bindings to highlight brackets of menu's text: {}()[]
+  #   w - text's path
+  #   fg - foreground color to select {}()[]
+  #   bg - foreground color to select {}()[]
+  # The `w` might be omitted because it's a `my TexM` of APaveDialog.
+  # It's here only to provide a template for similar handlers.
+  foreach ev {KeyRelease ButtonRelease} {
+    bind $w <$ev> [list + ::em::highlightBrackets $w $fg $bg]
+  }
+}
+proc ::em::highlightBrackets {w fg bg} {
+  # secondly, highlight brackets if any
+  $w tag delete tagBRACKET
+  $w tag delete tagBRACKETERR
+  $w tag config tagBRACKET -foreground $fg -background $bg
+  $w tag config tagBRACKETERR -foreground white -background red
+  set curpos [$w index insert]
+  set ch [$w get $curpos]
+  set lbr "\{(\["
+  set rbr "\})\]"
+  set il [string first $ch $lbr]
+  set ir [string first $ch $rbr]
+  set txt [split [$w get 1.0 end] \n]
+  if {$il>-1} {
+    set brcpos [matchedBrackets $txt $curpos \
+      [string index $lbr $il] [string index $rbr $il] 1]
+  } elseif {$ir>-1} {
+    set brcpos [matchedBrackets $txt $curpos \
+      [string index $rbr $ir] [string index $lbr $ir] -1]
+  } else {
+    return
+  }
+  if {$brcpos ne ""} {
+    $w tag add tagBRACKET $brcpos
+    $w tag add tagBRACKET $curpos
+  } else {
+    $w tag add tagBRACKETERR $curpos
+  }
+}
 #=== edit file(s)
 proc ::em::edit {fname {prepost ""}} {
   set fname [string trim $fname]
+  lassign [::apave::paveObj csGet] bg - fg
   if {$::em::editor eq ""} {
     ::apave::APaveInput create dialog
     set res [dialog editfile $fname $::em::clrtitf $::em::clrinab $::em::clrtitf \
-      $prepost {*}[::em::theming_pave] -w {80 100} -h {10 24} -ro 0 -centerme 1]
+      $prepost {*}[::em::theming_pave] -w {80 100} -h {10 24} -ro 0 -centerme .em \
+      -myown [list my TextCommandForChange %w \
+      "::em::menuTextModified %w" true "::em::menuTextBrackets %w $fg $bg"]]
     dialog destroy
     return $res
   } else {
@@ -113,10 +285,12 @@ proc ::em::prepost_edit {refdata {txt ""}} {
   }
   if {!$opt && $txt eq ""} {return ""}  ;# if no OPTIONS section, nothing to do
   if {$txt eq ""} {
+    # it's PRE
     lassign [regexp -inline "^${attr}(.*)" $line] line pos
     if {$line ne ""} {set line "-pos $pos"}
     return $line  ;# 'position of cursor' attribute
   } else {
+    # it's POST
     set attr "${attr}[$txt index insert]"
     if {$opt} {
       lset datalist $i $attr
@@ -126,31 +300,18 @@ proc ::em::prepost_edit {refdata {txt ""}} {
     set data [join $datalist \n]
   }
 }
-#=== repainting sp. for Windows
-proc repaintForWindows {} {
-  if {[::iswindows]} {
-    ::em::reread_menu $::em::lasti
-  } else {
-    ::em::repaint_menu ;# the cursor can be missed, so repainting needed
-    ::em::mouse_button $::em::lasti
-  }
-}
 #=== edit current menu
 proc ::em::edit_menu {} {
   if {[::em::edit $::em::menufilename ::em::prepost_edit]} {
-    if {$::em::ischild} {
-      ::em::on_exit 0
-    } else {
-      # colors can be changed, so "reread_menu" with setting colors
-      foreach w [winfo children .] {  ;# remove Tcl/Tk menu items
-        destroy $w
-      }
-      ::em::initdefaultcolors
-      initcomm
-      ::em::initcolorscheme
-      initmenu
-      mouse_button $::em::lasti
+    # colors can be changed, so "reread_menu" with setting colors
+    foreach w [winfo children .em] {  ;# remove Tcl/Tk menu items
+      destroy $w
     }
+    ::em::initdefaultcolors
+    initcomm
+    ::em::initcolorscheme
+    initmenu
+    mouse_button $::em::lasti
   } else {
     repaintForWindows
   }
@@ -162,15 +323,15 @@ proc ::em::help {} {
   set doc "https://aplsimple.github.io/en/tcl/e_menu"
   ::apave::APaveInput create dialog
   set res [dialog misc info "About e_menu" "
-  <red> $::em::e_menu_version </red>
-  [file dirname $::argv0] \n
+  <red> $::em::em_version </red>
+  [file dirname $::em::argv0] \n
   by Alex Plotnikov
   aplsimple@gmail.com
   https://aplsimple.github.io
   https://chiselapp.com/user/aplsimple \n" "{Help:: $doc } 1 Close 0" \
     0 -t 1 -w 60 -tags textTags -head \
     "\n Menu system for editors and file managers. \n" \
-    -centerme 1 {*}[theming_pave]]
+    -centerme .em {*}[theming_pave]]
   dialog destroy
   if {[lindex $res 0]} {::eh::browse $doc}
   repaintForWindows
@@ -199,10 +360,10 @@ proc ::em::destroy_emenus {} {
 }
 #=== get color scheme's attributes for 'Project...' dialog
 proc ::em::change_PD_Spx {} {
-  lassign [::apave::paveObj csGet $::ncolor] - fg - bg
+  lassign [::apave::paveObj csGet $::em::ncolor] - fg - bg
   set ret "-selectforeground $fg -selectbackground $bg -fieldbackground $bg"
   [dialog LabMsg] configure -foreground $fg -background $bg \
-    -padding {16 5 16 5} -text "[::apave::paveObj csGetName $::ncolor]"
+    -padding {16 5 16 5} -text "[::apave::paveObj csGetName $::em::ncolor]"
   return $ret
 }
 #=== change a project's directory and other parameters
@@ -224,25 +385,25 @@ proc ::em::change_PD {} {
   append em_message \
     "\n 'Color scheme' is -1 .. $::apave::_CS_(MAXCS) selected with Up/Down key.  \n"
   set sa [::apave::shadowAllowed 0]
-  set ncolorsav $::ncolor
-  set geo [wm geometry .]
+  set ncolorsav $::em::ncolor
+  set geo [wm geometry .em]
   ::apave::APaveInput create dialog
   after idle ::em::change_PD_Spx
   set res [dialog input "" "Project..." [list \
     {*}$fco1 \
     seh_1 {{} {-pady 10}} {} \
     Spx [list {Color scheme:} {} \
-      {-tvar ::ncolor -from -1 -to $::apave::_CS_(MAXCS) -w 5 \
+      {-tvar ::em::ncolor -from -2 -to $::apave::_CS_(MAXCS) -w 5 \
       -justify center -msgLab {LabMsg {  Color Scheme 1}} -command \
       "ttk::style configure TSpinbox {*}[::em::change_PD_Spx]"}] {} \
     chb1 {"Use for this menu"} {0} \
     seh_2 {{} {-pady 10}} {} \
     ent2 {"Geometry of menu:"} "$geo" \
     chb2 {"Use for this menu"} {0} \
-  ] -head $em_message -weight bold -centerme 1 {*}[theming_pave]]
+  ] -head $em_message -weight bold -centerme .em {*}[theming_pave]]
   ::apave::shadowAllowed $sa
   set r [lindex $res 0]
-  set ::ncolor [::apave::getN $::ncolor $ncolorsav -1 $::apave::_CS_(MAXCS)]
+  set ::em::ncolor [::apave::getN $::em::ncolor $ncolorsav -2 $::apave::_CS_(MAXCS)]
   if {$r} {
     if {$fco1 eq ""} {
       lassign $res - - chb1 geo chb2
@@ -250,14 +411,14 @@ proc ::em::change_PD {} {
       lassign $res - PD - chb1 geo chb2
     }
     # save CS and/or geometry in menu's options
-    if {$chb1} {::em::save_options c= $::ncolor}
+    if {$chb1} {::em::save_options c= $::em::ncolor}
     if {$chb2} {::em::save_options g= $geo}
     if {($fco1 ne "") && ([get_PD] ne $PD)} {
       set ::em::prjname [file tail $PD]
       set f "f $PD/*"
-      set ::argv [dialog removeOptions $::argv d=* f=* c=*]
-      foreach {p a} [list d $PD {*}$f c $::ncolor] {
-        lappend ::argv "${p}=${a}"
+      set ::em::argv [::apave::removeOptions $::em::argv d=* f=* c=*]
+      foreach {p a} [list d $PD {*}$f c $::em::ncolor] {
+        lappend ::em::argv "${p}=${a}"
       }
     }
 
@@ -277,31 +438,34 @@ proc ::em::change_PD {} {
     #  - e_menu allows to set fI=, bI= arguments for active item's colors;
     #    it's not related to apave's CS and used by e_menu only;
     #    this way is followed in TKE editor's e_menu plugin
-    set instead [::em::insteadCS]
-    array unset ::em::ar_geany
-    set ::em::insteadCSlist [list]
-    set ::argv [dialog removeOptions $::argv c=*]
-    lappend ::argv c=$::ncolor
-    if {$instead} {
-      # when all colors are set as e_menu's arguments instead of CS,
-      # just set the selected CS and remove the 'argumented' colors
-      set ::argv [dialog removeOptions $::argv \
-        fg=* bg=* fE=* bE=* fS=* bS=* cc=* fI=* bI=* fM=* bM=* ht=* hh=* gr=*]
-      set ::argc [llength $::argv]
-      initcolorscheme true
-      # this reads and shows the menu, with the new CS
-      reread_menu $::em::lasti
-    } else {
-      set ::argc [llength $::argv]
-      unsetdefaultcolors
-      initdefaultcolors
-      initcolorscheme
-      reread_menu $::em::lasti
-      # this takes up e_menu's arguments e.g. fS=white bS=green (as part of CS)
-      initcolorscheme
+    if {$::em::ncolor>-2} {
+      set ::em::optsFromMenu 0
+      set instead [::em::insteadCS]
+      array unset ::em::ar_geany
+      set ::em::insteadCSlist [list]
+      set ::em::argv [::apave::removeOptions $::em::argv c=*]
+      lappend ::em::argv c=$::em::ncolor
+      if {$instead} {
+        # when all colors are set as e_menu's arguments instead of CS,
+        # just set the selected CS and remove the 'argumented' colors
+        set ::em::argv [::apave::removeOptions $::em::argv \
+          fg=* bg=* fE=* bE=* fS=* bS=* cc=* fI=* bI=* fM=* bM=* ht=* hh=* gr=*]
+        set ::em::argc [llength $::em::argv]
+        initcolorscheme true
+        # this reads and shows the menu, with the new CS
+        reread_menu $::em::lasti
+      } else {
+        set ::em::argc [llength $::em::argv]
+        unsetdefaultcolors
+        initdefaultcolors
+        initcolorscheme
+        reread_menu $::em::lasti
+        # this takes up e_menu's arguments e.g. fS=white bS=green (as part of CS)
+        initcolorscheme
+      }
     }
   } else {
-    set ::ncolor $ncolorsav
+    set ::em::ncolor $ncolorsav
   }
   dialog destroy
   repaintForWindows
@@ -313,11 +477,11 @@ proc ::em::input {cmd} {
   set dp [string last " == " $cmd]
   if {$dp < 0} {set dp 999999}
   set data [string range $cmd $dp+4 end]
-  set cmd "dialog input [string range $cmd 2 $dp-1] -centerme 1"
+  set cmd "dialog input [string range $cmd 2 $dp-1] -centerme .em"
   catch {set cmd [subst $cmd]}
   if {[set lb [countCh $cmd \{]] != [set rb [countCh $cmd \}]]} {
     dialog_box ERROR " Number of left braces : $lb\n Number of right braces: $rb \
-      \n\n     are not equal!" ok err OK -centerme 1
+      \n\n     are not equal!" ok err OK -centerme .em
   }
   set res [eval $cmd [::em::theming_pave]]
   dialog destroy
@@ -332,10 +496,10 @@ proc ::em::input {cmd} {
 #=== incr/decr window width
 proc ::em::win_width {inc} {
   set inc [expr $inc*$::em::incwidth]
-  lassign [split [wm geometry .] +x] newwidth height
+  lassign [split [wm geometry .em] +x] newwidth height
   incr newwidth $inc
   if {$newwidth > $::em::minwidth || $inc > 0} {
-    wm geometry . ${newwidth}x${height}
+    wm geometry .em ${newwidth}x${height}
   }
 }
 #=== get and save a writeable command
@@ -506,7 +670,7 @@ proc ::em::set_timed {from inf typ c1 inpsel} {
   lassign [ttask "add" -1 $inf $typ $c1 $inpsel $timer] ind started
   if {$from eq "button" && $ind >= 0} {
     if {[em_question "Stop timed task" "Stop the task\n\n\
-        [.frame.fr$::em::lasti.butt cget -text] ?"]} {
+        [.em.fr.win.fr$::em::lasti.butt cget -text] ?"]} {
       ttask "del" $ind
     }
     return false
@@ -589,3 +753,10 @@ proc ::em::IF {sel {callcommName ""}} {
   }
   return true
 }
+
+# *****************************   EOF   *****************************
+
+#=== get an external CS to put into apave CSs (sort of tuning CS list)
+#? proc ::em::testCS {} {
+ #? set cc [::apave::paveObj csCurrent]; set ca [::apave::cs_Max]; if {[catch {::em::em_message "[::apave::paveObj csGetName $cc]: $cc of $ca:\n\n CS-$ca: [::apave::paveObj csGet $ca]\n\n[string map {{ } \n} $::em::argv]" ok "CS" -text 1 -w 99 -h 15} e]} {M $e}
+#? }

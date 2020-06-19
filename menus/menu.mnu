@@ -1,13 +1,14 @@
 [OPTIONS]
-in=1.0
+g=+0+27
+in=18.3
 bd=1
 b1=0
 b2=3
 b3=1
-w=28
-pos=21.28
+w=25
+pos=87.28
 ::EMENUTMPFILE=%mn.tmp~
-%C set ::EMENUFILE "%f"
+%C if {![info exist ::EMENUFILE]} {set ::EMENUFILE "%f"}
 %C set ::FILETAIL \"[file tail $::EMENUFILE]\"
 %C if {{%F}=={*} && ![info exist ::EMENUFILE]} {set ::EMENUFILE "*"}
 %C if {![info exist ::EMENUCOMMIT]} {set ::EMENUCOMMIT ""}
@@ -32,7 +33,7 @@ pos=21.28
  RE: Edit/create file "%s" RE: cd %d
  RE: Edit/create file "%s" RE: %E %s
 
- RE: Open directory "%D" RE: %IF ![::iswindows] %THEN %Q "CHANGE ME" "The directory:\n%d\n\nwould be open by \"caja\" file manager.\n\nYou can change it by editing:\n%mn" okcancel warn OK -ontop 1
+ RE: Open directory "%D" RE: %IF ![::iswindows] %THEN %q "CHANGE ME" "The directory:\n%d\n\nwould be open by \"caja\" file manager.\n\nYou can change it by editing:\n%mn" okcancel warn OK -ontop 1
  RE: Open directory "%D" RE: %IF [::iswindows] %THEN explorer.exe "%d" %ELSE caja "%d"
 
  RE: Open terminal in "%D" RE: cd %d
@@ -51,12 +52,12 @@ pos=21.28
  M:  M: 3
  ME: Search All "%s" in %D  ME: m=grep.mnu
 
- RE: Backup of $::FILETAIL RE: %Q "BACKUP" "The backup of\n\n$::EMENUFILE\n\n\nwould be saved to\n\n$::EMENUFILE.bak"
+ RE: Backup of $::FILETAIL RE: %q "BACKUP" "The backup of\n\n$::EMENUFILE\n\n\nwould be saved to\n\n$::EMENUFILE.bak"
  RE: Backup of $::FILETAIL RE:  %IF [::iswindows] %THEN copy /Y "$::EMENUFILE" "$::EMENUFILE.bak" %ELSE cp -f "$::EMENUFILE" "$::EMENUFILE.bak"
 
  R: Commit "%s" R: %C if {![info exist ::EM_MSG]} {set ::EM_MSG "%s"}
  R: Commit "%s" R:  %I {} "COMMIT" { \
-   tex1 {{ Message for commit:} {} {-w 50 -h 7 -tabnext OK}} {$::EM_MSG} \
+   tex1 {{ Message for commit:} {} {-w 50 -h 7 -tabnext butOK}} {$::EM_MSG} \
    } -head {\n This will try to FOSSIL & GIT committing.\n\n A message for commit is required.\
    \n NOTE: quotes and newlines will be removed.\n} \
    -hfg $::em::clrhotk -weight bold == ::EM_MSG
@@ -66,9 +67,9 @@ pos=21.28
  S: Commit "%s" S: %IF [Q "FOSSIL COMMIT" " Add all changes and FOSSIL COMMIT\n\n with message\n\n   '$::TMP_MSG' ?"] %THEN fossil add *\n\n fossil commit -m "$::TMP_MSG"
  S: Commit "%s" S: %IF [Q "FOSSIL COMMIT" " Add all changes and GIT COMMIT\n\n with message\n\n   '$::TMP_MSG' ?"] %THEN git add *\n\n git commit -m "$::TMP_MSG"
 
- R: Differences of $::FILETAIL (fossil/git) R: cd %PD
-RW: Differences of $::FILETAIL (fossil/git) RW: fossil tim -t ci -n 11 > $::EMENUTMPFILE
- R: Differences of $::FILETAIL (fossil/git) R: %I {} "GDIFF" { \
+ R: Differences of $::FILETAIL (fossil/git) ... R: cd %PD
+RW: Differences of $::FILETAIL (fossil/git) ... RW: fossil tim -t ci -n 11 > $::EMENUTMPFILE
+ R: Differences of $::FILETAIL (fossil/git) ... R: %I {} "GDIFF" { \
    v_ {{} {-pady 4} {}} {} \
    fil1 {{   File:} {} {-w 60}} {"$::EMENUFILE"} \
    fco1 {{Version:} {} {-h 10 -state readonly -inpval "$::EMENUCOMMIT"}} \
@@ -77,13 +78,13 @@ RW: Differences of $::FILETAIL (fossil/git) RW: fossil tim -t ci -n 11 > $::EMEN
    texc {{   Hint:} {} {-h 9 -w 60 -ro 1 -wrap word}} \
    {\n Select a version from the combobox to be compared to tip.\n\n If it's blank, the current file is compared to tip.\n\n No response means no differences.\n\n (temp file: $::EMENUTMPFILE)} \
    } -head {\n This will compare a selected version of\n     $::EMENUFILE\n to its tip.} -weight bold == ::EMENUFILE ::EMENUCOMMIT
- R: Differences of $::FILETAIL (fossil/git) R: %C if {"$::EMENUCOMMIT" eq ""} \
+ R: Differences of $::FILETAIL (fossil/git) ... R: %C if {"$::EMENUCOMMIT" eq ""} \
    {set ::EMENUTMP ""} {set ::EMENUTMP "--from $::EMENUCOMMIT --to tip"}
- R: Differences of $::FILETAIL (fossil/git) R: %IF [file exists .fslckout] %THEN \
+ R: Differences of $::FILETAIL (fossil/git) ... R: %IF [file exists .fslckout] %THEN \
   fossil gdiff $::EMENUTMP "$::EMENUFILE" %ELSE git difftool $::EMENUCOMMIT HEAD -- "$::EMENUFILE"
 
  # call TKE/Geany with all *.tcl of current file's directory
- RE: Edit *.tcl of %d RE: %Q "EDIT ALL *.tcl" "This will edit all .tcl files of\n\n%d"
+ RE: Edit *.tcl of %d RE: %q "EDIT ALL *.tcl" "This will edit all .tcl files of\n\n%d"
  RE: Edit *.tcl of %d RE: %C set ::ALLFILES [glob "%d/*.tcl"]
  RE: Edit *.tcl of %d RE: %IF [auto_execok geany]!={} %THEN geany $::ALLFILES %ELSE tke $::ALLFILES
  RE: Edit *.tcl of %d RE: %C unset ::ALLFILES

@@ -4,10 +4,10 @@
 # standard dialogs with advanced features.
 #
 # Use:
-#   package require apave
+#   package require apave  ;# or 'source apavedialog.tcl'
 #   ...
 #   catch {pdlg destroy}
-#   ::apave::APaveDialog create pdlg win
+#   ::apave::APaveDialog create pdlg .win
 #   pdlg DIALOG ARGS
 # where:
 #   DIALOG stands for the following dialog types:
@@ -42,7 +42,6 @@ source [file join [file dirname [info script]] apave.tcl]
 namespace eval ::apave {
 }
 
-
 oo::class create ::apave::APaveDialog {
 
   superclass ::apave::APave
@@ -51,6 +50,10 @@ oo::class create ::apave::APaveDialog {
 
   constructor {{win ""} args} {
 
+    # Creates APaveDialog object.
+    #   win - window's name (path)
+    #   args - additional arguments
+
     # keep the 'important' data of APaveDialog object in array
     array set _pdg {}
     # dialogs are bound to "$win" window e.g. ".mywin.fra", default "" means .
@@ -58,7 +61,7 @@ oo::class create ::apave::APaveDialog {
     set _pdg(ns) [namespace current]::
     # namespace in object namespace for safety of its 'most important' data
     namespace eval ${_pdg(ns)}PD {}
-    if {[llength [self next]]} { next {*}$args }
+
     # Actions on closing the editor
     proc exitEditor {resExit} {
       upvar $resExit res
@@ -80,10 +83,13 @@ oo::class create ::apave::APaveDialog {
       }
       return
     }
+    # end of APaveDialog constructor
     if {[llength [self next]]} { next {*}$args }
   }
 
   destructor {
+
+    # Clears variables used in the object.
 
     catch {namespace delete ${_pdg(ns)}PD}
     array unset _pdg
@@ -119,87 +125,142 @@ oo::class create ::apave::APaveDialog {
 
   method PrepArgs {args} {
 
-    # make a list of args
+    # Makes a list of arguments.
     foreach a $args { lappend res $a }
     return $res
   }
 
   method ok {icon ttl msg args} {
 
-    return [my Query $icon $ttl $msg {butOK OK 1} butOK {} [my PrepArgs $args]]
+    # Shows the *OK* dialog.
+    #   icon - icon
+    #   ttl - title
+    #   msg - message
+    #   args - options
+
+    return [my Query $icon $ttl $msg {ButOK OK 1} ButOK {} [my PrepArgs $args]]
   }
 
   method okcancel {icon ttl msg {defb OK} args} {
 
+    # Shows the *OKCANCEL* dialog.
+    #   icon - icon
+    #   ttl - title
+    #   msg - message
+    #   defb - button to be selected
+    #   args - options
+
     return [my Query $icon $ttl $msg \
-      {butOK OK 1 butCANCEL Cancel 0} but$defb {} [my PrepArgs $args]]
+      {ButOK OK 1 ButCANCEL Cancel 0} But$defb {} [my PrepArgs $args]]
   }
 
   method yesno {icon ttl msg {defb YES} args} {
 
+    # Shows the *YESNO* dialog.
+    #   icon - icon
+    #   ttl - title
+    #   msg - message
+    #   defb - button to be selected
+    #   args - options
+
     return [my Query $icon $ttl $msg \
-      {butYES Yes 1 butNO No 0} but$defb {} [my PrepArgs $args]]
+      {ButYES Yes 1 ButNO No 0} But$defb {} [my PrepArgs $args]]
   }
 
   method yesnocancel {icon ttl msg {defb YES} args} {
 
+    # Shows the *YESNOCANCEL* dialog.
+    #   icon - icon
+    #   ttl - title
+    #   msg - message
+    #   defb - button to be selected
+    #   args - options
+
     return [my Query $icon $ttl $msg \
-      {butYES Yes 1 butNO No 2 butCANCEL Cancel 0} but$defb {} [my PrepArgs $args]]
+      {ButYES Yes 1 ButNO No 2 ButCANCEL Cancel 0} But$defb {} [my PrepArgs $args]]
   }
 
   method retrycancel {icon ttl msg {defb RETRY} args} {
 
+    # Shows the *RETRYCANCEL* dialog.
+    #   icon - icon
+    #   ttl - title
+    #   msg - message
+    #   defb - button to be selected
+    #   args - options
+
     return [my Query $icon $ttl $msg \
-      {butRETRY Retry 1 butCANCEL Cancel 0} but$defb {} [my PrepArgs $args]]
+      {ButRETRY Retry 1 ButCANCEL Cancel 0} But$defb {} [my PrepArgs $args]]
   }
 
   method abortretrycancel {icon ttl msg {defb RETRY} args} {
 
+    # Shows the *ABORTRETRYCANCEL* dialog.
+    #   icon - icon
+    #   ttl - title
+    #   msg - message
+    #   defb - button to be selected
+    #   args - options
+
     return [my Query $icon $ttl $msg \
-      {butABORT Abort 1 butRETRY Retry 2 butCANCEL \
-      Cancel 0} but$defb {} [my PrepArgs $args]]
+      {ButABORT Abort 1 ButRETRY Retry 2 ButCANCEL \
+      Cancel 0} But$defb {} [my PrepArgs $args]]
   }
 
   method misc {icon ttl msg butts {defb ""} args} {
 
-    # butts is a list of pairs "title of button" "number/ID of button"
+    # Shows the *MISCELLANEOUS* dialog.
+    #   icon - icon
+    #   ttl - title
+    #   msg - message
+    #   butts - list of buttons
+    #   defb - button to be selected
+    #   args - options
+    #
+    # The *butts* is a list of pairs "title of button" "number/ID of button"
+
     foreach {nam num} $butts {
-      lappend apave_msc_bttns but$num "$nam" $num
+      lappend apave_msc_bttns But$num "$nam" $num
       if {$defb eq ""} {
         set defb $num
       }
     }
-    return [my Query $icon $ttl $msg $apave_msc_bttns but$defb {} [my PrepArgs $args]]
+    return [my Query $icon $ttl $msg $apave_msc_bttns But$defb {} [my PrepArgs $args]]
   }
 
   #########################################################################
 
-  # Get a value of _pdg(name)
   method Pdg {name} {
+
+    # Gets a value of _pdg(name).
 
     return $_pdg($name)
   }
 
   #########################################################################
 
-  # Get a field name
-  method fieldname {name} {
+  method FieldName {name} {
+
+    # Gets a field name.
 
     return fraM.fra$name.$name
   }
 
-  # Get variable name associated with a field name
-  method varname {name} {
+  method VarName {name} {
+
+    # Gets a variable name associated with a field name.
 
     return [namespace current]::var$name
   }
 
-  # Get values of entries passed (or set) in -tvar
-  method vals {lwidgets} {
+  method GetVarsValues {lwidgets} {
+
+    # Gets values of entries passed (or set) in -tvar.
+    #   lwidgets - list of widget items
 
     set res [set vars [list]]
     foreach wl $lwidgets {
-      set vv [my varname [my rootwname [lindex $wl 0]]]
+      set vv [my VarName [my ownWName [lindex $wl 0]]]
       set attrs [lindex $wl 6]
       foreach t {-var -tvar} {
         # for widgets with a common variable (e.g. radiobuttons):
@@ -216,16 +277,20 @@ oo::class create ::apave::APaveDialog {
     return $res
   }
 
-  # 1. Set contents of text fields (after creating them)
-  # 2. Get contents of text fields (before exiting)
-  method setgettexts {oper w iopts lwidgets} {
+  method SetGetTexts {oper w iopts lwidgets} {
+
+    # Sets/gets contents of text fields.
+    #   oper - "set" to set, "get" to get contents of text field
+    #   w - window's name
+    #   iopts - equals to "" if no operation
+    #   lwidgets - list of widget items
 
     if {$iopts eq ""} return
     foreach widg $lwidgets {
       set wname [lindex $widg 0]
-      set name [my rootwname $wname]
+      set name [my ownWName $wname]
       if {[string range $name 0 1] eq "te"} {
-        set vv [my varname $name]
+        set vv [my VarName $name]
         if {$oper eq "set"} {
           my displayText $w.$wname [set $vv]
         } else {
@@ -237,13 +302,18 @@ oo::class create ::apave::APaveDialog {
   }
 
   #########################################################################
-  # Append the <buttons> buttons to the <inplist> list
-  # from the <pos> position of <neighbor> cell
-  # and set its resulting values
 
-  method appendButtons {inplist buttons neighbor pos} {
+  method AppendButtons {widlistName buttons neighbor pos defb timeout} {
 
-    upvar $inplist widlist
+    # Adds buttons to the widget list from a position of neighbor widget.
+    #   widlistName - variable name for widget list
+    #   buttons - buttons to add
+    #   neighbor - neighbor widget
+    #   pos - position of neighbor widget
+    #   defb - default button
+    #   timeout  - timeout (to count down seconds and invoke a button)
+
+    upvar $widlistName widlist
     set defb1 [set defb2 ""]
     foreach {but txt res} $buttons {
       if {$defb1 eq ""} {
@@ -257,20 +327,29 @@ oo::class create ::apave::APaveDialog {
       } else {
         set tt ""
       }
+      if {$timeout ne "" && ($defb eq $but || $defb eq "")} {
+        set tmo "-timeout {$timeout}"
+      } else {
+        set tmo ""
+      }
       lappend widlist [list $but $neighbor $pos 1 1 "-st we" \
-        "-t \"$txt\" -com \"${_pdg(ns)}my res $_pdg(win).dia $res\"$tt"]
+        "-t \"$txt\" -com \"${_pdg(ns)}my res $_pdg(win).dia $res\"$tt $tmo"]
       set neighbor $but
       set pos L
     }
-    set _pdg(defb1) $_pdg(win).dia.fra.$defb1
-    set _pdg(defb2) $_pdg(win).dia.fra.$defb2
+    lassign [my LowercaseWidgetName $_pdg(win).dia.fra.$defb1] _pdg(defb1)
+    lassign [my LowercaseWidgetName $_pdg(win).dia.fra.$defb2] _pdg(defb2)
     return
   }
 
   ###################################################################
-  # Get line's positions
 
-  method GetLine {txt ind} {
+  method GetLinePosition {txt ind} {
+
+    # Gets a line's position.
+    #   txt - text widget
+    #   ind - index of the line
+    # Returns a list containing a line start and a line end.
 
     set linestart [$txt index "$ind linestart"]
     set lineend   [expr {$linestart + 1.0}]
@@ -278,9 +357,32 @@ oo::class create ::apave::APaveDialog {
   }
 
   #########################################################################
-  # Double a current line or a selection
 
-  method DoubleText {{dobreak 1}} {
+  method pasteText {} {
+
+    # Removes a selection at pasting.
+    #
+    # The absence of this feature is very perpendicular of Tk's paste.
+
+    set txt [my TexM]
+    set err [catch {$txt tag ranges sel} sel]
+    if {!$err && [llength $sel]==2} {
+      lassign $sel pos pos2
+      $txt delete $pos $pos2
+    }
+  }
+
+  #########################################################################
+
+  method doubleText {{dobreak 1}} {
+
+    # Doubles a current line or a selection of text widget.
+    #   dobreak - if true, means "return -code break"
+    #
+    # The *dobreak=true* allows to break the Tk processing of keypresses
+    # such as Ctrl+D.
+    #
+    # The text widget in APaveDialog object is identified as `my TexM`.
 
     set txt [my TexM]
     set err [catch {$txt tag ranges sel} sel]
@@ -288,7 +390,7 @@ oo::class create ::apave::APaveDialog {
       lassign $sel pos pos2
       set pos3 "insert"  ;# single selection
     } else {
-      lassign [my GetLine $txt insert] pos pos2  ;# current line
+      lassign [my GetLinePosition $txt insert] pos pos2  ;# current line
       set pos3 $pos2
     }
     set duptext [$txt get $pos $pos2]
@@ -298,21 +400,36 @@ oo::class create ::apave::APaveDialog {
   }
 
   #########################################################################
-  # Delete a current line
 
-  method DeleteLine {{dobreak 1}} {
+  method deleteLine {{dobreak 1}} {
+
+    # Deletes a current line of text widget.
+    #   dobreak - if true, means "return -code break"
+    #
+    # The *dobreak=true* allows to break the Tk processing of keypresses
+    # such as Ctrl+Y.
+    #
+    # The text widget in APaveDialog object is identified as `my TexM`.
 
     set txt [my TexM]
-    lassign [my GetLine $txt insert] linestart lineend
+    lassign [my GetLinePosition $txt insert] linestart lineend
     $txt delete $linestart $lineend
     if {$dobreak} {return -code break}
     return
   }
 
   #########################################################################
-  # Move a current line or lines of selection up/down
 
-  method LinesMove {to {dobreak 1}} {
+  method linesMove {to {dobreak 1}} {
+
+    # Moves a current line or lines of selection up/down.
+    #   to - direction (-1 means "up", +1 means "down")
+    #   dobreak - if true, means "return -code break"
+    #
+    # The *dobreak=true* allows to break the Tk processing of keypresses
+    # such as Ctrl+Y.
+    #
+    # The text widget in APaveDialog object is identified as `my TexM`.
 
     proc NewRow {ind rn} {
       set i [string first . $ind]
@@ -336,7 +453,7 @@ oo::class create ::apave::APaveDialog {
     set lend [expr {int([$txt index end])}]
     if {$lfrom>0 && $lfrom<$lend} {
       incr lto
-      lassign [my GetLine $txt $lfrom.0] linestart lineend
+      lassign [my GetLinePosition $txt $lfrom.0] linestart lineend
       set duptext [$txt get $linestart $lineend]
       $txt delete $linestart $lineend
       $txt insert $lto.0 $duptext
@@ -350,9 +467,11 @@ oo::class create ::apave::APaveDialog {
   }
 
   #########################################################################
-  # Initialize the search in the text (ctrlf=1 when called by Ctrl+F)
 
   method InitFindInText { {ctrlf 0} } {
+
+    # Initializes the search in the text.
+    #   ctrlf - "1" means that the method is called by Ctrl+F
 
     set txt [my TexM]
     if {$ctrlf} {  ;# Ctrl+F moves cursor 1 char ahead
@@ -387,9 +506,11 @@ oo::class create ::apave::APaveDialog {
   }
 
   #########################################################################
-  # Find string in text (donext=1 means 'from current position')
 
   method FindInText {{donext 0}} {
+
+    # Finds a string in text widget.
+    #   donext - "1" means 'from a current position'
 
     set txt [my TexM]
     set sel [set ${_pdg(ns)}PD::fnd]
@@ -413,25 +534,32 @@ oo::class create ::apave::APaveDialog {
   }
 
   #########################################################################
-  # Make a query (or simple message) and get the user's response.
-  # Mandatory arguments:
-  #   icon    - icon name (info, warn, ques, err)
-  #   ttl     - title
-  #   msg     - message
-  #   buttons - list of triples "button name, text, result"
-  #   defb    - default button (OK, YES, NO, CANCEL, RETRY, ABORT)
-  #   inopts  - options for input dialog
-  # Optional arguments:
-  #   args:
-  #     -checkbox text (-ch text) - makes the checkbox's text visible
-  #     -geometry +x+y (-g +x+y)  - sets the geometry of dialog
-  #     -color cval    (-c cval)  - sets the color of message
-  #     -family... -size... etc. options of label widget
-  # If "geometry" argument was passed (even "") the Query procedure
-  # returns a list with chosen button's number and new geometry.
-  # Otherwise it returns only chosen button's number.
 
-  method Query {icon ttl msg buttons defb inopts argov {precom ""} args} {
+  method Query {icon ttl msg buttons defb inopts argdia {precom ""} args} {
+
+    # Makes a query (or a message) and gets the user's response.
+    #   icon    - icon name (info, warn, ques, err)
+    #   ttl     - title
+    #   msg     - message
+    #   buttons - list of triples "button name, text, ID"
+    #   defb    - default button (OK, YES, NO, CANCEL, RETRY, ABORT)
+    #   inopts  - options for input dialog
+    #   argdia - list of dialog's options
+    #   precom - command(s) performed before showing the dialog
+    #   args - additional options (message's font etc.)
+    #
+    # The *argdia* may contain additional options of the query, like these:
+    #   -checkbox text (-ch text) - makes the checkbox's text visible
+    #   -geometry +x+y (-g +x+y) - sets the geometry of dialog
+    #   -color cval    (-c cval) - sets the color of message
+    #
+    # If "-geometry" option is set (even equaling "") the Query procedure
+    # returns a list with chosen button's ID and a new geometry.
+    #
+    # Otherwise it returns only the chosen button's ID.
+    #
+    # See also:
+    # [aplsimple.github.io](https://aplsimple.github.io/en/tcl/pave/index.html)
 
     if {[winfo exists $_pdg(win).dia]} {
       return 0
@@ -441,14 +569,14 @@ oo::class create ::apave::APaveDialog {
     set focusmatch ""
     # options of dialog
     lassign "" chmsg geometry optsLabel optsMisc optsFont optsFontM \
-               rotext root head optsHead hsz binds postcom onclose
+               rotext root head optsHead hsz binds postcom onclose timeout
     set tags ""
     set wasgeo [set textmode [set ontop 0]]
     set cc [set themecolors [set optsGrid ""]]
     set readonly [set hidefind 1]
     set curpos "1.0"
     set ${_pdg(ns)}PD::ch 0
-    foreach {opt val} {*}$argov {
+    foreach {opt val} {*}$argdia {
       if {$opt in {-c -color -fg -bg -fgS -bgS -cc -hfg -hbg}} {
         # take colors by their variables
         if {[info exist $val]} {set val [set $val]}
@@ -481,6 +609,7 @@ oo::class create ::apave::APaveDialog {
         -fgS {append optsMisc " -selectforeground {$val}"}
         -bgS {append optsMisc " -selectbackground {$val}"}
         -cc {append optsMisc " -insertbackground {$val}"}
+        -myown {append optsMisc " -myown {$val}"}
         -root {set root " -root $val"}
         -pos {set curpos "$val"}
         -hfg {append optsHead " -foreground {$val}"}
@@ -491,6 +620,7 @@ oo::class create ::apave::APaveDialog {
         -ontop {set ontop 1}
         -post {set postcom $val}
         -focusback {set focusback $val}
+        -timeout {set timeout $val}
         default {
           append optsFont " $opt $val"
           if {$opt ne "-family"} {
@@ -566,10 +696,10 @@ oo::class create ::apave::APaveDialog {
       }
       incr il
       if {!$textmode} {
-        lappend widlist [list labB$il $prevw $prevp 1 7 \
+        lappend widlist [list Lab$il $prevw $prevp 1 7 \
           "-st w -rw 1 $optsGrid" "-t \"$m \" $optsLabel $optsFont"]
       }
-      set prevw labB$il
+      set prevw Lab$il
       set prevp T
     }
     if {$inopts ne ""} {
@@ -668,12 +798,13 @@ oo::class create ::apave::APaveDialog {
         } else {
           # make bindings and popup menu for text widget
           append binds "
-            bind $wt <Control-d> {[self] DoubleText}
-            bind $wt <Control-D> {[self] DoubleText}
-            bind $wt <Control-y> {[self] DeleteLine}
-            bind $wt <Control-Y> {[self] DeleteLine}
-            bind $wt <Alt-Up>    {[self] LinesMove -1}
-            bind $wt <Alt-Down>  {[self] LinesMove +1}
+            bind $wt <<Paste>> {+ [self] pasteText}
+            bind $wt <Control-d> {[self] doubleText}
+            bind $wt <Control-D> {[self] doubleText}
+            bind $wt <Control-y> {[self] deleteLine}
+            bind $wt <Control-Y> {[self] deleteLine}
+            bind $wt <Alt-Up>    {[self] linesMove -1}
+            bind $wt <Alt-Down>  {[self] linesMove +1}
             menu \$pop
              \$pop add command [my IconA cut] -accelerator Ctrl+X -label \"Cut\" \\
               -command \"event generate $wt <<Cut>>\"
@@ -683,13 +814,13 @@ oo::class create ::apave::APaveDialog {
               -command \"event generate $wt <<Paste>>\"
              \$pop add separator
              \$pop add command [my IconA double] -accelerator Ctrl+D -label \"Double selection\" \\
-              -command \"[self] DoubleText 0\"
+              -command \"[self] doubleText 0\"
              \$pop add command [my IconA delete] -accelerator Ctrl+Y -label \"Delete line\" \\
-              -command \"[self] DeleteLine 0\"
+              -command \"[self] deleteLine 0\"
              \$pop add command [my IconA up] -accelerator Alt+Up -label \"Line(s) up\" \\
-              -command \"[self] LinesMove -1 0\"
+              -command \"[self] linesMove -1 0\"
              \$pop add command [my IconA down] -accelerator Alt+Down -label \"Line(s) down\" \\
-              -command \"[self] LinesMove +1 0\"
+              -command \"[self] linesMove +1 0\"
              \$pop add separator
              \$pop add command [my IconA find] -accelerator Ctrl+F -label \"Find first\" \\
               -command \"[self] InitFindInText; focus \[[self] Entfind\]\"
@@ -699,7 +830,6 @@ oo::class create ::apave::APaveDialog {
              \$pop add command [my IconA SaveFile] -accelerator Ctrl+W \\
              -label \"Save and exit\" -command \"\[[self] Pdg defb1\] invoke\"
             "
-          oo::objdefine [self] export DoubleText DeleteLine LinesMove
         }
         lappend args -onclose [namespace current]::exitEditor
         oo::objdefine [self] export FindInText InitFindInText Pdg
@@ -714,7 +844,7 @@ oo::class create ::apave::APaveDialog {
       lappend widlist [list h__ sev L 1 1]
     }
     # add the buttons
-    my appendButtons widlist $buttons h__ L
+    my AppendButtons widlist $buttons h__ L $defb $timeout
     # make & display the dialog's window
     set wtop [my makeWindow $_pdg(win).dia.fra $ttl]
     set widlist [my paveWindow $_pdg(win).dia.fra $widlist]
@@ -725,7 +855,7 @@ oo::class create ::apave::APaveDialog {
       # themed colors are set as sequentional '-theme' args
       if {[llength $themecolors]==2} {
         # when only 2 main fb/bg colors are set (esp. for TKE)
-        lassign [my parseOptions $optsMisc -foreground black \
+        lassign [::apave::parseOptions $optsMisc -foreground black \
           -background white -selectforeground black \
           -selectbackground gray -insertbackground black] v0 v1 v2 v3 v4
         # the rest colors should be added, namely:
@@ -737,13 +867,13 @@ oo::class create ::apave::APaveDialog {
       }
     }
     # after creating widgets - show dialog texts if any
-    my setgettexts set $_pdg(win).dia.fra $inopts $widlist
-    set focusnow $_pdg(win).dia.fra.$defb
+    my SetGetTexts set $_pdg(win).dia.fra $inopts $widlist
+    lassign [my LowercaseWidgetName $_pdg(win).dia.fra.$defb] focusnow
     if {$textmode} {
       my displayTaggedText [my TexM] msg $tags
-      if {$defb eq "butTEXT"} {
+      if {$defb eq "ButTEXT"} {
         if {$readonly} {
-          set focusnow [my Pdg defb1]
+          lassign [my LowercaseWidgetName [my Pdg defb1]] focusnow
         } else {
           set focusnow [my TexM]
           catch "::tk::TextSetCursor $focusnow $curpos"
@@ -760,16 +890,16 @@ oo::class create ::apave::APaveDialog {
         lassign $w widname
         lassign [my LowercaseWidgetName $widname] wn rn
         if {[string match $focusmatch $rn]} {
-          set focusnow $_pdg(win).dia.fra.$wn
+          lassign [my LowercaseWidgetName $_pdg(win).dia.fra.$wn] focusnow
           break
         }
       }
     }
     catch "$binds"
-    set args [my removeOptions $args -focus]
+    set args [::apave::removeOptions $args -focus]
     my showModal $_pdg(win).dia -themed [string length $themecolors]\
       -focus $focusnow -geometry $geometry {*}$root -ontop $ontop {*}$args
-    oo::objdefine [self] unexport FindInText InitFindInText DoubleText DeleteLine Pdg
+    oo::objdefine [self] unexport FindInText InitFindInText Pdg
     set pdgeometry [winfo geometry $_pdg(win).dia]
     # the dialog's result is defined by "pave res" + checkbox's value
     set res [set result [my res $_pdg(win).dia]]
@@ -791,8 +921,8 @@ oo::class create ::apave::APaveDialog {
       set textcont ""
     }
     if {$res && $inopts ne ""} {
-      my setgettexts get $_pdg(win).dia.fra $inopts $widlist
-      set inopts " [my vals $widlist]"
+      my SetGetTexts get $_pdg(win).dia.fra $inopts $widlist
+      set inopts " [my GetVarsValues $widlist]"
     } else {
       set inopts ""
     }
@@ -816,4 +946,3 @@ oo::class create ::apave::APaveDialog {
   }
 
 }
-

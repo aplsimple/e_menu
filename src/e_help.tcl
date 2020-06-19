@@ -21,9 +21,12 @@ package require http
 package require tls
 
 set srcdir [file normalize [file dirname [info script]]]
-#lappend auto_path $::srcdir; package require apave
-#set auto_path [linsert $auto_path 0 $::srcdir]; package require apave
-source [file join $::srcdir apaveinput.tcl]
+
+# lappend auto_path $::srcdir; package require apave
+# set auto_path [linsert $auto_path 0 $::srcdir]; package require apave
+
+# for more performance, try to 'source' directly, not 'package require apave'
+if {![namespace exists apave]} {source [file join $::srcdir apaveinput.tcl]}
 
 namespace eval ::eh {
 
@@ -40,7 +43,7 @@ namespace eval ::eh {
   variable mx 0 my 0
 
   variable reginit 1
-  variable solo [expr {[file normalize $::argv0] eq \
+  variable solo [expr {[info exist ::argv0] && [file normalize $::argv0] eq \
     [file normalize [info script]]} ? 1 : 0]
 }
 
@@ -56,18 +59,13 @@ proc ddd {args} {
 #====== debug messages (array passed by name)
 proc a {a} {set m [array get $a]; d $m}
 
-#====== to check if the platform is MS Windows
-proc ::iswindows {} {
-  return [expr {$::tcl_platform(platform) eq "windows"} ? 1: 0]
-}
-
 # *******************************************************************
 # e_help's procedures
 #=== own message/question box
 proc ::eh::dialog_box {ttl mes {typ ok} {icon info} {defb OK} args} {
   ::apave::APaveDialog create pdlg
-  set a1 ""; foreach a2 $args {append a1 $a2 " "}
-  append opts " -t 1 -w 80 $a1 "
+  set opts [list -t 1 -w 80]
+  lappend opts {*}$args
   switch -glob -- $typ {
     okcancel - yesno - yesnocancel {
       if {$defb eq "OK" && $typ ne "okcancel" } {
@@ -118,7 +116,7 @@ proc ::eh::get_language {} {
 
 #====== to maximize 'win' window
 proc ::eh::zoom_window {win} {
-  if {[iswindows]} {
+  if {[::iswindows]} {
     wm state $win zoomed
   } else {
     wm attributes $win -zoomed 1
@@ -181,7 +179,7 @@ proc ::eh::checkgeometry {} {
 
 #=== off ctrl/alt modificators of keystrokes
 proc ::eh::ctrl_alt_off {cmd} {
-  if {[iswindows]} {
+  if {[::iswindows]} {
     return "if \{%s == 8\} \{$cmd\}"
   } else {
     return "if \{\[expr %s&14\] == 0\} \{$cmd\}"
@@ -194,14 +192,14 @@ proc ::eh::destroyed {app} {
 }
 
 #=== drag window by snatching header
-proc ::eh::mouse_drag {mode x y} {
+proc ::eh::mouse_drag {win mode x y} {
   switch -- $mode {
     1 { lassign [list $x $y] ::eh::mx ::eh::my }
     2 -
     3 {
       if {$::eh::mx>0 && $::eh::my>0} {
-        lassign [split [wm geometry .] x+] w h wx wy
-        wm geometry . +[expr $wx+$x-$::eh::mx]+[expr $wy+$y-$::eh::my]
+        lassign [split [wm geometry $win] x+] w h wx wy
+        wm geometry $win +[expr $wx+$x-$::eh::mx]+[expr $wy+$y-$::eh::my]
         if {$mode==3} {lassign {0 0} ::eh::mx ::eh::my }
       }
     }
@@ -231,7 +229,7 @@ proc ::eh::write_file_untouched {fname data} {
 
 #=== escape double quotes
 proc ::eh::escape_quotes {sel} {
-  if {![iswindows]} {
+  if {![::iswindows]} {
     set sel [string map [list "\"" "\\\""] $sel]
   }
   return $sel
