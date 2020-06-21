@@ -25,7 +25,7 @@
 #####################################################################
 
 namespace eval ::em {
-  variable em_version "e_menu v3.0b4"
+  variable em_version "e_menu v3.0b5"
   variable exedir [file normalize [file dirname [info script]]]
   variable srcdir [file join $::em::exedir src]
   variable solo [expr {[info exist ::argv0] && [file normalize $::argv0] eq \
@@ -1393,13 +1393,11 @@ proc ::em::menuof {commands s1 domenu} {
       "SW:" {set prom "SHELL & WAIT"
         set runp "::em::shell $typ"; set amp $::em::R_mute
       }
+      "MW/" -
+      "MW:" -
       "M/" -
       "M:"  {set prom "MENU        "
         set runp "::em::callmenu $typ"; set amp "&"
-      }
-      "MW/" -
-      "MW:" {set prom "MENU & WAIT "
-        set runp "::em::callmenu $typ"; set amp ""
       }
       "ME/" -
       "ME:" {set prom "MENU & EXIT "
