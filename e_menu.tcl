@@ -25,7 +25,7 @@
 #####################################################################
 
 namespace eval ::em {
-  variable em_version "e_menu v3.0b3"
+  variable em_version "e_menu v3.0b4"
   variable exedir [file normalize [file dirname [info script]]]
   variable srcdir [file join $::em::exedir src]
   variable solo [expr {[info exist ::argv0] && [file normalize $::argv0] eq \

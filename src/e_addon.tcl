@@ -213,7 +213,7 @@ proc ::em::menuTextBrackets {w fg bg} {
   #   bg - foreground color to select {}()[]
   # The `w` might be omitted because it's a `my TexM` of APaveDialog.
   # It's here only to provide a template for similar handlers.
-  foreach ev {KeyRelease ButtonRelease} {
+  foreach ev {Enter KeyRelease ButtonRelease} {
     bind $w <$ev> [list + ::em::highlightBrackets $w $fg $bg]
   }
 }
