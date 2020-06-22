@@ -75,11 +75,11 @@ rt=2/5
   v_    {} {} \
   cbx1  {{Where:   } {} {-state readonly}} {"$::W1" {in file} {in session} {in directory}} \
   tex1  {{Any text:} {} {-h 3 -w 50 -wrap word -tabnext lbx1}} {$::TEX} \
-  lbx1  {{Related: } {} {-h 3}} {"$::LBX" Father Mother Son Daughter Brother Sister Uncle Aunt Cousin {Big Brother} "Second cousin" "1000th cousin"} \
+  lbx1  {{Related: } {} {-h 3}} {"$::LBX" {my Father} Mother Son Daughter Brother Sister Uncle Aunt Cousin {Big Brother} "Second cousin" "1000th cousin"} \
   opc1  {{Color:   }} {{$::OPT} {{color red green blue -- {{other colors} yellow magenta cyan \
         | #52CB2F #FFA500 #CB2F6A | #FFC0CB #90EE90 #8B6914}} \
         {hue dark medium light} -- {{opc widget example}} ok}} \
-  tblSEL1  {{Table:   \n\nThe 'tbl' name\nis tblSEL* to\nreturn an item} {} {-h 4 -columns {0 {Name of widget} left \
+  tblSEL1  {{Table:   \n\nThe 'tbl' name\nis tblSEL* to\nreturn an item} {} {-h 4 -columns {16 {Name of widget} left \
       0 Type left 0 X right 0 Y right} }} {"$::TBL" {"but" "ttk::button" 1 1} \
       {"can" "canvas" 3 3} \
       {"chb" "ttk::checkbutton" 4 4} \
@@ -93,21 +93,21 @@ rt=2/5
 
  M:  M: 3
 
- MW: Test2 menu MW: "m=test2.mnu" o=0 "a1=M {It's just a test}; if {![Q {DANGER!} {These commands are dangerous\nand can set the world on fire!\n\nContinue?} yesno]} exit"
+ MW: Test2 menu MW: "m=test2.mnu" o=0 "a1=M {It's just a test}; if {![Q {DANGER!} {These commands are dangerous\nand can set the world on fire!\n\nContinue?} yesno]} EXIT"
 
  MW: Test3 menu MW: "m=test3.mnu" o=0
 
 [OPTIONS]
+in=1.0
 ::EN1=%s
 ::EN2====
-::V1=RE
-::C1=1
-::C2=1
-::W1=in session
-::OPT=medium
-::LBX=Daughter
-::TBL=can canvas 3 3
-::TEX=and	tabs	entered\n\nsome multi-line text			123
-pos=92.68
-in=1.0
-%#s geo=969x487+345+229;pos=5.0 # this script is run with %#s wildcard in test1.mnu|!|# it does the same as the previous "Shell script"|!||!|err=1|!|cd ~/FOSSIL|!|while [ $err -eq 1 ]|!|  do repo=$(find *.fossil 2>/dev/null )|!|  err=$?|!|  if [ $? -eq 1 ]; then|!|    if [ $(pwd) = '/' ]; then|!|      echo "repo non esistente" ; break|!|    fi|!|    cd ../|!|  else|!|    echo "$(pwd)/${repo}"|!|  fi|!|done
+::V1=Glob
+::C1=0
+::C2=0
+::W1=in directory
+::OPT=opc widget example
+::LBX=my Father
+::TBL=\{cbx fco\} ttk::combobox 23 2
+::TEX=and	tabs	entered with copy-paste\n1234\n\nsome multi-line text			123
+pos=78.43
+%#s geo=969x487+250+140;pos=5.0 # this script is run with %#s wildcard in test1.mnu|!|# it does the same as the previous "Shell script"|!||!|err=1|!|cd ~/FOSSIL|!|while [ $err -eq 1 ]|!|  do repo=$(find *.fossil 2>/dev/null )|!|  err=$?|!|  if [ $? -eq 1 ]; then|!|    if [ $(pwd) = '/' ]; then|!|      echo "repo non esistente" ; break|!|    fi|!|    cd ../|!|  else|!|    echo "$(pwd)/${repo}"|!|  fi|!|done

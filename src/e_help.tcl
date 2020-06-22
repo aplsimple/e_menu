@@ -18,15 +18,10 @@
 
 package require Tk
 package require http
-package require tls
+catch {package require tls}
 
-set srcdir [file normalize [file dirname [info script]]]
-
-# lappend auto_path $::srcdir; package require apave
-# set auto_path [linsert $auto_path 0 $::srcdir]; package require apave
-
-# for more performance, try to 'source' directly, not 'package require apave'
-if {![namespace exists apave]} {source [file join $::srcdir apaveinput.tcl]}
+# for better performance, try to 'source' directly, not 'package require apave'
+if {![namespace exists apave]} {source [file join [file normalize [file dirname [info script]]] apaveinput.tcl]}
 
 namespace eval ::eh {
 
@@ -63,7 +58,7 @@ proc a {a} {set m [array get $a]; d $m}
 # e_help's procedures
 #=== own message/question box
 proc ::eh::dialog_box {ttl mes {typ ok} {icon info} {defb OK} args} {
-  ::apave::APaveDialog create pdlg
+  set pdlg [::apave::APaveDialog new]
   set opts [list -t 1 -w 80]
   lappend opts {*}$args
   switch -glob -- $typ {
@@ -71,13 +66,13 @@ proc ::eh::dialog_box {ttl mes {typ ok} {icon info} {defb OK} args} {
       if {$defb eq "OK" && $typ ne "okcancel" } {
         set defb YES
       }
-      set ans [pdlg $typ $icon $ttl \n$mes\n $defb {*}$opts]
+      set ans [$pdlg $typ $icon $ttl \n$mes\n $defb {*}$opts]
     }
     default {
-      set ans [pdlg ok $icon $ttl \n$mes\n {*}$opts]
+      set ans [$pdlg ok $icon $ttl \n$mes\n {*}$opts]
     }
   }
-  pdlg destroy
+  $pdlg destroy
   return $ans
 }
 #====== 'mes' message of 'typ' type

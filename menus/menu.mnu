@@ -1,6 +1,6 @@
 [OPTIONS]
 g=+0+27
-in=18.3
+in=1.0
 bd=1
 b1=0
 b2=3
@@ -84,9 +84,9 @@ RW: Differences of $::FILETAIL (fossil/git) ... RW: fossil tim -t ci -n 11 > $::
   fossil gdiff $::EMENUTMP "$::EMENUFILE" %ELSE git difftool $::EMENUCOMMIT HEAD -- "$::EMENUFILE"
 
  # call TKE/Geany with all *.tcl of current file's directory
- RE: Edit *.tcl of %d RE: %q "EDIT ALL *.tcl" "This will edit all .tcl files of\n\n%d"
- RE: Edit *.tcl of %d RE: %C set ::ALLFILES [glob "%d/*.tcl"]
- RE: Edit *.tcl of %d RE: %IF [auto_execok geany]!={} %THEN geany $::ALLFILES %ELSE tke $::ALLFILES
+ R: Edit *.tcl of %d R: %q "EDIT ALL *.tcl" "This will edit all .tcl files of\n\n%d"
+ R: Edit *.tcl of %d R: %C set ::ALLFILES [glob "%d/*.tcl"]
+ R: Edit *.tcl of %d R: %IF [auto_execok geany]!={} %THEN geany $::ALLFILES %ELSE tke $::ALLFILES
  RE: Edit *.tcl of %d RE: %C unset ::ALLFILES
 
  M:  M: 3

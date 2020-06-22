@@ -120,13 +120,6 @@ proc ::em::matchedBrackets {inplist curpos schar dchar dir} {
 }
 #=== toggle 'stay on top' mode
 proc ::em::toggle_ontop {} {
-  #? if {$::em::ncmd > [expr $::em::begsel+1]} {
-    #? set ::em::begin [expr {$::em::begin == 1} ? ($::em::begsel+1) : 1]
-    #? set ::em::start0 2
-    #? reread_menu
-    #? set ::em::start0 0
-    #? after 50 [list ::em::mouse_button $::em::begin]
-  #? }
   wm attributes .em -topmost $::em::ontop
 }
 
@@ -135,32 +128,38 @@ proc ::em::iconA {{icon none}} {
   return "-image [::apave::iconImage $icon] -compound left"
 }
 proc ::em::createpopup {} {
-  menu .popupMenu
-  .popupMenu add command {*}[iconA folder] -accelerator Ctrl+P \
+  menu .em.emPopupMenu
+  .em.emPopupMenu add command {*}[iconA folder] -accelerator Ctrl+P \
     -label "Project..." -command {::em::change_PD}
-  .popupMenu add separator
-  .popupMenu add command {*}[iconA change] -accelerator Ctrl+E \
+  .em.emPopupMenu add separator
+  .em.emPopupMenu add command {*}[iconA change] -accelerator Ctrl+E \
     -label "Edit the menu" -command {after 50 ::em::edit_menu}
-  .popupMenu add command {*}[iconA retry] -accelerator Ctrl+R \
-    -label "Reread the menu" -command ::em::reread_init
-  .popupMenu add command {*}[iconA delete] -accelerator Ctrl+D \
+  if {($::em::solo || [is_s_menu]) && ![is_child]} {
+    .em.emPopupMenu add command {*}[iconA retry] -accelerator Ctrl+R \
+      -label "Restart e_menu" -command ::em::restart_e_menu
+  } else {
+    .em.emPopupMenu add command {*}[iconA retry] -accelerator Ctrl+R \
+      -label "Reread the menu" -command ::em::reread_init
+  }
+  .em.emPopupMenu add command {*}[iconA delete] -accelerator Ctrl+D \
     -label "Destroy other menus" -command ::em::destroy_emenus
-  .popupMenu add separator
-  .popupMenu add command {*}[iconA plus] -accelerator Ctrl+> \
+  .em.emPopupMenu add separator
+  .em.emPopupMenu add command {*}[iconA plus] -accelerator Ctrl+> \
     -label "Increase the menu's width" -command {::em::win_width 1}
-  .popupMenu add command {*}[iconA minus] -accelerator Ctrl+< \
+  .em.emPopupMenu add command {*}[iconA minus] -accelerator Ctrl+< \
     -label "Decrease the menu's width" -command  {::em::win_width -1}
-  .popupMenu add separator
-  .popupMenu add command {*}[iconA view] -accelerator F1 \
+  .em.emPopupMenu add separator
+  .em.emPopupMenu add command {*}[iconA view] -accelerator F1 \
     -label "About" -command ::em::help
-  .popupMenu configure -tearoff 0
+  .em.emPopupMenu configure -tearoff 0
 }
 #=== call the e_menu's popup menu
 proc ::em::popup {X Y} {
     set ::em::skipfocused 1
-    if {![winfo exist .popupMenu]} ::em::createpopup
-    ::apave::paveObj themePopup .popupMenu
-    tk_popup .popupMenu $X $Y
+    if {[winfo exist .em.emPopupMenu]} {destroy .em.emPopupMenu}
+    ::em::createpopup
+    ::apave::paveObj themePopup .em.emPopupMenu
+    tk_popup .em.emPopupMenu $X $Y
 }
 #=== highlights R/S/M in menu's text
 proc ::em::menuTextModified {w} {
@@ -251,12 +250,12 @@ proc ::em::edit {fname {prepost ""}} {
   set fname [string trim $fname]
   lassign [::apave::paveObj csGet] bg - fg
   if {$::em::editor eq ""} {
-    ::apave::APaveInput create dialog
-    set res [dialog editfile $fname $::em::clrtitf $::em::clrinab $::em::clrtitf \
+    set dialog [::apave::APaveInput new]
+    set res [$dialog editfile $fname $::em::clrtitf $::em::clrinab $::em::clrtitf \
       $prepost {*}[::em::theming_pave] -w {80 100} -h {10 24} -ro 0 -centerme .em \
       -myown [list my TextCommandForChange %w \
       "::em::menuTextModified %w" true "::em::menuTextBrackets %w $fg $bg"]]
-    dialog destroy
+    $dialog destroy
     return $res
   } else {
     if {[catch {exec $::em::editor {*}$fname &} e]} {
@@ -321,8 +320,8 @@ proc ::em::help {} {
   set textTags [list [list "red" " -font {-weight bold -size 12} \
     -foreground $::em::clractf -background $::em::clractb"]]
   set doc "https://aplsimple.github.io/en/tcl/e_menu"
-  ::apave::APaveInput create dialog
-  set res [dialog misc info "About e_menu" "
+  set dialog [::apave::APaveInput new]
+  set res [$dialog misc info "About e_menu" "
   <red> $::em::em_version </red>
   [file dirname $::em::argv0] \n
   by Alex Plotnikov
@@ -332,9 +331,22 @@ proc ::em::help {} {
     0 -t 1 -w 60 -tags textTags -head \
     "\n Menu system for editors and file managers. \n" \
     -centerme .em {*}[theming_pave]]
-  dialog destroy
+  $dialog destroy
   if {[lindex $res 0]} {::eh::browse $doc}
   repaintForWindows
+}
+#=== check if it's s_menu
+proc ::em::is_s_menu {} {
+  return [expr {[file tail $::em::argv0] eq "s_menu"}]
+}
+#=== restart the app
+proc ::em::restart_e_menu {} {
+  if {[is_s_menu]} {
+    exec $::em::argv0 {*}$::em::argv &
+  } else {
+    execom "tclsh \"$::em::argv0\" $::em::argv &"
+  }
+  on_exit
 }
 #=== reread and autorun
 proc ::em::reread_init {} {
@@ -378,37 +390,44 @@ proc ::em::change_PD {} {
   } else {
     set em_message "
  Select a project directory from the list of file:\n $::em::PD  \n"
-    set fco1 [list fco1 [list {Project:} {} \
+    set fco1 [list \
+      fco1 [list {Project:} {} \
       [list -h 10 -state readonly -inpval [get_PD]]] \
-      "/@-RE {^(\\s*)(\[^#\]+)\$} {$::em::PD}/@"]
+      "/@-RE {^(\\s*)(\[^#\]+)\$} {$::em::PD}/@" \
+      but1 [list {} {-padx 5} "-com {::em::edit {$::em::PD}; ::em::dialog \
+        res .em -1} -takefocus 0 -tooltip {Click to edit $::em::PD} \
+        -toprev 1 -image [::apave::iconImage OpenFile]"] {}]
   }
   append em_message \
     "\n 'Color scheme' is -1 .. $::apave::_CS_(MAXCS) selected with Up/Down key.  \n"
   set sa [::apave::shadowAllowed 0]
   set ncolorsav $::em::ncolor
   set geo [wm geometry .em]
-  ::apave::APaveInput create dialog
-  after idle ::em::change_PD_Spx
-  set res [dialog input "" "Project..." [list \
-    {*}$fco1 \
-    seh_1 {{} {-pady 10}} {} \
-    Spx [list {Color scheme:} {} \
-      {-tvar ::em::ncolor -from -2 -to $::apave::_CS_(MAXCS) -w 5 \
-      -justify center -msgLab {LabMsg {  Color Scheme 1}} -command \
-      "ttk::style configure TSpinbox {*}[::em::change_PD_Spx]"}] {} \
-    chb1 {"Use for this menu"} {0} \
-    seh_2 {{} {-pady 10}} {} \
-    ent2 {"Geometry of menu:"} "$geo" \
-    chb2 {"Use for this menu"} {0} \
-  ] -head $em_message -weight bold -centerme .em {*}[theming_pave]]
+  ::apave::APaveInput create ::em::dialog .em
+  set r -1
+  while {$r == -1} {
+    after idle ::em::change_PD_Spx
+    set res [::em::dialog input "" "Project..." [list \
+      {*}$fco1 \
+      seh_1 {{} {-pady 10}} {} \
+      Spx [list {Color scheme:} {} \
+        {-tvar ::em::ncolor -from -2 -to $::apave::_CS_(MAXCS) -w 5 \
+        -justify center -msgLab {LabMsg {  Color Scheme 1}} -command \
+        "ttk::style configure TSpinbox {*}[::em::change_PD_Spx]"}] {} \
+      chb1 {"Use for this menu"} {0} \
+      seh_2 {{} {-pady 10}} {} \
+      ent2 {"Geometry of menu:"} "$geo" \
+      chb2 {"Use for this menu"} {0} \
+    ] -head $em_message -weight bold -centerme .em {*}[theming_pave]]
+    set r [lindex $res 0]
+  }
   ::apave::shadowAllowed $sa
-  set r [lindex $res 0]
   set ::em::ncolor [::apave::getN $::em::ncolor $ncolorsav -2 $::apave::_CS_(MAXCS)]
   if {$r} {
     if {$fco1 eq ""} {
       lassign $res - - chb1 geo chb2
     } else {
-      lassign $res - PD - chb1 geo chb2
+      lassign $res - PD - - chb1 geo chb2
     }
     # save CS and/or geometry in menu's options
     if {$chb1} {::em::save_options c= $::em::ncolor}
@@ -467,24 +486,24 @@ proc ::em::change_PD {} {
   } else {
     set ::em::ncolor $ncolorsav
   }
-  dialog destroy
+  ::em::dialog destroy
   repaintForWindows
   return
 }
 #=== Input dialog for getting data
 proc ::em::input {cmd} {
-  ::apave::APaveInput create dialog
+  set dialog [::apave::APaveInput new]
   set dp [string last " == " $cmd]
   if {$dp < 0} {set dp 999999}
   set data [string range $cmd $dp+4 end]
-  set cmd "dialog input [string range $cmd 2 $dp-1] -centerme .em"
+  set cmd "$dialog input [string range $cmd 2 $dp-1] -centerme .em"
   catch {set cmd [subst $cmd]}
   if {[set lb [countCh $cmd \{]] != [set rb [countCh $cmd \}]]} {
     dialog_box ERROR " Number of left braces : $lb\n Number of right braces: $rb \
       \n\n     are not equal!" ok err OK -centerme .em
   }
   set res [eval $cmd [::em::theming_pave]]
-  dialog destroy
+  $dialog destroy
   set r [lindex $res 0]
   if {$r && $data ne ""} {
     lassign $res -> {*}$data
@@ -535,13 +554,13 @@ proc ::em::writeable_command {cmd} {
       set opt 0
     }
   }
-  ::apave::APaveInput create dialog
+  set dialog [::apave::APaveInput new]
   set cmd [string map {"|!|" "\n"} $cmd]
-  set res [dialog misc "" "EDIT: $mark" "$cmd" {"Save & Run" 1 Cancel 0} TEXT \
+  set res [$dialog misc "" "EDIT: $mark" "$cmd" {"Save & Run" 1 Cancel 0} TEXT \
     -text 1 -ro 0 -w 70 -h 10 -pos $pos {*}[::em::theming_pave] -head \
     "UNCOMMENT usable commands, COMMENT unusable ones.\nUse  \\\\\\\\ \
     instead of  \\\\  in patterns." -family Times -hsz 14 -size 12 -g $geo]
-  dialog destroy
+  $dialog destroy
   lassign $res res geo cmd
   if {$res} {
     set cmd [string trim $cmd " \{\}\n"]

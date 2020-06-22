@@ -25,13 +25,14 @@
 #####################################################################
 
 namespace eval ::em {
-  variable em_version "e_menu v3.0b5"
-  variable exedir [file normalize [file dirname [info script]]]
-  variable srcdir [file join $::em::exedir src]
+  variable em_version "e_menu v3.0b6"
   variable solo [expr {[info exist ::argv0] && [file normalize $::argv0] eq \
     [file normalize [info script]]} ? 1 : 0]
-  variable argv0; if {$solo} {set argv0 $::argv0} {set argv0 [info script]}
-  variable argc; if {$solo} {set argc $::argc} {set argc 0}
+  variable argv0; if {[info exist ::argv0]} {set argv0 [file normalize $::argv0]} {set argv0 [info script]}
+  variable argv; if {[info exist ::argv]} {set argv $::argv} {set argv [list]}
+  variable argc; if {[info exist ::argc]} {set argc $::argc} {set argc 0}
+  variable exedir [file normalize [file dirname $argv0]]
+  variable srcdir [file join $exedir src]
   if {!$solo && [info exists ::argv0]} {append em_version " / [file tail $::argv0]"}
 }
 
@@ -62,17 +63,17 @@ if {$::em::solo} {set ::em::ncolor 0}
 #   EXIT - close menu
 
 proc M {cme args} {
-  if {[string match "-centerme *" $cme]} {
+  if {[regexp "^-cm |^-centerme " $cme]} {
     set msg ""
   } else {
     set msg "$cme "
-    set cme "-centerme 0"
+    set cme "-centerme .em"
   }
   foreach a $args {append msg "$a "}
   ::em::em_message $msg ok Info -ontop $::em::ontop {*}$cme
 }
 proc Q {ttl mes {typ okcancel} {icon warn} {defb OK} args} {
-  if {[lsearch $args -centerme]<0} {lappend args -centerme 0}
+  if {[lsearch -regexp $args -cm|-centerme]<0} {lappend args -centerme .em}
   return [set ::em::Q [::em::em_question $ttl $mes $typ $icon $defb {*}$args \
   -ontop $::em::ontop]]
 }
@@ -532,7 +533,7 @@ proc ::em::s_assign {refsel {trl 1}} {
 #=== replace first %b with browser pathname
 proc ::em::checkForWilds {rsel} {
   upvar $rsel sel
-  switch -glob -- [string toupper $sel] {
+  switch -glob -nocase -- $sel {
     "%B *" {
       set sel "::eh::browse [list [string range $sel 3 end]]"
       if {![catch {{*}$sel} e]} {
@@ -552,7 +553,7 @@ proc ::em::checkForWilds {rsel} {
         if {[string match "%q *" $sel]} {
           set cme "-centerme .em"
         } else {
-          set cme "-centerme 0"
+          set cme "-centerme 1"
         }
       }
       if {![catch {Q $ttl $mes $typ $icon $defb {*}$argums {*}$cme} e]} {
@@ -560,7 +561,9 @@ proc ::em::checkForWilds {rsel} {
       }
     }
     "%M *" {
-      if {[string match "%m *" $sel]} {set cme "-centerme .em"} {set cme "-centerme 0"}
+      if {![regexp "^%M -cm |^%M -centerme " $sel]} {
+        set cme "-centerme .em"
+      }
       catch {set sel [subst -nobackslashes -nocommands $sel]}
       set sel "M {$cme} [string range $sel 3 end]"
       if {![catch {{*}$sel} e]} {
@@ -674,6 +677,13 @@ proc ::em::run_Tcl_code {sel {dosubst false}} {
   }
   return false
 }
+#=== exec a command
+proc ::em::execom {comm} {
+  set argm [lrange $comm 1 end]
+  set comm [auto_execok [lindex $comm 0]]
+  if {[catch {exec $comm {*}$argm} e]} {return $e}
+  return ""
+}
 #=== run a program of sel
 proc ::em::run0 {sel amp silent} {
   if {![vip sel]} {
@@ -695,7 +705,7 @@ proc ::em::run0 {sel amp silent} {
         set comm "cmd.exe /c $comm"
       }
       catch {set comm [subst -nobackslashes -nocommands $comm]}
-      if {[catch {exec {*}$comm} e]} {
+      if {[set e [execom $comm]] ne ""} {
         if {$silent < 0} {
           em_message "ERROR of running\n\n$sel\n\n$e"
           return false
@@ -861,10 +871,10 @@ proc ::em::callmenu {typ s1 {amp ""} {from ""}} {
     append pars " \"cs=[lindex $::apave::_CS_(ALL) $::apave::_CS_(MAXCS)]\""
   }
   prepr_1 pars "in" [string range $s1 1 end]  ;# %in is menu's index
-  set sel "tclsh \"$::em::argv0\""
+  set sel "\"$::em::argv0\""
   prepr_win sel "M/"  ;# force converting
   if {$::em::solo} {
-    catch {exec {*}$sel {*}$pars $amp}
+    catch {exec [auto_execok tclsh] {*}$sel {*}$pars $amp}
     if {$amp eq ""} {
       ::em::reread_menu $::em::lasti  ;# changes possible
     }
@@ -903,8 +913,7 @@ proc ::em::shell_button {typ s1 {amp ""}} {
   log Shell
 }
 #=== browse a help page
-proc ::em::browse_button {s1} {
-  set help [lindex [get_seltd $s1] 0]  ;# 1st word is the page name
+proc ::em::browse_button {help} {
   ::eh::browse [::eh::html $help $::em::offline]
   set ::em::lasti 1
   save_options
@@ -1154,6 +1163,7 @@ proc ::em::prepr_pn {refpn {dt 0}} {
   prepr_1 pn "PN" $::em::prjname      ;# %PN is passed dir's tail
   prepr_1 pn "N"  $::em::appN         ;# ID of menu application
   prepr_1 pn "mn" $::em::menufilename ;# %mn is the current menu
+  prepr_1 pn "ms" $::em::srcdir       ;# %ms is e_menu/src dir
   prepr_1 pn "m"  $::em::exedir       ;# %m is e_menu.tcl dir
   prepr_1 pn "s"  $::em::seltd        ;# %s is a selected text
   prepr_1 pn "u"  $::em::useltd       ;# %u is %s underscored
@@ -1659,8 +1669,9 @@ proc ::em::init_header {s1 seltd} {
   set ::em::useltd [set ::em::pseltd [set ::em::qseltd \
     [set ::em::dseltd [set ::em::sseltd $::em::seltd]]]]
   if {[isheader]} {
-    lappend ::em::commands [list " HELP        \"$::em::seltd\"" \
-        "::em::browse $s1"]
+    set help [lindex $::em::seltd 0]  ;# 1st word is the page name
+    lappend ::em::commands [list " HELP        \"$help\"" \
+        "::em::browse \"$help\""]
     if {[::iswindows]} {
       prepr_win seltd "M/"
       set ::em::pars($s1) $seltd
@@ -2008,7 +2019,7 @@ PbBCAPABKF9B+b41+J0AAAAASUVORK5CYII=}
   ::em::initcolorscheme
   set ::em::lin_console [file join $::em::exedir "$::em::lin_console"]
   set ::em::win_console [file join $::em::exedir "$::em::win_console"]
-  set ::img [image create photo -data $imgArr]
+  set ::em::img [image create photo -data $imgArr]
   for {set i 0} {$i <=9} {incr i} {set ::em::ar_i09(i$i=) 1 }
   ::em::theming_pave
   if {[::em::insteadCS]} {
@@ -2087,7 +2098,7 @@ proc ::em::initmenu {} {
     }
     ttk::frame .em.fr.win.fr$i
     if {[string first "M" [lindex $comm 3]] == 0} { ;# is menu?
-      set img "-image $::img"     ;# yes, show arrow
+      set img "-image $::em::img"     ;# yes, show arrow
       button .em.fr.win.fr$i.arr {*}$img -relief flat -overrelief flat \
         -highlightthickness $::em::b0 -bg [color_button $i bg] -command "$b invoke"
     } else {set img ""}
@@ -2265,8 +2276,8 @@ proc ::em::initend {} {
   bind .em <FocusIn>  {::em::focused_win true}
   bind .em <Control-t> {.em.fr.cb invoke}
   bind .em <Escape> {
-    if {$::em::yn && ![Q $::em::menuttl "Quit e_menu?" \
-      yesno ques YES "-t 0 -a {-padx 50}"]} return
+    if {$::em::yn && ![::em::is_child] && ![Q $::em::menuttl "Quit e_menu?" \
+      yesno ques YES -t 0 -a {-padx 50} -cm .em]} break
     ::em::on_exit
   }
   bind .em <Control-Left>  {::em::addon win_width -1}
@@ -2337,7 +2348,7 @@ proc ::em::main {args} {
   return $::em::em_win_var
 }
 
-if {$::em::solo} {::em::main false false {*}$::argv}
+if {$::em::solo} {::em::main -modal 0 -remain 0 {*}$::argv}
 
 # *****************************   EOF   *****************************
 

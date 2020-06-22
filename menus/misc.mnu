@@ -13,12 +13,12 @@ in=1.0
 ::EMENUOPTS=-r -f
 ::EMENUMULSTER=1
 ::EMENUMULSTRES1=~/PG/github/aplsimple.github.io/en/tcl/
-::EMENUMULSTRES2=~/PG/github/aplsimple.github.io/en/tcl/pave
+::EMENUMULSTRES2=~/PG/github/aplsimple.github.io/en/tcl/trimmer
 ::EMENU7ZCOM=wine ~/PROGRAMS/7-ZIP/7z.exe a -r
 ::EMENU7ZARC=~/PG/github/em-apave.7z
-::EMENU7ZDIR=~/PG/github/e_menu ~/PG/github/pave
+::EMENU7ZDIR=~/PG/github/e_menu ~/PG/github/pave ~/PG/github/aplsimple.github.io
 ::EMENU7ZBAK=/media/apl/KINGSTON/
-pos=81.21
+pos=92.0
 [MENU]
 
  R: Trimmer *.tcl R: cd $::EMENUDIR1
@@ -69,14 +69,23 @@ SW: Ruff! $::EMENUP2 ... SW: tclsh ~/UTILS/ruff.tcl "$::EMENUP2"
 SW: Ruff! $::EMENUP2 ... SW: $::EMTMP
 RE: Ruff! $::EMENUP2 ... RE: %B $::EMENUP2html
 
-SW: Backup your stuff SW: cd %PD
- R: Backup your stuff R: %I {} "BACKUP" { \
+ R: Freewrap Tcl R: cd ~/PG/github/mulster
+SW: Freewrap Tcl SW: tclsh mulster.tcl -b 0 tasks/mulster-freewrap
+ R: Freewrap Tcl R: cd ~/PG/github/freewrap
+ R: Freewrap Tcl R: ./linux64/freewrap ./e_menu/s_menu.tcl -w ./linux64/freewrap -forcewrap -o ./e_menu/s_menu
+
+R: R: 3
+
+SW: Save your stuff SW: cd %PD
+ R: Save your stuff R: %I {} "BACKUP" { \
    ent1 {{Archive command:} {} {-w 50}} {"$::EMENU7ZCOM"} \
    fil1 {{   Archive name:}} {"$::EMENU7ZARC"} \
    dir2 {{ Dirs to backup:}} {"$::EMENU7ZDIR"} \
    seh {{} {-pady 7} {}} {} \
    dir3 {{        Save to:}} {"$::EMENU7ZBAK"} \
    } -head {\n This creates a backup of your directories.\n } -weight bold == ::EMENU7ZCOM ::EMENU7ZARC ::EMENU7ZDIR ::EMENU7ZBAK
-SW: Backup your stuff SW: mv -f $::EMENU7ZARC $::EMENU7ZARC.bak ; $::EMENU7ZCOM $::EMENU7ZARC $::EMENU7ZDIR
- R: Backup your stuff R: %C if {"::EMENU7ZBAK" ne ""} { \
+SW: Save your stuff SW: mv -f $::EMENU7ZARC $::EMENU7ZARC.bak ; \
+  $::EMENU7ZCOM $::EMENU7ZARC $::EMENU7ZDIR ; mplayer %ms/s1.wav
+ R: Save your stuff R: %C if {"::EMENU7ZBAK" ne ""} { \
   file copy -force {$::EMENU7ZARC} "[file join {$::EMENU7ZBAK} [file tail {$::EMENU7ZARC}]]"}
+ R: Save your stuff R: mplayer %ms/s1.wav
