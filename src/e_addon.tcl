@@ -337,11 +337,11 @@ proc ::em::help {} {
 }
 #=== check if it's s_menu
 proc ::em::is_s_menu {} {
-  return [expr {[file tail $::em::argv0] eq "s_menu"}]
+  return [expr {[file rootname [file tail $::em::argv0]] eq "s_menu"}]
 }
 #=== restart the app
 proc ::em::restart_e_menu {} {
-  if {[is_s_menu]} {
+  if {[is_s_menu] && [file extension $::em::argv0] ne ".tcl"} {
     exec $::em::argv0 {*}$::em::argv &
   } else {
     execom "tclsh \"$::em::argv0\" $::em::argv &"

@@ -28,7 +28,8 @@ namespace eval ::em {
   variable em_version "e_menu v3.0b7"
   variable solo [expr {[info exist ::argv0] && [file normalize $::argv0] eq \
     [file normalize [info script]]} ? 1 : 0]
-  variable argv0; if {[info exist ::argv0]} {set argv0 [file normalize $::argv0]} {set argv0 [info script]}
+  variable argv0
+  if {[info exist ::argv0]} {set argv0 [file normalize $::argv0]} {set argv0 [info script]}
   variable argv; if {[info exist ::argv]} {set argv $::argv} {set argv [list]}
   variable argc; if {[info exist ::argc]} {set argc $::argc} {set argc 0}
   variable exedir [file normalize [file dirname $argv0]]
@@ -64,7 +65,7 @@ if {$::em::solo} {set ::em::ncolor 0}
 #   EXIT - close menu
 
 proc M {cme args} {
-  if {[regexp "^-cm |^-centerme " $cme]} {
+  if {[regexp "^-centerme " $cme]} {
     set msg ""
   } else {
     set msg "$cme "
@@ -74,7 +75,7 @@ proc M {cme args} {
   ::em::em_message $msg ok Info -ontop $::em::ontop {*}$cme
 }
 proc Q {ttl mes {typ okcancel} {icon warn} {defb OK} args} {
-  if {[lsearch -regexp $args -cm|-centerme]<0} {lappend args -centerme .em}
+  if {[lsearch $args -centerme]<0} {lappend args -centerme .em}
   return [set ::em::Q [::em::em_question $ttl $mes $typ $icon $defb {*}$args \
   -ontop $::em::ontop]]
 }
@@ -562,7 +563,7 @@ proc ::em::checkForWilds {rsel} {
       }
     }
     "%M *" {
-      if {![regexp "^%M -cm |^%M -centerme " $sel]} {
+      if {![regexp "^%M -centerme " $sel]} {
         set cme "-centerme .em"
       }
       catch {set sel [subst -nobackslashes -nocommands $sel]}
@@ -2278,7 +2279,7 @@ proc ::em::initend {} {
   bind .em <Control-t> {.em.fr.cb invoke}
   bind .em <Escape> {
     if {$::em::yn && ![::em::is_child] && ![Q $::em::menuttl "Quit e_menu?" \
-      yesno ques YES -t 0 -a {-padx 50} -cm .em]} break
+      yesno ques YES -t 0 -a {-padx 50} -centerme .em]} break
     ::em::on_exit
   }
   bind .em <Control-Left>  {::em::addon win_width -1}

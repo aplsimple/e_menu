@@ -1,7 +1,7 @@
 [OPTIONS]
 in=1.0
 o=0
-pos=156.29
+pos=15.0
 ::EMENUTMPFILE=%mn.tmp~
 %C if {![info exist ::EMENUCOMMIT]} {set ::EMENUCOMMIT [set ::EMENUCOMMIT2 ""]}
 %C if {![info exist ::EMENUFILE]} {set ::EMENUFILE "%f"}
@@ -10,7 +10,8 @@ pos=156.29
 %C set ::FILETAIL \"[file tail $::EMENUFILE]\"
 ::EMENU7ZCOM=wine ~/PROGRAMS/7-ZIP/7z.exe a -r
 ::EMENU7ZARC=~/PG/github/em-apave.7z
-::EMENU7ZDIR=~/PG/github/e_menu ~/PG/github/pave ~/PG/github/aplsimple.github.io
+::EMENU7ZDIR=~/PG/github/e_menu\n~/PG/github/pave\n~/PG/github/aplsimple.github.io
+::EMENU7ZSKIP=
 ::EMENU7ZBAK=/media/apl/KINGSTON/
 %#W geo=1089x560+0+56;pos=23.62 # Below are the commands to get the Web page by wget.|!|# The downloaded pages are stored in ~/WGET directory (change this if needed).|!|#|!|# Note that .+ are used to edge "some unique string of the page address", e.g.|!|#   wget -r -k -l 2 -p --accept-regex=.+/UNIQUE/.+ https://www.some.com/UNIQUE/some|!|# would download all of https://www.some.com/UNIQUE/some|!|# excluding all external links that don't most likely match /UNIQUE/.|!|#|!|# Note also that -l option means "maximum level to dig".|!|###################################################################################|!||!|mkdir ~/WGET|!|cd ~/WGET|!||!|# wget -r -k -l 2 -p --accept-regex=.+/man/tcl8\.6.+ https://www.tcl.tk/man/tcl8.6/|!||!|# wget -r -k -l 2 -p --accept-regex=.+tablelist/.+ https://www.nemethi.de/tablelist/index.html|!|# wget -r -k -l 2 -p --accept-regex=.+mentry/.+ https://www.nemethi.de/mentry/index.html|!||!|# wget -r -k -l 2 -p --accept-regex=.+/manual3.1/.+ http://tcl.apache.org/rivet/manual3.1/|!||!|# wget -r -k -l 2 -p --accept-regex=.+letter-to-peter.+ http://catesfamily.org.uk/letter-to-peter/|!|wget -r -k -l 2 -p --accept-regex=.+/tcart.+ http://tcart.com/
 
@@ -143,14 +144,17 @@ SW:git diff ? SW: cat "$::EMENUTMPFILE"
 
 SW:Save your stuff SW: cd %PD
  R:Save your stuff R: %I {} "BACKUP" { \
-   ent1 {{Archive command:} {} {-w 50}} {"$::EMENU7ZCOM"} \
+   ent1 {{Archive command:} {} {-w 30}} {"$::EMENU7ZCOM"} \
    fil1 {{   Archive name:}} {"$::EMENU7ZARC"} \
-   dir2 {{ Dirs to backup:}} {"$::EMENU7ZDIR"} \
-   seh {{} {-pady 7} {}} {} \
+   seh1 {{} {-pady 7} {}} {} \
+   tex1 {{    Directories \n      to backup:} {} {-h 8 -w 60 -wrap word}} {$::EMENU7ZDIR} \
+   tex2 {{    Directories \n      postponed:} {} {-h 8 -w 60 -wrap word}} {$::EMENU7ZSKIP} \
+   seh2 {{} {-pady 7} {}} {} \
    dir3 {{        Save to:}} {"$::EMENU7ZBAK"} \
-   } -head {\n This creates a backup of your directories.\n } -weight bold == ::EMENU7ZCOM ::EMENU7ZARC ::EMENU7ZDIR ::EMENU7ZBAK
+   } -head {\n This creates a backup of your directories.\n } -weight bold == ::EMENU7ZCOM ::EMENU7ZARC ::EMENU7ZDIR ::EMENU7ZSKIP ::EMENU7ZBAK
+ R:Save your stuff R: %C set ::EMENU7ZDIR_LIST [string map {\n { }} $::EMENU7ZDIR]
 SW:Save your stuff SW: mv -f $::EMENU7ZARC $::EMENU7ZARC.bak ; \
-  $::EMENU7ZCOM $::EMENU7ZARC $::EMENU7ZDIR ; mplayer %ms/s1.wav
+  $::EMENU7ZCOM $::EMENU7ZARC $::EMENU7ZDIR_LIST ; mplayer %ms/s1.wav
  R:Save your stuff R: %C if {"::EMENU7ZBAK" ne ""} { \
   file copy -force {$::EMENU7ZARC} "[file join {$::EMENU7ZBAK} [file tail {$::EMENU7ZARC}]]"}
  R:Save your stuff R: mplayer %ms/s1.wav
