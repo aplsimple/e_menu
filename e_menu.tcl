@@ -25,13 +25,14 @@
 #####################################################################
 
 namespace eval ::em {
-  variable em_version "e_menu v3.0b6"
+  variable em_version "e_menu v3.0b7"
   variable solo [expr {[info exist ::argv0] && [file normalize $::argv0] eq \
     [file normalize [info script]]} ? 1 : 0]
   variable argv0; if {[info exist ::argv0]} {set argv0 [file normalize $::argv0]} {set argv0 [info script]}
   variable argv; if {[info exist ::argv]} {set argv $::argv} {set argv [list]}
   variable argc; if {[info exist ::argc]} {set argc $::argc} {set argc 0}
   variable exedir [file normalize [file dirname $argv0]]
+  if {[info exists ::e_menu_dir]} {set exedir $::e_menu_dir}
   variable srcdir [file join $exedir src]
   if {!$solo && [info exists ::argv0]} {append em_version " / [file tail $::argv0]"}
 }
