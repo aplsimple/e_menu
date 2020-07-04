@@ -25,7 +25,7 @@
 #####################################################################
 
 namespace eval ::em {
-  variable em_version "e_menu v3.0b7"
+  variable em_version "e_menu v3.0"
   variable solo [expr {[info exist ::argv0] && [file normalize $::argv0] eq \
     [file normalize [info script]]} ? 1 : 0]
   variable argv0
@@ -110,7 +110,7 @@ namespace eval ::em {
   variable thisapp emenuapp
   variable appname $::em::thisapp
   variable fs 9           ;# font size
-  variable font1 "TkHeadingFont" font2 "TkDefaultFont"   ;# font of header & item
+  variable font1 "TkHeadingFont" font2 "TkDefaultFont" font3 "" ;# font of header & item
   variable viewed 40      ;# width of item (in characters)
   variable maxitems 64    ;# maximum of menu.txt items
   variable timeafter 10   ;# interval (in sec.) for updating times/dates
@@ -153,8 +153,7 @@ namespace eval ::em {
   }
   #---------------
   variable itviewed 0
-  variable geometry ""
-  variable ischild 0
+  variable geometry "" ischild 0
   variable menufile [list 0] menufilename "" menuoptions ""
   variable inherited ""
   variable autorun "" autohidden "" commhidden {0} commandA1 "" commandA2 ""
@@ -171,7 +170,7 @@ namespace eval ::em {
   variable conti "\\" lconti 0
   variable filecontent {}
   variable truesel 0
-  variable ln 0 cn 0 yn 0
+  variable ln 0 cn 0 yn 0 dk ""
   variable ismenuvars 0 optsFromMenu 1
   variable linuxconsole ""
   variable insteadCSlist [list]
@@ -308,7 +307,7 @@ proc ::em::isMenuFocused {} {
   return [expr {![winfo exists .em.fr.win] || [.em.fr.win cget -bg] ne $::em::clrgrey}]
 }
 #=== put i-th button in focus
-proc ::em::focus_button {i {doit true}} {
+proc ::em::focus_button {i {doit false}} {
   set last $::em::lasti
   set i [next_button $i]
   if {![winfo exists .em.fr.win.fr$i.butt]} return
@@ -335,7 +334,11 @@ proc ::em::focus_button {i {doit true}} {
       -activeforeground $fg -activebackground $bg
   }
   set ::em::lasti $i
-  if {$doit || $last != $::em::lasti} {focus .em.fr.win.fr$i.butt}
+  if {$doit} {
+    focus -force .em.fr.win.fr$i.butt
+  } else {
+    focus .em.fr.win.fr$i.butt
+  }
 }
 #=== move mouse to i-th button
 proc ::em::mouse_button {i} {
@@ -448,9 +451,9 @@ proc ::em::save_menuvars {} {
     } elseif {$opt && [string match "::*=*" $line]} {
       lassign [regexp -inline "::(.+)=(.*)" $line] ==> vname vvalue
       catch {
-        set newvalue [::eh::escape_specials [set ::$vname]]
+        set newvalue [string map [list \n \\n] [set ::$vname]]
         set ::$vname $newvalue
-        if {[string first % $vvalue]<0} { ;# don't save for wildcarded
+        if {![regexp "^%\\S" $vvalue]} { ;# don't save for wildcarded
           lset menudata $i "::$vname=$newvalue"
         }
       }
@@ -682,8 +685,14 @@ proc ::em::run_Tcl_code {sel {dosubst false}} {
 #=== exec a command
 proc ::em::execom {comm} {
   set argm [lrange $comm 1 end]
-  set comm [auto_execok [lindex $comm 0]]
-  if {[catch {exec $comm {*}$argm} e]} {return $e}
+  set comm1 [lindex $comm 0]
+  set comm2 [auto_execok $comm1]
+  if {[catch {exec $comm2 {*}$argm} e]} {
+    if {$comm2 eq ""} {
+      return "couldn't execute \"$comm1\": no such file or directory"
+    }
+    return $e
+  }
   return ""
 }
 #=== run a program of sel
@@ -923,7 +932,7 @@ proc ::em::browse_button {help} {
 }
 #=== run a command after keypressing
 proc ::em::pr_button {ib args} {
-  mouse_button $ib  ;# to see the selected
+  focus_button $ib  ;# to see the selected
   set comm "$args"
   if {[set i [string first " " $comm]] > 2} {
     set comm "[string range $comm 0 [expr $i-1]]_button
@@ -999,15 +1008,15 @@ proc ::em::read_f_file {} {
   }
   return [llength $::em::filecontent]
 }
-#=== get contents of #ARGS1: ..#ARGS99: and #RUNF1: ..#RUNF99: line
+#=== get contents of #ARGS..: or #RUNF..: line
 proc ::em::get_AR {} {
   if {$::em::truesel && $::em::seltd ne ""} {
     ;# %s is preferrable for ARGS (ts= rules)
-    return "[string map {\n \\n \" \\\"} $::em::seltd]"
+    return [list [string map {\n \\n \" \\\"} $::em::seltd]]
   }
   if {[::em::read_f_file]} {
-    set re "^#\[ \]?ARGS\[0-9\]+:\[ \]*(.*)"
-    set rf "^#\[ \]?RUNF\[0-9\]+:\[ \]*(.*)"
+    set re "^.*#\[ \]?ARGS\[0-9\]+:\[ \]*(.*)"
+    set rf "^.*#\[ \]?RUNF\[0-9\]+:\[ \]*(.*)"
     set AR [set RF ""]
     foreach st $::em::filecontent {
       if {[regexp $re $st] && $AR eq ""} {
@@ -1171,8 +1180,8 @@ proc ::em::prepr_pn {refpn {dt 0}} {
   prepr_1 pn "u"  $::em::useltd       ;# %u is %s underscored
   prepr_1 pn "lg" [::eh::get_language] ;# %lg is a locale (e.g. ru_RU.utf8)
   lassign [get_AR] AR RF
-  prepr_1 pn "AR" $AR                 ;# %AR is contents of #ARGS1: ..#ARGS99: line
-  prepr_1 pn "RF" $RF                 ;# %AF is contents of #RUNF1: ..#RUNF99: line
+  prepr_1 pn "AR" $AR                 ;# %AR is contents of #ARGS..: line
+  prepr_1 pn "RF" $RF                 ;# %AF is contents of #RUNF..: line
   prepr_1 pn "L"  [get_L]             ;# %L is contents of %l-th line
   prepr_1 pn "TT" [::eh::get_tty $::em::linuxconsole] ;# %TT is a terminal
   set pndt [prepr_dt pn]
@@ -1205,6 +1214,10 @@ proc ::em::prepr_call {refname} { ;# this must be done for e_menu call line only
   prepr_1 name "PD" [get_PD]
   prepr_1 name "PN" $::em::prjname
   prepr_1 name "N" $::em::appN
+}
+#=== toggle 'stay on top' mode
+proc ::em::toggle_ontop {} {
+  wm attributes .em -topmost $::em::ontop
 }
 #=== get menu item
 proc ::em::menuit {line lt left {a 0}} {
@@ -1258,7 +1271,7 @@ proc ::em::expand_macro {lmark macro line} {
 }
 #=== get all markers for menu item
 proc ::em::allMarkers {} {
-  return [list S: R: M: S/ R/ M/ SE: RE: ME: SE/ RE/ ME/ SW: RW: MW: SW/ RW/ MW/]
+  return [list S: R: M: S/ R/ M/ SE: RE: ME: SE/ RE/ ME/ SW: RW: MW: SW/ RW/ MW/ I:]
 }
 #=== check for and insert macro, if any
 proc ::em::check_macro {line} {
@@ -1512,7 +1525,7 @@ proc ::em::prepare_buttons {refcommands} {
   set ::em::font1a "\"[string trim $::em::font1 \"]\" [expr {$::em::fs-1}]"
   set ::em::font2a "\"[string trim $::em::font2 \"]\" $::em::fs"
   checkbutton .em.fr.cb -text "On top" -variable ::em::ontop -fg $::em::clrhotk \
-      -bg $::em::clrtitb -takefocus 0 -command {::em::addon toggle_ontop} \
+      -bg $::em::clrtitb -takefocus 0 -command {::em::toggle_ontop} \
       -font $::em::font1a
   grid [label .em.fr.h0 -text [string repeat " " [expr $::em::itviewed -3]] \
       -bg $::em::clrinab] -row 0 -column 0 -sticky nsew
@@ -1530,7 +1543,8 @@ proc ::em::prepare_buttons {refcommands} {
   tooltip::tooltip delay 1000
   if {[isheader]} {set hlist {.em.fr.h0 .em.fr.h1 .em.fr.h2}} {set hlist {.em.fr.h0}}
   foreach l $hlist {
-    bind $l <ButtonPress-1>   {::eh::mouse_drag .em 1 %x %y}
+    bind $l <ButtonPress-1>   {
+      ::eh::mouse_drag .em 1 %x %y; ::em::focus_button $::em::lasti true}
     bind $l <Motion>          {::eh::mouse_drag .em 2 %x %y}
     bind $l <ButtonRelease-1> {::eh::mouse_drag .em 3 %x %y}
   }
@@ -1562,10 +1576,7 @@ proc ::em::reread_menu {{ib ""}} {
   }
   initcomm
   initmenu
-  if {$ib ne ""} {
-    repaintForWindows
-  #  mouse_button $ib
-  }
+  if {$ib ne ""} repaintForWindows
 }
 #=== shadow 'w' widget
 proc ::em::shadow_win {w} {
@@ -1580,6 +1591,7 @@ proc ::em::focused_win {focused} {
   set ::eh::mx [set ::eh::my 0]
   if {!$::em::shadowed || ![::apave::shadowAllowed] || \
   ($::em::skipfocused && [isMenuFocused])} {
+    mouse_button $::em::lasti
     set ::em::skipfocused 0
     return
   }
@@ -1594,7 +1606,7 @@ proc ::em::focused_win {focused} {
     }
     ::tooltip::tooltip on
     set ::em::skipfocused 1  ;# to disable blinking FocusOut/FocusIn
-    after idle ::em::repaint_menu  ;# important esp. for Windows
+    ::em::repaint_menu  ;# important esp. for Windows
   } elseif {!$focused && [isMenuFocused]} {
     # only 2 generations of fathers & sons :(as nearly everywhere :(
     foreach w [winfo children .em.fr] {
@@ -1711,8 +1723,8 @@ proc ::em::get_menutitle {} {
 proc ::em::initcommands {lmc amc osm {domenu 0}} {
   set resetpercent2 0
   foreach s1 {a0= P= N= PD= PN= F= o= ln= cn= s= u= w= sh= \
-        qq= dd= ss= pa= ah= wi= += bd= b0= b1= b2= b3= b4= \
-        f1= f2= fs= a1= a2= ed= tf= tg= md= wc= tt= \
+        qq= dd= ss= pa= ah= += bd= b0= b1= b2= b3= b4= dk= \
+        f1= f2= f3= fs= a1= a2= ed= tf= tg= md= wc= tt= \
         t0= t1= t2= t3= t4= t5= t6= t7= t8= t9= \
         s0= s1= s2= s3= s4= s5= s6= s7= s8= s9= \
         u0= u1= u2= u3= u4= u5= u6= u7= u8= u9= \
@@ -1822,6 +1834,7 @@ proc ::em::initcommands {lmc amc osm {domenu 0}} {
         fs= {set ::em::fs [::apave::getN $seltd $::em::fs]}
         f1= {set ::em::font1 $seltd}
         f2= {set ::em::font2 $seltd}
+        f3= {set ::em::font3 $seltd}
         qq= {set ::em::qseltd [::eh::escape_quotes $seltd]}
         dd= {set ::em::dseltd [::eh::delete_specsyms $seltd]}
         ss= {set ::em::sseltd [string trim $seltd]}
@@ -1831,7 +1844,7 @@ proc ::em::initcommands {lmc amc osm {domenu 0}} {
           set ::em::$s01 [::apave::getN $seltd [set ::em::$s01]]
         }
         ed= {set ::em::editor $seltd}
-        tg= - om= {set ::em::$s01 $seltd}
+        tg= - om= - dk= {set ::em::$s01 $seltd}
         md= {set ::em::basedir $seltd}
         tf= {set ::em::tf [::apave::getN $seltd $::em::tf]}
         in= {
@@ -1896,7 +1909,11 @@ proc ::em::initcolorscheme {{nothemed false}} {
   lassign [::apave::paveObj csGet $::em::ncolor] {*}$clrs
   foreach clr $clrs {set ::em::$clr [set $clr]}
   ::apave::paveObj basicFontSize $::em::fs
-  ::apave::paveObj basicTextFont $::em::font1
+  if {$::em::font3 ne ""} {
+    ::apave::paveObj basicTextFont $::em::font3
+  } else {
+    ::apave::paveObj basicTextFont $::em::font1
+  }
   # set real colors, based on fg=, bg=, fS=, bS=, gr= arguments of e_menu
   if {[info exist ::em::clrfg]} {set ::em::clrinaf $::em::clrfg}
   if {[info exist ::em::clrbg]} {set ::em::clrinab $::em::clrbg}
@@ -2043,6 +2060,13 @@ proc ::em::inithotkeys {} {
   bind .em <F1> {::em::addon help}
   update
 }
+#=== init window type
+proc ::em::initdk {} {
+  if {$::em::dk ne "" && ![::iswindows]} {
+    wm withdraw .em
+    wm attributes .em -type $::em::dk ;# desktop ;# splash ;# dock
+  }
+}
 #=== make e_menu's menu
 proc ::em::initmenu {} {
   if {![winfo exists .em]} {
@@ -2053,6 +2077,7 @@ proc ::em::initmenu {} {
     } else {
       wm withdraw .em
     }
+    ::em::initdk
     ::em::initbegin
   }
   ttk::frame .em.fr
@@ -2108,7 +2133,7 @@ proc ::em::initmenu {} {
       -font $::em::font2a -width $::em::itviewed -borderwidth $::em::bd \
       -relief flat -overrelief flat -highlightthickness $::em::b0 \
       -fg [color_button $i] -bg [color_button $i bg] -command "$prbutton" \
-      -activeforeground $::em::fI -activebackground $::em::bI
+      -activeforeground [color_button $i fg] -activebackground [color_button $i bg]
     if {$img eq "" && \
     [string len $comtitle] > [expr $::em::itviewed * $::em::ratiomin]} \
       {tooltip::tooltip $b "$comtitle"}
@@ -2120,12 +2145,8 @@ proc ::em::initmenu {} {
     if {$img ne ""} {
       pack .em.fr.win.fr$i.arr -expand 1 -fill both
       bind .em.fr.win.fr$i.arr <Motion> "::em::focus_button $i"
-      #bind .em.fr.win.fr$i.arr <Enter> "::em::focus_button $i false"
-      #bind .em.fr.win.fr$i.arr <Leave> "::em::focus_button -1 false"
     }
     bind $b <Motion>   "::em::focus_button $i"
-    #bind $b <Enter>    "::em::focus_button $i false"
-    #bind $b <Leave>    "::em::focus_button -1 false"
     bind $b <Down>     "::em::mouse_button [expr $i+1]"
     bind $b <Tab>      "::em::mouse_button [expr $i+1]"
     bind $b <Up>       "::em::mouse_button [expr $i-1]"
@@ -2239,15 +2260,14 @@ proc ::em::initauto {} {
   }
   if {[is_child]} {
     bind .em <Left> [::eh::ctrl_alt_off "::em::on_exit"]
-    after 50 {
-      if {[winfo exists .em]} {
-        focus -force .em
-        ::em::focus_button $::em::lasti
-      }
-    }
   }
   if {$::em::lasti < $::em::begin} {set ::em::lasti $::em::begin}
-  ::em::focus_button $::em::lasti
+  after 50 {
+    if {[winfo exists .em]} {
+      focus -force .em
+      ::em::focus_button $::em::lasti
+    }
+  }
 }
 #=== begin inits
 proc ::em::initbegin {} {
@@ -2274,8 +2294,16 @@ bD1GOHxW3GzRFeFwuK6oK6oWcLiuqCvC4SPgkX9EA7MDEZgCNv53DCQAAAAASUVORK5CYII=}
 }
 #=== end up inits
 proc ::em::initend {} {
-  bind .em <FocusOut> {if {"%W" eq ".em"} {::em::focused_win false}}
-  bind .em <FocusIn>  {::em::focused_win true}
+  ::apave::initPOP .em
+  if {$::em::shadowed && [set d [expr {$::em::dk in {"" "dialog"}}]]} {
+    bind .em <FocusOut> {if {"%W" eq ".em"} {::em::focused_win false}}
+    bind .em <FocusIn>  {if {"%W" eq ".em"} {::em::focused_win true}}
+  } else {
+    if {$::em::shadowed && !$d} {
+      catch {puts "dk=$::em::dk not used with sh=1"}
+    }
+    bind .em.fr <FocusIn> {::em::focus_button $::em::lasti}
+  }
   bind .em <Control-t> {.em.fr.cb invoke}
   bind .em <Escape> {
     if {$::em::yn && ![::em::is_child] && ![Q $::em::menuttl "Quit e_menu?" \
@@ -2291,9 +2319,9 @@ proc ::em::initend {} {
   if {[::iswindows]} {
     if {[wm attributes .em -alpha] < 0.1} {wm attributes .em -alpha 1.0}
   } else {
-    catch {wm deiconify .em ; raise .em}
     catch {exec chmod a+x "$::em::lin_console"}
   }
+  catch {wm deiconify .em ; raise .em}
   set ::em::start0 0
   ::apave::shadowAllowed true
   repaintForWindows
@@ -2314,9 +2342,10 @@ proc ::em::main {args} {
     focus .em.fr
     return 0
   }
-  lassign [::apave::parseOptions $args -prior 0 -modal 0 -remain 0] \
-    prior modal ::em::remain
-  set args [::apave::removeOptions $args -prior -modal -remain]
+  lassign [::apave::parseOptions $args -prior 0 -modal 0 -remain 0 -noCS 0] \
+    prior modal ::em::remain ::em::noCS
+  set args [::apave::removeOptions $args -prior -modal -remain -noCS]
+  if {$::em::noCS} {set ::em::noCS "disabled"} {set ::em::noCS "normal"}
   if {$prior} {
     # continue with variables of previous session
     set ::em::empool []
@@ -2350,8 +2379,9 @@ proc ::em::main {args} {
   return $::em::em_win_var
 }
 
+# ::em::addon testCS ;# uncomment this and testCS of e_addon.tcl to test
+
 if {$::em::solo} {::em::main -modal 0 -remain 0 {*}$::argv}
 
 # *****************************   EOF   *****************************
 
-# ::em::addon testCS ;# uncomment this and testCS of e_addon.tcl to test

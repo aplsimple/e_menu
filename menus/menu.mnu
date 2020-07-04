@@ -25,10 +25,10 @@ pos=87.28
  RE: Run me (+ selection) RE: %IF "%x"==".md" %THEN ghostwriter "$::EMENUFILE"
  RE: Run me (+ selection) RE: %IF "%x"==".py"  %THEN %t python3 "$::EMENUFILE" %AR
   R: Run me (+ selection) R: ###########################################################
- S: Run me (+ selection) S: $::EMENUFILE %AR
+  S: Run me (+ selection) S: $::EMENUFILE %AR
 
- SE: Run Tcl {all selection} SE: cd %d
- SE: Run Tcl {all selection} SE: tclsh %m/src/ch_.tcl "%TF"
+ S: Run Tcl {all selection} S: cd %d
+ S: Run Tcl {all selection} S: tclsh %m/src/ch_.tcl "%TF"
 
  RE: Edit/create file "%s" RE: cd %d
  RE: Edit/create file "%s" RE: %E %s
@@ -87,7 +87,7 @@ RW: Differences of $::FILETAIL (fossil/git) ... RW: fossil tim -t ci -n 11 > $::
  R: Edit *.tcl of %d R: %q "EDIT ALL *.tcl" "This will edit all .tcl files of\n\n%d"
  R: Edit *.tcl of %d R: %C set ::ALLFILES [glob "%d/*.tcl"]
  R: Edit *.tcl of %d R: %IF [auto_execok geany]!={} %THEN geany $::ALLFILES %ELSE tke $::ALLFILES
- RE: Edit *.tcl of %d RE: %C unset ::ALLFILES
+RE: Edit *.tcl of %d RE: %C unset ::ALLFILES
 
  M:  M: 3
  ME: Fossil ME: m=fossil.mnu "u=%s" o=0

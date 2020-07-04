@@ -707,7 +707,8 @@ oo::class create ::apave::APave {
     # Invokes a button's action after a timeout.
     #   w - button's path
     #   tmo - timeout in sec.
-    #   lbl - optional label, where seconds to wait are displayed
+    #   lbl - label widget, where seconds to wait are displayed
+    #   lbltext - original text of label
 
     if {$tmo>0} {
       catch {set lbl [my $lbl]}
@@ -731,7 +732,8 @@ oo::class create ::apave::APave {
     # Checks if the timeout button is alive & focused; if not, cancels the timeout.
     #   w - button's path
     #   tmo - timeout in sec.
-    #   lbl - optional label, where seconds to wait are displayed
+    #   lbl - label widget, where seconds to wait are displayed
+    #   lbltext - original text of label
 
     if {[winfo exists $lbl]} {
       if {[focus] in [list $w ""]} {

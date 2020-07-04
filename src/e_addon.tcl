@@ -11,7 +11,7 @@ proc ::em::mergePosList {none args} {
   #   none - a number to be not allowed in the lists (e.g. less than minimal)
   #   args - list of the lists to be merged
   # Returns a list of pairs: index of list + item of list.
-  # E.g. 
+  # E.g.
   #   mergePosList -1 {1 5 8} {2 3 9 12} {0 6 10}
   #   => {2 0} {0 1} {1 2} {1 3} {0 5} {2 6} {0 8} {1 9} {2 10} {1 12}
 
@@ -105,7 +105,7 @@ proc ::em::matchedBrackets {inplist curpos schar dchar dir} {
     set plen [llength [set plist [mergePosList -1 $slist $dlist]]]
     for {set i [expr {$dir>0?0:($plen-1)}]} {$i>=0 && $i<$plen} {incr i $dir} {
       lassign [lindex $plist $i] src pos
-      if {$src} {incr dcount} {incr scount} 
+      if {$src} {incr dcount} {incr scount}
       if {$scount <= $dcount} {
         set retpos [incr nl].[incr pos $nc]
         break
@@ -118,11 +118,6 @@ proc ::em::matchedBrackets {inplist curpos schar dchar dir} {
   }
   return $retpos
 }
-#=== toggle 'stay on top' mode
-proc ::em::toggle_ontop {} {
-  wm attributes .em -topmost $::em::ontop
-}
-
 #=== make popup menu
 proc ::em::iconA {{icon none}} {
   return "-image [::apave::iconImage $icon] -compound left"
@@ -149,8 +144,11 @@ proc ::em::createpopup {} {
   .em.emPopupMenu add command {*}[iconA minus] -accelerator Ctrl+< \
     -label "Decrease the menu's width" -command  {::em::win_width -1}
   .em.emPopupMenu add separator
-  .em.emPopupMenu add command {*}[iconA view] -accelerator F1 \
+  .em.emPopupMenu add command {*}[iconA info] -accelerator F1 \
     -label "About" -command ::em::help
+  .em.emPopupMenu add separator
+  .em.emPopupMenu add command {*}[iconA exit] -accelerator Esc \
+    -label "Exit" -command ::em::on_exit
   .em.emPopupMenu configure -tearoff 0
 }
 #=== call the e_menu's popup menu
@@ -173,7 +171,7 @@ proc ::em::menuTextModified {w} {
   set text [$w get 1.0 end]
   if {[catch {set fs [font configure [$w cget -font] -size]}]} {set fs 10}
 
-  $w tag config tagRSM -font "-weight bold -size $fs"
+  $w tag config tagRSM -font "-family \"$::apave::_CS_(textFont)\" -weight bold -size $fs"
   # firstly, to highlight R/S/M
   foreach line [split $text \n] {
     incr il
@@ -398,6 +396,12 @@ proc ::em::change_PD {} {
         res .em -1} -takefocus 0 -tooltip {Click to edit $::em::PD} \
         -toprev 1 -image [::apave::iconImage OpenFile]"] {}]
   }
+  if {[::iswindows]} {
+    set dkst "disabled"
+    set ::em::dk ""
+  } else {
+    set dkst "normal"
+  }
   append em_message \
     "\n 'Color scheme' is -1 .. $::apave::_CS_(MAXCS) selected with Up/Down key.  \n"
   set sa [::apave::shadowAllowed 0]
@@ -410,14 +414,19 @@ proc ::em::change_PD {} {
     set res [::em::dialog input "" "Project..." [list \
       {*}$fco1 \
       seh_1 {{} {-pady 10}} {} \
-      Spx [list {Color scheme:} {} \
+      Spx [list "    Color scheme:" {} \
         {-tvar ::em::ncolor -from -2 -to $::apave::_CS_(MAXCS) -w 5 \
-        -justify center -msgLab {LabMsg {  Color Scheme 1}} -command \
-        "ttk::style configure TSpinbox {*}[::em::change_PD_Spx]"}] {} \
-      chb1 {"Use for this menu"} {0} \
+        -justify center -state $::em::noCS -msgLab {LabMsg {  Color Scheme 1}} \
+        -command "ttk::style configure TSpinbox {*}[::em::change_PD_Spx]"}] {} \
+      chb1 {{} {-padx 5} {-toprev 1 -t {Use it} -state $::em::noCS}} {0} \
       seh_2 {{} {-pady 10}} {} \
       ent2 {"Geometry of menu:"} "$geo" \
-      chb2 {"Use for this menu"} {0} \
+      chb2 {{} {-padx 5} {-toprev 1 -t {Use it}}} {0} \
+      seh_3 {{} {-pady 10}} {} \
+      chbT {"    Type of menu:" {-expand 0} {-w 8 -t "topmost"}} $::em::ontop \
+      rad3 [list "                 " {-fill x -expand 1} "-state $dkst"] \
+        [list "$::em::dk" dialog dock desktop] \
+      chb3 {{} {-padx 5} {-toprev 1 -t {Use it}}} {0} \
     ] -head $em_message -weight bold -centerme .em {*}[theming_pave]]
     set r [lindex $res 0]
   }
@@ -425,13 +434,21 @@ proc ::em::change_PD {} {
   set ::em::ncolor [::apave::getN $::em::ncolor $ncolorsav -2 $::apave::_CS_(MAXCS)]
   if {$r} {
     if {$fco1 eq ""} {
-      lassign $res - - chb1 geo chb2
+      lassign $res - - chb1 geo chb2 chbT dk chb3
     } else {
-      lassign $res - PD - - chb1 geo chb2
+      lassign $res - PD - - chb1 geo chb2 chbT dk chb3
     }
     # save CS and/or geometry in menu's options
     if {$chb1} {::em::save_options c= $::em::ncolor}
     if {$chb2} {::em::save_options g= $geo}
+    if {$chb3} {
+      ::em::save_options dk= $dk
+      ::em::save_options t= $chbT
+    }
+    set ::em::dk $dk
+    ::em::initdk
+    wm deiconify .em
+    set ::em::argv [::apave::removeOptions $::em::argv dk=*]
     if {($fco1 ne "") && ([get_PD] ne $PD)} {
       set ::em::prjname [file tail $PD]
       set f "f $PD/*"
@@ -440,6 +457,7 @@ proc ::em::change_PD {} {
         lappend ::em::argv "${p}=${a}"
       }
     }
+    set ::em::argc [llength $::em::argv]
 
     # the main problems of e_menu's colorizing to solve are:
     #
@@ -555,9 +573,10 @@ proc ::em::writeable_command {cmd} {
     }
   }
   set dialog [::apave::APaveInput new]
+  if {$::em::ontop} {set top "-ontop 1"} {set top ""}
   set cmd [string map {"|!|" "\n"} $cmd]
   set res [$dialog misc "" "EDIT: $mark" "$cmd" {"Save & Run" 1 Cancel 0} TEXT \
-    -text 1 -ro 0 -w 70 -h 10 -pos $pos {*}[::em::theming_pave] -head \
+    -text 1 -ro 0 -w 70 -h 10 -pos $pos {*}[::em::theming_pave] {*}$top -head \
     "UNCOMMENT usable commands, COMMENT unusable ones.\nUse  \\\\\\\\ \
     instead of  \\\\  in patterns." -family Times -hsz 14 -size 12 -g $geo]
   $dialog destroy
@@ -777,5 +796,5 @@ proc ::em::IF {sel {callcommName ""}} {
 
 #=== get an external CS to put into apave CSs (sort of tuning CS list)
 #? proc ::em::testCS {} {
- #? set cc [::apave::paveObj csCurrent]; set ca [::apave::cs_Max]; if {[catch {::em::em_message "[::apave::paveObj csGetName $cc]: $cc of $ca:\n\n CS-$ca: [::apave::paveObj csGet $ca]\n\n[string map {{ } \n} $::em::argv]" ok "CS" -text 1 -w 99 -h 15} e]} {M $e}
+ #? ::apave::initWM; ::em::initall; set cc [::apave::paveObj csCurrent]; set ca [::apave::cs_Max]; if {[catch {::em::em_message "[::apave::paveObj csGetName $cc]: $cc of $ca:\n\n CS-$ca: [::apave::paveObj csGet $ca]\n\n[string map {{ } \n} $::em::argv]" ok "CS" -text 1 -w 99 -h 15} e]} {puts "ERROR: $e"}
 #? }

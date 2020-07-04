@@ -13,11 +13,11 @@ in=1.0
 ::EMENUOPTS=-r -f
 ::EMENUMULSTER=1
 ::EMENUMULSTRES1=~/PG/github/aplsimple.github.io/en/tcl/
-::EMENUMULSTRES2=~/PG/github/aplsimple.github.io/en/tcl/trimmer
+::EMENUMULSTRES2=~/PG/github/aplsimple.github.io/en/tcl/pave
 ::EMENU7ZCOM=wine ~/PROGRAMS/7-ZIP/7z.exe a -r
 ::EMENU7ZARC=~/PG/github/em-apave.7z
-::EMENU7ZDIR=~/PG/github/e_menu\n~/PG/github/pave\n~/PG/github/aplsimple.github.io
-::EMENU7ZSKIP=
+::EMENU7ZDIR=~/PG/github/e_menu\n~/PG/github/pave
+::EMENU7ZSKIP=~/PG/github/aplsimple.github.io
 ::EMENU7ZBAK=/media/apl/KINGSTON/
 pos=90.67
 [MENU]
@@ -71,6 +71,7 @@ SW: Ruff! $::EMENUP2 ... SW: $::EMTMP
 RE: Ruff! $::EMENUP2 ... RE: %B $::EMENUP2html
 
  R: Freewrap Tcl R: cd ~/PG/github/mulster
+ R: Freewrap Tcl R: %q FREEWRAP " Want to get freewrapped Tcl executables?"
 SW: Freewrap Tcl SW: tclsh mulster.tcl -b 0 tasks/mulster-freewrap
  R: Freewrap Tcl R: cd ~/PG/github/freewrap
  R: Freewrap Tcl R: ./linux64/freewrap ./e_menu/s_menu.tcl -w ./linux64/freewrap -forcewrap -o ./e_menu/s_menu
