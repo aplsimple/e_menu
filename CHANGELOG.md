@@ -1,6 +1,56 @@
 # Last changes:
 
 
+Version `3.0 (4 Jul'20)`
+
+  - trimmed e_menu/*.tcl
+  - MW menu type behaves as M
+  - "dk=" option
+  - "ts=" mode amended
+  - save_menuvars & focusback corrected
+  - I: in marker list for editor
+  - checkboxes of 'Project...'
+  - %ms wildcard; execom; restart-app; PD.txt picker; s1.wav; ExpandOptions
+  - editing PD.txt if 'Project...'
+  - brackets checked on entering in menu editor
+
+
+Version `2.1.0 (19 Jun'20)`
+
+  - #RUNF1..99 added, to run any (e.g. main.tcl) as %RF wildcard
+  - %P2 (project's nickname) be set in PD.txt file as 2nd item, after dir
+  - 'sh=' option to allow shadowing menus, 0 by default
+  - checking for equality braces before running input dialogs (%I)
+  - 'ornamental' view corrected
+  - readonly 'tex' widgets got '-takefocus 0' by default
+  - fonts amended
+  - calling 'xterm' amended (perhaps preferrable terminal, with tt=)
+  - terminal isn't called when a command to exec is empty
+  - git stuff in .mnu corrected
+  - saving CS & geometry in "Project..."
+  - removing "Set geometry" from popup menu
+  - %IF sets flag of %THEN/%ELSE performed, to exit at RE/SE
+  - logging messages to stdout at executing commands
+  - <<Paste>> event removes selection in 'edit menu'
+  - color scheming upd., TKE's CS incl.
+  - BUGFIX: RE/SE/ME not working properly
+  - BUGFIX: saving an option in [OPTIONS] failed if it was not there
+
+
+Version `2.0.1 (31 May'20)`
+
+  - b0=0 option set by default
+  - color scheming upd., TKE's CS incl.
+  - whole display made clearer, incl. popups
+  - Menu button for popups, F2 for choosers
+  - menus reread after commands (%U wildcard dropped)
+  - selecting projects & CS from popup menu
+  - change CS & geometry in popup menu "Project"
+  - -msgLab option for widgets of input dialog
+  - code rearranged (with e_addon.tcl)
+  - apave & .mnu upd.
+
+
 Version `1.55 (25 Apr'20)`
 
   - apave package v2.6.2
