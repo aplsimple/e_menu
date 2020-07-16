@@ -2359,7 +2359,7 @@ oo::class create ::apave::APave {
     }
     wm minsize $win [set w [winfo width $win]] [set h [winfo height $win]]
     if {$inpgeom == ""} {  ;# final geometrizing with actual sizes
-      if {$ry<40 && $root != "."} { 
+      if {($h/2-$ry-$rh/2)>30 && $root != "."} { 
         # ::tk::PlaceWindow needs correcting in rare cases, namely:
         # when 'root' is of less sizes than 'win' and at screen top
         wm geometry $win [my CenteredXY $rw $rh $rx $ry $w $h]

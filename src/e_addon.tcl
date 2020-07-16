@@ -175,29 +175,27 @@ proc ::em::menuTextModified {w} {
   # firstly, to highlight R/S/M
   foreach line [split $text \n] {
     incr il
+    $w tag remove tagRSM $il.0 $il.end
     set nomarkers 1
     foreach marker [::em::allMarkers] {
-      lassign [regexp -indices -inline \s*${marker}(.*)${marker}.* $line] - pp
-      if {$pp ne ""} {
+      if {[string first $marker [string trimleft $line]]!=0} continue
+      set p1 [string first $marker $line]
+      set p2 [string first $marker $line $p1+1]
+      if {$p2>$p1} {
         set nomarkers 0
-        lassign $pp p1 p2
-        $w tag add tagRSM $il.$p1 [$w index "$il.$p2 + 1 chars"]
+        $w tag add tagRSM $il.[expr {$p1+[string length $marker]}] \
+          [$w index "$il.$p2 +0 chars"]
         break
       }
     }
     if {$nomarkers} {
       foreach section {MENU OPTIONS HIDDEN} {
-        lassign [regexp -indices -inline "^\\s*(\\\[${section}\\\]).*" $line] - pp
-        if {$pp ne ""} {
+        if {[string trimleft $line] eq "\[$section\]"} {
           set nomarkers 0
-          lassign $pp p1 p2
-          $w tag add tagRSM $il.$p1 [$w index "$il.$p2 + 1 chars"]
+          $w tag add tagRSM $il.0 $il.end
           break
         }
       }
-    }
-    if {$nomarkers} {
-      $w tag remove tagRSM $il.0 [$w index "$il.0 lineend"]
     }
   }
 }

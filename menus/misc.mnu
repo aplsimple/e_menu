@@ -29,7 +29,7 @@ pos=90.67
    dir2 {{Output directory:}} {"$::EMENUDIR2"} \
    ent1 {{         Options:}} {"$::EMENUOPTS"} \
    seh {{} {-pady 3} {}} {} \
-   texc {{   Hint:} {} {-h 9 -w 60 -ro 1 -wrap word}} \
+   texc {{   Hint:} {} {-h 9 -w 67 -ro 1 -wrap word}} \
    {\n Select input Tcl files' directory and output directory. \
     \n\n Other options are: \
     \n   -r : if set, the input directories are processed recursively; \

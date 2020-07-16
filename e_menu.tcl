@@ -25,7 +25,7 @@
 #####################################################################
 
 namespace eval ::em {
-  variable em_version "e_menu v3.0"
+  variable em_version "e_menu v3.0.1"
   variable solo [expr {[info exist ::argv0] && [file normalize $::argv0] eq \
     [file normalize [info script]]} ? 1 : 0]
   variable argv0
@@ -1713,7 +1713,7 @@ proc ::em::prepare_main_wilds {{doit false}} {
 #=== gets the menu's title
 proc ::em::get_menutitle {} {
   if {[is_child]} {
-    set ps "\u220e" 
+    set ps "\u220e"
   } else {
     set ps "\u23cf"
   }
@@ -1783,8 +1783,10 @@ proc ::em::initcommands {lmc amc osm {domenu 0}} {
           }
         }
         c= {
-          set ::em::ncolor [::apave::getN $seltd -2 -2 $::apave::_CS_(MAXCS)]
-          ::em::initdefaultcolors
+          if {![::em::insteadCS]} {
+            set ::em::ncolor [::apave::getN $seltd -2 -2 $::apave::_CS_(MAXCS)]
+            ::em::initdefaultcolors
+          }
         }
         o= {set ::em::ornament [::apave::getN $seltd 0 0 3]
           if {$::em::ornament>1} {set ::em::font2 Mono}
@@ -2081,6 +2083,9 @@ proc ::em::initmenu {} {
     ::em::initbegin
   }
   ttk::frame .em.fr
+  if {$::em::dk in {desktop splash dock}} {
+    .em.fr configure -borderwidth 2 -relief solid
+  }
   pack .em.fr -expand 1 -fill both
   inithotkeys
   if {![prepare_buttons ::em::commands]} return
@@ -2338,10 +2343,6 @@ proc ::em::initall {} {
 }
 #=== main procedure to run
 proc ::em::main {args} {
-  if {[winfo exists .em.fr]} {
-    focus .em.fr
-    return 0
-  }
   lassign [::apave::parseOptions $args -prior 0 -modal 0 -remain 0 -noCS 0] \
     prior modal ::em::remain ::em::noCS
   set args [::apave::removeOptions $args -prior -modal -remain -noCS]
@@ -2354,6 +2355,10 @@ proc ::em::main {args} {
   set ::em::argc [llength $args]
   set ::em::fs [::apave::paveObj basicFontSize]
   set ::em::ncolor [::apave::paveObj csCurrent]
+  if {[winfo exists .em.fr]} {
+    focus .em.fr
+    return 0
+  }
   if {[llength $::em::empool]==0} {
     pool_push  ;# makes a basic item ("clean variables") in the menu pool
   } else {
