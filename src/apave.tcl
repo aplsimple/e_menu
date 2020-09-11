@@ -847,7 +847,13 @@ oo::class create ::apave::APave {
         set widget "frame"
         if {$disabled} {set attrs [::apave::removeOptions $attrs -state]}
       }
-      "lab" {set widget "ttk::label"}
+      "lab" {
+        set widget "ttk::label"
+        if {[::apave::parseOptions $attrs -state normal] eq "disabled"} {
+          set attrs "-foreground grey $attrs"
+          set attrs [::apave::removeOptions $attrs -state]
+        }
+      }
       "laB" {set widget "label"}
       "lfr" {set widget "ttk::labelframe"}
       "lfR" {
@@ -1384,7 +1390,7 @@ oo::class create ::apave::APave {
     lassign "" wpar view addattrs addattrs2
     set tvar [::apave::getOption -tvar {*}$attrs1]
     set filetypes [::apave::getOption -filetypes {*}$attrs1]
-    set takefocus "-takefocus [::apave::parseOptions $attrs1  -takefocus 0]"
+    set takefocus "-takefocus [::apave::parseOptions $attrs1 -takefocus 0]"
     if {$filetypes ne ""} {
       set attrs1 [::apave::removeOptions $attrs1 -filetypes -takefocus]
       lset args 6 $attrs1
@@ -1868,7 +1874,7 @@ oo::class create ::apave::APave {
           eval {*}[string map [list %w $w] $v]
         }
         -bartabs {
-          after idle [string map [list %w $w] $v]
+          after 50 [string map [list %w $w] $v]
         }
       }
     }
