@@ -1,6 +1,18 @@
 # Last changes:
 
 
+Version `3.1 (12 Sep'20)`
+
+  - apave 3.1
+  - restarting on errors of %C
+  - .mnu updated: fossil commit, save stuff
+
+
+Version `3.0.2a1 (18 Jul'20)`
+
+  - checking & showing errors at evaluating %C
+
+
 Version `3.0.1 (17 Jul'20)`
 
   - esp. for TKE: any c= disabled at start, if color args set CS

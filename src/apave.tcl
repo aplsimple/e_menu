@@ -57,6 +57,7 @@ namespace eval ::apave {
 
   ;# default grid options & attributes of widgets (no abbreviations here)
   variable _Defaults [dict create \
+    "bts" {{} {}} \
     "but" {{} {}} \
     "buT" {{} {-width -20 -pady 1}} \
     "can" {{} {}} \
@@ -572,7 +573,7 @@ oo::class create ::apave::APave {
       set ldv2 [string length $div2]
       set i1 [expr {[string first $div1 $fline]+$ldv1}]
       set i2 [expr {[string first $div2 $fline]-1}]
-      set filterfile true
+      set filterfile yes
       if {$ldv1 && $ldv2} {
         if {$i1<0 || $i2<0} {return $edge}
         set retval [string range $fline $i1 $i2]
@@ -598,7 +599,7 @@ oo::class create ::apave::APave {
         }
       } else {
         set retval $fline
-        set filterfile false
+        set filterfile no
       }
       if {$retval eq "" && $filterfile} {return $edge}
       set retval [string map [list "\}" "\\\}"  "\{" "\\\{"] $retval]
@@ -804,6 +805,11 @@ oo::class create ::apave::APave {
     set options "[subst $defopts] $options"
     set attrs "[subst $defattrs] $attrs"
     switch -glob -- $nam3 {
+      "bts" {
+        if {[package versions bartabs] eq ""} {package require bartabs}
+        set attrs "-bartabs {$attrs}"
+        set widget "ttk::frame"
+      }
       "but" {
         set widget "ttk::button"
         my AddButtonIcon $name attrs
@@ -1253,9 +1259,9 @@ oo::class create ::apave::APave {
         [file exist [set res [file nativename $res]]]} {
           set $ftxvar [::apave::readTextFile $res]
           if {[winfo exist $txtnam]} {
-            my readonlyWidget $txtnam false
+            my readonlyWidget $txtnam no
             my displayTaggedText $txtnam $ftxvar
-            my readonlyWidget $txtnam true
+            my readonlyWidget $txtnam yes
             set wid [string range $txtnam 0 [string last . $txtnam]]$wid
             $wid configure -text "$res"
             ::tk::TextSetCursor $txtnam 1.0
@@ -1395,7 +1401,7 @@ oo::class create ::apave::APave {
       "ftx*" {
         set chooser [set view "ftx_OpenFile"]
         if {$tvar ne "" && [info exist $tvar]} {
-          append addattrs " -t [set $tvar]"
+          append addattrs " -t {[set $tvar]}"
         }
         set an "tex"
       }
@@ -1702,7 +1708,7 @@ oo::class create ::apave::APave {
 
   #########################################################################
 
-  method makePopup {w {isRO false} {istext false} {tearoff false}} {
+  method makePopup {w {isRO no} {istext no} {tearoff no}} {
 
     # Makes a popup menu for an editable widget.
     #   w - widget's name
@@ -1763,7 +1769,7 @@ oo::class create ::apave::APave {
       switch -- $a {
         -disabledtext - -rotext - -lbxsel - -cbxsel - -notebazook -\
         -entrypop - -entrypopRO - -textpop - -textpopRO - -ListboxSel -
-        -callF2 - -timeout {
+        -callF2 - -timeout - -bartabs {
           # attributes specific to apave, processed below in "Post"
           lappend _pav(prepost) [list $a [string trim $v {\{\}}]]
         }
@@ -1796,7 +1802,7 @@ oo::class create ::apave::APave {
           $w configure -state normal
           my displayTaggedText $w v {}
           $w configure -state disabled
-          my readonlyWidget $w false
+          my readonlyWidget $w no
         }
         -rotext {
           if {[info exist v]} {
@@ -1806,7 +1812,7 @@ oo::class create ::apave::APave {
               my displayTaggedText $w v {}
             }
           }
-          my readonlyWidget $w true
+          my readonlyWidget $w yes
         }
         -lbxsel {
           set v [lsearch -glob [$w get 0 end] "$v*"]
@@ -1832,13 +1838,17 @@ oo::class create ::apave::APave {
         }
         -textpop - -textpopRO {
           if {[winfo exists $v]} {
-            my makePopup $v [expr {$a eq "-textpopRO"}] true
+            my makePopup $v [expr {$a eq "-textpopRO"}] yes
           }
         }
         -notebazook {
           foreach {fr attr} $v {
             if {[string match "-tr*" $fr]} {
-              ttk::notebook::enableTraversal $w
+              if {[string is boolean -strict $attr] && $attr} {
+                ttk::notebook::enableTraversal $w
+              }
+            } elseif {[string match "-sel*" $fr]} {
+              $w select $w.$attr
             } elseif {![string match "#*" $fr]} {
               $w add [ttk::frame $w.$fr] {*}[subst $attr]
             }
@@ -1857,6 +1867,9 @@ oo::class create ::apave::APave {
         -myown {
           eval {*}[string map [list %w $w] $v]
         }
+        -bartabs {
+          after idle [string map [list %w $w] $v]
+        }
       }
     }
     return
@@ -1869,7 +1882,7 @@ oo::class create ::apave::APave {
     # Replaces a command of text widget for making changes
     #   w - text widget's name
     #   com - command for changes
-    #   on - if true, replaces a text command; if false, restores it
+    #   on - if "yes", replaces a text command; if "no", restores it
     # In particular, when `com` is empty, the text widget becomes readonly.
 
     set newcom $w.internal
@@ -1910,7 +1923,7 @@ oo::class create ::apave::APave {
 
   #########################################################################
 
-  method readonlyWidget {w {on true} {popup true}} {
+  method readonlyWidget {w {on yes} {popup yes}} {
 
     # Switches on/off a widget's readonly state for a text widget.
     #   w - text widget's path
@@ -1920,7 +1933,7 @@ oo::class create ::apave::APave {
     #   [wiki.tcl-lang.org](https://wiki.tcl-lang.org/page/Read-only+text+widget)
 
     my TextCommandForChange $w "" $on
-    if {$popup} {my makePopup $w $on true}
+    if {$popup} {my makePopup $w $on yes}
     return
   }
 
@@ -2296,6 +2309,8 @@ oo::class create ::apave::APave {
     # Shows a window as modal.
     #   win - window's name
     #   args - attributes of window set with "-name value" pairs
+    # The "-modal false" option of 'args' allows to show the window as
+    # non-modal which may be needed in some cases.
     #
     # Examples of "-name value" pairs:
     #  -focus NAME - a name of focused widget
@@ -2319,11 +2334,14 @@ oo::class create ::apave::APave {
     if {[set centerme [::apave::getOption -centerme {*}$args]] ne {}} {
       ;# forced centering relative to a caller's window
       if {[winfo exist $centerme]} {set root $centerme}
-      set args [::apave::removeOptions $args -centerme]
     }
-    if {[set ontop [::apave::getOption -ontop {*}$args]] ne {}} {
-      set args [::apave::removeOptions $args -ontop]
+    if {[set ontop [::apave::getOption -ontop {*}$args]] eq {}} {
+      set ontop no
     }
+    if {[set modal [::apave::getOption -modal {*}$args]] eq {}} {
+      set modal yes
+    }
+    set args [::apave::removeOptions $args -centerme -ontop -modal]
     array set opt \
       [list -focus "" -onclose "" -geometry "" -decor 0 -root $root {*}$args]
     lassign [split [wm geometry $root] x+] rw rh rx ry
@@ -2370,7 +2388,7 @@ oo::class create ::apave::APave {
       wm geometry $win $inpgeom
     }
     bind $win <Configure> "[namespace current]::WinResize $win"
-    if {$ontop>0} {
+    if {$ontop} {
       wm attributes $win -topmost 1
     }
     after 50 [list if "\[winfo exist $opt(-focus)\]" "focus -force $opt(-focus)"]
@@ -2378,9 +2396,9 @@ oo::class create ::apave::APave {
     if {![::iswindows]} {
       tkwait visibility $win
     }
-    grab set $win
+    if {$modal} {grab set $win}
     tkwait variable ${_pav(ns)}PN::AR($win)
-    grab release $win
+    if {$modal} {grab release $win}
     ::apave::modalsOpen [expr {[::apave::modalsOpen] - 1}]
     my GetOutputValues
     ::apave::shadowAllowed $shal ;# restore shadowing
@@ -2445,7 +2463,7 @@ oo::class create ::apave::APave {
 
   #########################################################################
 
-  method displayText {w conts} {
+  method displayText {w conts {pos 1.0}} {
 
     # Sets the text widget's contents.
     #   w - text widget's name
@@ -2455,7 +2473,8 @@ oo::class create ::apave::APave {
       $w configure -state normal
     }
     $w replace 1.0 end $conts
-    $w edit reset; $w edit modified false
+    $w edit reset; $w edit modified no
+    ::tk::TextSetCursor $w $pos
     if { $state ne "normal" } { $w configure -state $state }
     return
   }
@@ -2550,7 +2569,7 @@ oo::class create ::apave::APave {
       lassign [lindex $tags $i] tag opts
       $w tag add $tag $p1 $p2
     }
-    $w edit reset; $w edit modified false
+    $w edit reset; $w edit modified no
     if { $state ne "normal" } { $w configure -state $state }
     return
   }

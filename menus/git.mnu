@@ -3,14 +3,14 @@
 [OPTIONS]
 in=1.0
 o=0
-pos=96.26
+pos=75.21
 w=35
 ::EMENUTMPFILE=%mn.tmp~
 %C if {![info exist ::EMENUCOMMIT]} {set ::EMENUCOMMIT ""}
 %C if {![info exist ::EMENUFILE]} {set ::EMENUFILE "%f"}
 %C if {![info exist ::EMENUGREP]} {set ::EMENUGREP ""}
 %C if {{%F}=={*} && ![info exist ::EMENUFILE]} {set ::EMENUFILE "*"}
-%C set ::FILETAIL \"[file tail $::EMENUFILE]\"
+%C set ::FILETAIL \"[file tail {$::EMENUFILE}]\"
 
 [MENU]
  R:git status R: cd %PD
@@ -70,9 +70,9 @@ SW:git diff SW: cat "$::EMENUTMPFILE"
  R:git add * R: %q "Adding changes" " Add all changes in\n\n  %PD\n\n to a local repository ?"
  S:git add * S: git add *\ngit status
 
- S:git rm %f S: cd %PD
- R:git rm %f R: %q "Remove file" " Remove\n\n   %f\n\n from the repository\n\n   %PD\n\n?"
- S:git rm %f S: git rm --cached "%f"\ngit status
+ S:git rm $::FILETAIL S: cd %PD
+ R:git rm $::FILETAIL R: %q "Remove file" " Remove\n\n   %f\n\n from the repository\n\n   %PD\n\n?"
+ S:git rm $::FILETAIL S: git rm --cached "%f"\ngit status
 
  R:  R: 2
 

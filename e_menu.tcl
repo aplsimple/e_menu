@@ -25,7 +25,7 @@
 #####################################################################
 
 namespace eval ::em {
-  variable em_version "e_menu v3.0.1"
+  variable em_version "e_menu v3.1"
   variable solo [expr {[info exist ::argv0] && [file normalize $::argv0] eq \
     [file normalize [info script]]} ? 1 : 0]
   variable argv0
@@ -106,6 +106,14 @@ proc EXIT {} {::em::on_exit}
 
 namespace eval ::em {
 
+  proc init_arrays {} {
+    uplevel 1 {
+      foreach ar {pars itnames bgcolr ar_s09 ar_u09 ar_i09 ar_geany ar_tformat ar_macros} {
+        catch {array unset ::em::$ar}
+        variable $ar; array set ::em::$ar [list]
+      }
+    }
+  }
   variable menuttl "$::em::em_version"
   variable thisapp emenuapp
   variable appname $::em::thisapp
@@ -147,10 +155,7 @@ namespace eval ::em {
   variable lasti 1 savelasti -1
   variable minwidth 0
   #---------------
-  foreach ar {
-  pars itnames bgcolr ar_s09 ar_u09 ar_i09 ar_geany ar_tformat ar_macros} {
-    variable $ar; array set $ar [list]
-  }
+  init_arrays
   #---------------
   variable itviewed 0
   variable geometry "" ischild 0
@@ -248,6 +253,7 @@ proc ::em::insteadCS {{replacingCS "_?_"}} {
 }
 #=== set colors for dialogs
 proc ::em::theming_pave {} {
+  if {!$::em::solo} return
   # ALL colors set as arguments of e_menu: fg=, bg=, fE=, bE=, fS=, bS=, cc=, ht=
   if {[::em::insteadCS]} {
     set themecolors [list $::em::clrfg $::em::clrbg $::em::clrfE \
@@ -669,14 +675,20 @@ proc ::em::shell0 {sel amp {silent -1}} {
 #=== run a code of Tcl
 proc ::em::run_Tcl_code {sel {dosubst false}} {
   if {[string first "%C" $sel] == 0} {
-    if {$dosubst} {prepr_pn sel}
-    try {
+    if {[catch {
       set sel [string range $sel 3 end]
+      if {$dosubst} {
+        prepr_pn sel
+        set sel [subst -nobackslashes -nocommands $sel]
+      }
       if {[string match "eval *" $sel]} {
         {*}$sel
       } else {
         eval $sel
       }
+    } e]} {
+      em_message "ERROR of running\n\n$sel\n\n$e"
+      ::em::addon restart_e_menu
     }
     return true
   }
@@ -2019,7 +2031,7 @@ proc ::em::initmain {} {
       }
     }
   }
-  tk appname $::em::appname
+  if {$::em::solo} {tk appname $::em::appname}
   set imgArr {iVBORw0KGgoAAAANSUhEUgAAAAoAAAAMCAYAAABbayygAAADAFBMVEUAAAD/AAAA/wD//wAAAP//
 AP8A///////b29u2traSkpJtbW1JSUkkJCTbAAC2AACSAABtAABJAAAkAAAA2wAAtgAAkgAAbQAA
 SQAAJADb2wC2tgCSkgBtbQBJSQAkJAAAANsAALYAAJIAAG0AAEkAACTbANu2ALaSAJJtAG1JAEkk
@@ -2333,6 +2345,7 @@ proc ::em::initend {} {
 }
 #=== initializes all of data and runs the menu
 proc ::em::initall {} {
+  ::em::init_arrays
   ::em::initdefaultcolors
   ::em::initcolorscheme
   ::em::initcomm
@@ -2347,8 +2360,7 @@ proc ::em::main {args} {
     prior modal ::em::remain ::em::noCS
   set args [::apave::removeOptions $args -prior -modal -remain -noCS]
   if {$::em::noCS} {set ::em::noCS "disabled"} {set ::em::noCS "normal"}
-  if {$prior} {
-    # continue with variables of previous session
+  if {$prior} { ;# continue with variables of previous session
     set ::em::empool []
   }
   set ::em::argv $args

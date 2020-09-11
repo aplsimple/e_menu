@@ -9,17 +9,22 @@ in=1.0
 %C if {![info exist ::EMENUP2]} {set ::EMENUP2 "%P2"}
 %C if {![info exist ::EMENUDIR1]} {set ::EMENUDIR1 "%PD"}
 %C if {![info exist ::EMENUDIR2]} {set ::EMENUDIR2 \
-  [file normalize "%PD/../release/[file tail %PD]"]}
+  [file normalize "%PD/../release/[file tail {%PD}]"]}
 ::EMENUOPTS=-r -f
 ::EMENUMULSTER=1
 ::EMENUMULSTRES1=~/PG/github/aplsimple.github.io/en/tcl/
-::EMENUMULSTRES2=~/PG/github/aplsimple.github.io/en/tcl/pave
-::EMENU7ZCOM=wine ~/PROGRAMS/7-ZIP/7z.exe a -r
-::EMENU7ZARC=~/PG/github/em-apave.7z
-::EMENU7ZDIR=~/PG/github/e_menu\n~/PG/github/pave
-::EMENU7ZSKIP=~/PG/github/aplsimple.github.io
+::EMENUMULSTRES2=~/PG/github/aplsimple.github.io/en/tcl/bartabs
+::EMENU7ZCNT=0
+::EMENU7ZCOM=zip -r
+::EMENU7ZARC=~/PG/github/apl-github
+::EMENU7ZDIR=~/PG/github/pave/*\n~/PG/github/e_menu/*\n~/PG/github/bartabs/*\n~/PG/github/aplsimple.github.io/*
+::EMENU7ZSKIP=
 ::EMENU7ZBAK=/media/apl/KINGSTON/
-pos=90.67
+%C set ::EMENU_MULST3 [set ::EMENU_MULST4 ""]
+::EMENU_MULST1=~/TMP/em_mulst.ini
+::EMENU_MULST2=~/TMP/em_mulst.txt
+::EMENU_MULST5=regexp--
+pos=99.81
 [MENU]
 
  R: Trimmer *.tcl R: cd $::EMENUDIR1
@@ -62,6 +67,7 @@ SW: Ruff! $::EMENUP2 ... SW: tclsh ~/UTILS/ruff.tcl "$::EMENUP2"
  S: Ruff! $::EMENUP2 ... S: %C set ::EMENUP2html $::EMENUP2.html
  S: Ruff! $::EMENUP2 ... S: %C  \
    if {$::EMENUMULSTER} { \
+     if {![file exists $::EMENUP2html]} {set ::EMENUP2html [lindex [glob *.html] 0]} ; \
      set ::EMTMP "mv -f $::EMENUP2html ../mulster/tasks/ruff/src ; \
      cd ../mulster ; tclsh mulster.tcl -b 0 tasks/mulster-ruff ; \
      cp -f ~/PG/github/mulster/tasks/ruff/mulstered/$::EMENUP2html $::EMENUMULSTRES2" ; \
@@ -78,19 +84,39 @@ SW: Freewrap Tcl SW: tclsh mulster.tcl -b 0 tasks/mulster-freewrap
 
 R: R: 3
 
-SW: Save your stuff SW: cd %PD
- R: Save your stuff R: %I {} "BACKUP" { \
+SW:Save your stuff SW: cd %PD
+ R:Save your stuff R: %C set ::EMENU7ZCNT [expr {($::EMENU7ZCNT+1)%4}]
+ R:Save your stuff R: %I {} "BACKUP" { \
    ent1 {{Archive command:}} {"$::EMENU7ZCOM"} \
-   fil1 {{   Archive name:}} {"$::EMENU7ZARC"} \
+   fil1 {{ Archive file-$::EMENU7ZCNT:}} {"$::EMENU7ZARC"} \
    seh1 {{} {-pady 7} {}} {} \
    tex1 {{    Directories \n      to backup:} {} {-h 8 -w 60 -wrap word}} {$::EMENU7ZDIR} \
    tex2 {{    Directories \n      postponed:} {} {-h 8 -w 60 -wrap word}} {$::EMENU7ZSKIP} \
    seh2 {{} {-pady 7} {}} {} \
    dir3 {{        Save to:}} {"$::EMENU7ZBAK"} \
    } -head {\n This creates a backup of your directories.\n } -weight bold == ::EMENU7ZCOM ::EMENU7ZARC ::EMENU7ZDIR ::EMENU7ZSKIP ::EMENU7ZBAK
- R: Save your stuff R: %C set ::EMENU7ZDIR_LIST [string map {\n { }} $::EMENU7ZDIR]
-SW: Save your stuff SW: mv -f $::EMENU7ZARC $::EMENU7ZARC.bak ; \
-  $::EMENU7ZCOM $::EMENU7ZARC $::EMENU7ZDIR_LIST ; mplayer %ms/s1.wav
- R: Save your stuff R: %C if {"::EMENU7ZBAK" ne ""} { \
-  file copy -force {$::EMENU7ZARC} "[file join {$::EMENU7ZBAK} [file tail {$::EMENU7ZARC}]]"}
- R: Save your stuff R: mplayer %ms/s1.wav
+ R:Save your stuff R: %C set ::EMENUTMP $::EMENU7ZARC-$::EMENU7ZCNT-N.zip ; file delete $::EMENUTMP
+ R:Save your stuff R: %C set ::EMENU7ZDIR_LIST [string map {\n { }} $::EMENU7ZDIR]
+SW:Save your stuff SW: $::EMENU7ZCOM $::EMENUTMP $::EMENU7ZDIR_LIST ; mplayer %ms/s1.wav
+ R:Save your stuff R: %C if {"::EMENU7ZBAK" ne ""} { \
+  file copy -force {$::EMENUTMP} "[file join {$::EMENU7ZBAK} [file tail {$::EMENUTMP}]]"}
+ R:Save your stuff R: mplayer %ms/s1.wav
+
+SW: Mulster %F SW: cd %PD
+ R: Mulster %F R: %I {} "MULSTER" { \
+   ent1 {{TEMP ini file   :}} {"$::EMENU_MULST1"} \
+   ent2 {{TEMP result file:}} {"$::EMENU_MULST2"} \
+   tex1 {{Find strings    :} {} {-h 4 -w 60 -wrap word}} {$::EMENU_MULST3} \
+   tex2 {{Replace to      :} {} {-h 4 -w 60 -wrap word}} {$::EMENU_MULST4} \
+   cbx1 {{Mode            :}} {"$::EMENU_MULST5" exact exact0 glob regexp regexp--} \
+   } -head {\n This replaces multiple strings in your file.\n (exact0 means "without leading/trailing spaces")\n} -weight bold \
+   == ::EMENU_MULST1 ::EMENU_MULST2 ::EMENU_MULST3 ::EMENU_MULST4 ::EMENU_MULST5
+ R: Mulster %F R: %C set ch [open $::EMENU_MULST1 w] ; \
+  puts $ch "IN=BEGIN" ; \
+  puts $ch $::EMENU_MULST3 ; \
+  puts $ch "IN=END" ; \
+  puts $ch "OUT=BEGIN" ; \
+  puts $ch $::EMENU_MULST4 ; \
+  puts $ch "OUT=END" ; \
+  close $ch
+ SW: Mulster %F SW: tclsh ~/PG/github/mulster/mulster.tcl -backup 0 -mode $::EMENU_MULST5 -infile "%f" -outfile "$::EMENU_MULST2" $::EMENU_MULST1
