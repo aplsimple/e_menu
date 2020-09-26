@@ -13,18 +13,18 @@ in=1.0
 ::EMENUOPTS=-r -f
 ::EMENUMULSTER=1
 ::EMENUMULSTRES1=~/PG/github/aplsimple.github.io/en/tcl/
-::EMENUMULSTRES2=~/PG/github/aplsimple.github.io/en/tcl/bartabs
-::EMENU7ZCNT=0
+::EMENUMULSTRES2=~/PG/github/aplsimple.github.io/en/tcl/hl_tcl
+::EMENU7ZCNT=3
 ::EMENU7ZCOM=zip -r
 ::EMENU7ZARC=~/PG/github/apl-github
-::EMENU7ZDIR=~/PG/github/pave/*\n~/PG/github/e_menu/*\n~/PG/github/bartabs/*\n~/PG/github/aplsimple.github.io/*
+::EMENU7ZDIR=~/PG/github/pave/*\n~/PG/github/e_menu/*\n~/PG/github/bartabs/*\n~/PG/github/hl_tcl/*\n~/PG/github/aplsimple.github.io/*
 ::EMENU7ZSKIP=
 ::EMENU7ZBAK=/media/apl/KINGSTON/
 %C set ::EMENU_MULST3 [set ::EMENU_MULST4 ""]
 ::EMENU_MULST1=~/TMP/em_mulst.ini
 ::EMENU_MULST2=~/TMP/em_mulst.txt
 ::EMENU_MULST5=regexp--
-pos=99.81
+pos=77.64
 [MENU]
 
  R: Trimmer *.tcl R: cd $::EMENUDIR1
@@ -74,6 +74,7 @@ SW: Ruff! $::EMENUP2 ... SW: tclsh ~/UTILS/ruff.tcl "$::EMENUP2"
      set ::EMENUP2html "$::EMENUMULSTRES2/$::EMENUP2html" \
    } else {set ::EMTMP ""}
 SW: Ruff! $::EMENUP2 ... SW: $::EMTMP
+ R: Ruff! $::EMENUP2 ... R: tclsh ~/UTILS/highlight_tcl/tcl_html.tcl $::EMENUP2html
 RE: Ruff! $::EMENUP2 ... RE: %B $::EMENUP2html
 
  R: Freewrap Tcl R: cd ~/PG/github/mulster

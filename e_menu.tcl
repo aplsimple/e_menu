@@ -25,7 +25,7 @@
 #####################################################################
 
 namespace eval ::em {
-  variable em_version "e_menu v3.1"
+  variable em_version "e_menu v3.1.2"
   variable solo [expr {[info exist ::argv0] && [file normalize $::argv0] eq \
     [file normalize [info script]]} ? 1 : 0]
   variable argv0
@@ -181,6 +181,7 @@ namespace eval ::em {
   variable insteadCSlist [list]
   variable source_addons true
   variable empool [list]
+  variable hili no
 }
 #=== creates an item for the menu pool
 proc ::em::pool_item_create {} {

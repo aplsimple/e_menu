@@ -160,18 +160,17 @@ proc ::em::popup {X Y} {
     tk_popup .em.emPopupMenu $X $Y
 }
 #=== highlights R/S/M in menu's text
-proc ::em::menuTextModified {w} {
+proc ::em::menuTextModified {w boldfont} {
 
   # Handles modifications of menu's text: highlights R/S/M
   #   w - text's path
+  #   boldfont - font of boldness
   # The `w` might be omitted because it's a `my TexM` of APaveDialog.
   # It's here only to provide a template for similar handlers.
 
   set curpos [$w index insert]
   set text [$w get 1.0 end]
-  if {[catch {set fs [font configure [$w cget -font] -size]}]} {set fs 10}
-
-  $w tag config tagRSM -font "-family \"$::apave::_CS_(textFont)\" -weight bold -size $fs"
+  $w tag config tagRSM -font $boldfont
   # firstly, to highlight R/S/M
   foreach line [split $text \n] {
     incr il
@@ -199,26 +198,120 @@ proc ::em::menuTextModified {w} {
     }
   }
 }
+#=== bindings to highlight matches
+proc ::em::set_highlight_matches {w} {
+  $w tag configure hilited -foreground #280000 -background #f88eca
+  $w tag configure hilited2 -foreground #280000 -background #ff6587
+  bind $w <Double-ButtonPress-1> [list ::em::highlight_matches $w]
+  bind $w <KeyRelease> [list + ::em::unhighlight_matches $w]
+  bind $w <Alt-Left> "::em::seek_highlight $w 0 ; break"
+  bind $w <Alt-Right> "::em::seek_highlight $w 1 ; break"
+  foreach {kq kw} {q w Q W} {
+    bind $w <Alt-$kq> [list ::em::seek_highlight $w 2]
+    bind $w <Alt-$kw> [list ::em::seek_highlight $w 3]
+  }
+}
+#=== gets a selected word after double-clicking
+proc ::em::get_highlighted {txt} {
+  set err [catch {$txt tag ranges sel} sel]
+  lassign $sel pos pos2
+  if {!$err && [llength $sel]==2} {
+    set sel [$txt get $pos $pos2]  ;# single selection
+  } else {
+    if {$err || [string trim $sel]==""} {
+      set pos  [$txt index "insert wordstart"]
+      set pos2 [$txt index "insert wordend"]
+      set sel [string trim [$txt get $pos $pos2]]
+      if {![string is wordchar -strict $sel]} {
+        # when cursor just at the right of word: take the word at the left
+        # e.g. if "_" stands for cursor then "word_" means selecting "word"
+        set pos  [$txt index "insert -1 char wordstart"]
+        set pos2 [$txt index "insert -1 char wordend"]
+        set sel [$txt get $pos $pos2]
+      }
+    }
+  }
+  if {[string length $sel] == 0} {set pos ""}
+  return [list $sel $pos $pos2]
+}
+#=== highlights matches of selected word
+proc ::em::highlight_matches {txt} {
+  lassign [::em::get_highlighted $txt] sel pos
+  if {$pos eq ""} return
+  set lenList {}
+  set posList [$txt search -all -count lenList -- "$sel" 1.0 end]
+  foreach pos2 $posList len $lenList {
+    if {$len eq ""} {set len [string length $sel]}
+    set pos3 [$txt index "$pos2 + $len chars"]
+    if {$pos2 == $pos} {
+      lappend matches2 $pos2 $pos3
+    } else {
+      lappend matches1 $pos2 $pos3
+    }
+  }
+  catch {
+    $txt tag remove hilited 1.0 end
+    $txt tag remove hilited2 1.0 end
+    $txt tag add hilited {*}$matches1
+    $txt tag add hilited2 {*}$matches2
+  }
+  set ::em::hili yes
+}
+#=== unhighlights matches of selected word
+proc ::em::unhighlight_matches {txt} {
+  if {$::em::hili} {
+    $txt tag remove hilited 1.0 end
+    $txt tag remove hilited2 1.0 end
+    set ::em::hili no
+  }
+}
+#=== Seek the selected word forward/backward/to first/to last
+proc ::em::seek_highlight {txt mode} {
+  ::em::unhighlight_matches $txt
+  lassign [::em::get_highlighted $txt] sel pos pos2
+  if {!$pos} return
+  switch $mode {
+    0 { # backward
+      set nc [expr {[string length $sel] - 1}]
+      set pos [$txt index "$pos - $nc chars"]
+      set pos [$txt search -backwards -- $sel $pos 1.0]
+    }
+    1 { # forward
+      set pos [$txt search -- $sel $pos2 end]
+    }
+    2 { # to first
+      set pos [$txt search -- $sel 1.0 end]
+    }
+    3 { # to last
+      set pos [$txt search -backwards -- $sel end 1.0]
+    }
+  }
+  if {[string length "$pos"]} {
+    ::tk::TextSetCursor $txt $pos
+    $txt tag add sel $pos [$txt index "$pos + [string length $sel] chars"]
+  }
+}
 #=== bindings to highlight brackets
-proc ::em::menuTextBrackets {w fg bg} {
+proc ::em::menuTextBrackets {w fg boldfont} {
 
   # Makes bindings to highlight brackets of menu's text: {}()[]
   #   w - text's path
   #   fg - foreground color to select {}()[]
-  #   bg - foreground color to select {}()[]
+  #   boldfont - font of boldness
   # The `w` might be omitted because it's a `my TexM` of APaveDialog.
   # It's here only to provide a template for similar handlers.
   foreach ev {Enter KeyRelease ButtonRelease} {
-    bind $w <$ev> [list + ::em::highlightBrackets $w $fg $bg]
+    bind $w <$ev> [list + ::em::highlightBrackets $w $fg $boldfont]
   }
 }
-proc ::em::highlightBrackets {w fg bg} {
+proc ::em::highlightBrackets {w fg boldfont} {
   # secondly, highlight brackets if any
   $w tag delete tagBRACKET
   $w tag delete tagBRACKETERR
-  $w tag config tagBRACKET -foreground $fg -background $bg
+  $w tag config tagBRACKET -foreground $fg -font $boldfont
   $w tag config tagBRACKETERR -foreground white -background red
   set curpos [$w index insert]
+  set curpos2 [$w index "insert -1 chars"]
   set ch [$w get $curpos]
   set lbr "\{(\["
   set rbr "\})\]"
@@ -229,6 +322,14 @@ proc ::em::highlightBrackets {w fg bg} {
     set brcpos [matchedBrackets $txt $curpos \
       [string index $lbr $il] [string index $rbr $il] 1]
   } elseif {$ir>-1} {
+    set brcpos [matchedBrackets $txt $curpos \
+      [string index $rbr $ir] [string index $lbr $ir] -1]
+  } elseif {[set il [string first [$w get $curpos2] $lbr]]>-1} {
+    set curpos $curpos2
+    set brcpos [matchedBrackets $txt $curpos \
+      [string index $lbr $il] [string index $rbr $il] 1]
+  } elseif {[set ir [string first [$w get $curpos2] $rbr]]>-1} {
+    set curpos $curpos2
     set brcpos [matchedBrackets $txt $curpos \
       [string index $rbr $ir] [string index $lbr $ir] -1]
   } else {
@@ -244,13 +345,28 @@ proc ::em::highlightBrackets {w fg bg} {
 #=== edit file(s)
 proc ::em::edit {fname {prepost ""}} {
   set fname [string trim $fname]
-  lassign [::apave::paveObj csGet] bg - fg
+  lassign [::apave::paveObj csGet] bg - fg  - - - - - - fgc
   if {$::em::editor eq ""} {
+    if {[catch {set fs [font configure [$w cget -font] -size]}]} {set fs 10}
+    set bfont "-family \"$::apave::_CS_(textFont)\" -weight bold -size $fs"
     set dialog [::apave::APaveInput new]
+    set ico [::apave::paveObj iconA none]
     set res [$dialog editfile $fname $::em::clrtitf $::em::clrinab $::em::clrtitf \
       $prepost {*}[::em::theming_pave] -w {80 100} -h {10 24} -ro 0 -centerme .em \
-      -myown [list my TextCommandForChange %w \
-      "::em::menuTextModified %w" true "::em::menuTextBrackets %w $fg $bg"]]
+      -myown [list my TextCommandForChange %w "::em::menuTextModified %w {$bfont}"\
+       true "::em::menuTextBrackets %w $fgc {$bfont}"] \
+      -myown [list ::em::set_highlight_matches %w] \
+      -popup "\$pop add separator
+         \$pop add command -accelerator Alt+W $ico \\
+         -label \"Highlight First\" -command \"::em::seek_highlight %w 2\"
+         \$pop add command -accelerator Alt+W $ico \\
+         -label \"Highlight Last\" -command \"::em::seek_highlight %w 3\"
+         \$pop add command -accelerator Alt+Left $ico \\
+         -label \"Highlight Previous\" -command \"::em::seek_highlight %w 0\"
+         \$pop add command -accelerator Alt+Right $ico \\
+         -label \"Highlight Next\" -command \"::em::seek_highlight %w 1\"
+         \$pop add command -accelerator 2Click $ico \\
+         -label \"Highlight All\" -command \"::em::highlight_matches %w\""]
     $dialog destroy
     return $res
   } else {
