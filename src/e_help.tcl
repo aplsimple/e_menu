@@ -217,6 +217,7 @@ proc ::eh::fileAttributes {fname {attrs "-"} {atime ""} {mtime ""} } {
 proc ::eh::write_file_untouched {fname data} {
   lassign [::eh::fileAttributes $fname] f_attrs f_atime f_mtime
   set ch [open $fname w]
+  chan configure $ch -encoding utf-8
   foreach line $data { puts $ch "$line" }
   close $ch
   ::eh::fileAttributes $fname $f_attrs $f_atime $f_mtime

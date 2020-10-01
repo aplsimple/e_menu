@@ -13,18 +13,20 @@ in=1.0
 ::EMENUOPTS=-r -f
 ::EMENUMULSTER=1
 ::EMENUMULSTRES1=~/PG/github/aplsimple.github.io/en/tcl/
-::EMENUMULSTRES2=~/PG/github/aplsimple.github.io/en/tcl/hl_tcl
-::EMENU7ZCNT=3
+::EMENUMULSTRES2=~/PG/github/aplsimple.github.io/en/tcl/aplsimple.github.io
+::EMENUMULSTRES3=/home/apl/PG/github/aplsimple.github.io/en/tcl
+::EMENURUFFDIR=~/PG/github/pave apave\n~/PG/github/hl_tcl\n~/PG/github/bartabs\n~/PG/github/trimmer\n~/PG/github/mulster\n~/PG/github/transpops
+::EMENU7ZCNT=2
 ::EMENU7ZCOM=zip -r
 ::EMENU7ZARC=~/PG/github/apl-github
-::EMENU7ZDIR=~/PG/github/pave/*\n~/PG/github/e_menu/*\n~/PG/github/bartabs/*\n~/PG/github/hl_tcl/*\n~/PG/github/aplsimple.github.io/*
+::EMENU7ZDIR=~/PG/github/pave/*\n~/PG/github/e_menu/*\n~/PG/github/hl_tcl/*\n~/PG/github/bartabs/*\n~/PG/github/doctest/*\n~/PG/github/booksum/*\n~/PG/github/trimmer/*\n~/PG/github/mulster/*\n~/PG/github/transpops/*\n~/PG/github/aplsimple.github.io/*
 ::EMENU7ZSKIP=
 ::EMENU7ZBAK=/media/apl/KINGSTON/
 %C set ::EMENU_MULST3 [set ::EMENU_MULST4 ""]
 ::EMENU_MULST1=~/TMP/em_mulst.ini
 ::EMENU_MULST2=~/TMP/em_mulst.txt
 ::EMENU_MULST5=regexp--
-pos=77.64
+pos=112.0
 [MENU]
 
  R: Trimmer *.tcl R: cd $::EMENUDIR1
@@ -77,6 +79,38 @@ SW: Ruff! $::EMENUP2 ... SW: $::EMTMP
  R: Ruff! $::EMENUP2 ... R: tclsh ~/UTILS/highlight_tcl/tcl_html.tcl $::EMENUP2html
 RE: Ruff! $::EMENUP2 ... RE: %B $::EMENUP2html
 
+ R: Ruff! all ... R: %I {} "PROJECT NAME" { \
+   v_ {{} {-pady 4}} {} \
+   tex1 {{ Projects to Ruff!:} {} {-h 8 -w 60 -wrap word}} {$::EMENURUFFDIR} \
+   chb1 {{Mulster afterwards:}} {$::EMENUMULSTER} \
+   dir2 {{ Copy to directory:} {} {-tvar ::EMENUMULSTRES3}} {"$::EMENUMULSTRES3"} \
+   seh {{} {-pady 3} {}} {} \
+   } -head {\n This creates Ruff! documentation of Tcl files. \
+   \n Customize ruff.tcl at need. } -weight bold == ::EMENURUFFDIR ::EMENUMULSTER ::EMENUMULSTRES3
+SW: Ruff! all ... SW: %C \
+   set home [glob ~] ; \
+   set plist [string map {\\n \n} $::EMENURUFFDIR] ; \
+   foreach prj [split $plist \n] { ; \
+     if {$prj eq ""} continue ; \
+     lassign $prj prj prjname ; \
+     set prjtail [file tail $prj] ; \
+     if {$prjname eq ""} {set prjname $prjtail} ; \
+     set prj [string map [list ~ $home] $prj] ; \
+     set ::EMENUMULSTRES3 [string map [list ~ $home] $::EMENUMULSTRES3] ; \
+     cd $prj ; \
+     catch {exec tclsh $home/UTILS/ruff.tcl $prjname} ; \
+     set prjnamehtml $prjname.html ; \
+     if {$::EMENUMULSTER} { \
+       if {![file exists $prjnamehtml]} {set prjnamehtml [lindex [glob *.html] 0]} ; \
+       exec [auto_execok mv] -f $prjnamehtml ../mulster/tasks/ruff/src ; \
+       cd ../mulster ; exec tclsh mulster.tcl -b 0 tasks/mulster-ruff ; \
+       exec [auto_execok cp] -f $home/PG/github/mulster/tasks/ruff/mulstered/$prjnamehtml $::EMENUMULSTRES3/$prjtail/$prjnamehtml ; \
+       set prjnamehtml $::EMENUMULSTRES3/$prjtail/$prjnamehtml \
+     } ; \
+     exec tclsh $home/UTILS/highlight_tcl/tcl_html.tcl $prjnamehtml \
+   }
+SW: Ruff! all ... SW: %B file://$::EMENUMULSTRES3
+
  R: Freewrap Tcl R: cd ~/PG/github/mulster
  R: Freewrap Tcl R: %q FREEWRAP " Want to get freewrapped Tcl executables?"
 SW: Freewrap Tcl SW: tclsh mulster.tcl -b 0 tasks/mulster-freewrap
@@ -89,10 +123,10 @@ SW:Save your stuff SW: cd %PD
  R:Save your stuff R: %C set ::EMENU7ZCNT [expr {($::EMENU7ZCNT+1)%4}]
  R:Save your stuff R: %I {} "BACKUP" { \
    ent1 {{Archive command:}} {"$::EMENU7ZCOM"} \
-   fil1 {{ Archive file-$::EMENU7ZCNT:}} {"$::EMENU7ZARC"} \
+   fil1 {{Archive file($::EMENU7ZCNT):}} {"$::EMENU7ZARC"} \
    seh1 {{} {-pady 7} {}} {} \
-   tex1 {{    Directories \n      to backup:} {} {-h 8 -w 60 -wrap word}} {$::EMENU7ZDIR} \
-   tex2 {{    Directories \n      postponed:} {} {-h 8 -w 60 -wrap word}} {$::EMENU7ZSKIP} \
+   tex1 {{Files to backup:} {} {-h 8 -w 60 -wrap word}} {$::EMENU7ZDIR} \
+   tex2 {{          Files \n      postponed:} {} {-h 8 -w 60 -wrap word}} {$::EMENU7ZSKIP} \
    seh2 {{} {-pady 7} {}} {} \
    dir3 {{        Save to:}} {"$::EMENU7ZBAK"} \
    } -head {\n This creates a backup of your directories.\n } -weight bold == ::EMENU7ZCOM ::EMENU7ZARC ::EMENU7ZDIR ::EMENU7ZSKIP ::EMENU7ZBAK

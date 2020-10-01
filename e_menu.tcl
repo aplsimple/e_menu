@@ -25,7 +25,7 @@
 #####################################################################
 
 namespace eval ::em {
-  variable em_version "e_menu v3.1.2"
+  variable em_version "e_menu v3.1.4"
   variable solo [expr {[info exist ::argv0] && [file normalize $::argv0] eq \
     [file normalize [info script]]} ? 1 : 0]
   variable argv0
@@ -379,7 +379,9 @@ proc ::em::silent_mode {amp} {
 }
 #=== read and write the menu file
 proc ::em::read_menufile {} {
-  set menudata [read [set ch [open $::em::menufilename]]]
+  set ch [open $::em::menufilename]
+  chan configure $ch -encoding utf-8
+  set menudata [read $ch]
   set menudata [split [string trimright $menudata "\n"] "\n"]
   close $ch
   return $menudata
@@ -1014,6 +1016,7 @@ proc ::em::read_f_file {} {
       set ::em::filecontent - ;# no content
       return 0
     }
+    chan configure $chan -encoding utf-8
     while {[gets $chan st]>=0} {
       lappend ::em::filecontent $st
     }
@@ -1324,6 +1327,7 @@ proc ::em::menuof {commands s1 domenu} {
       set ::em::start0 0  ;# no more messages
       return
     }
+    chan configure $chan -encoding utf-8
     set ::em::menufilename "$seltd"
     set ::em::menufile [list 0]
   }
@@ -1680,6 +1684,7 @@ proc ::em::initPD {seltd {doit 0}} {
   if {[llength $::em::prjdirlist]==0 && [file isfile $seltd]} {
       # when PD is indeed a file with projects list
     set ch [open $seltd]
+    chan configure $ch -encoding utf-8
     foreach wd [split [read $ch] "\n"] {
       if {[string trim $wd] ne "" && ![string match "\#*" $wd]} {
         lappend ::em::prjdirlist $wd

@@ -437,6 +437,7 @@ proc doctest::init {args} {
   if {[catch {set ch [open $options(fn)]}]} {
     exit_on_error "\"$options(fn)\" not open"
   }
+  chan configure $ch -encoding utf-8
   set cnt [split [read $ch] \n]
   close $ch
   # source all tests (by #% source ...)
@@ -457,6 +458,7 @@ proc doctest::init {args} {
         if {[catch {set ch [open $fn]}]} {
           exit_on_error "PWD: [pwd]\n\"$fn\" not open by\n $line"
         }
+        chan configure $ch -encoding utf-8
         foreach l [split [read $ch] \n] { lappend options(cnt) $l }
         close $ch
       }

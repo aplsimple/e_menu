@@ -836,6 +836,7 @@ proc ::em::create_template {fname} {
     if {[catch {set chan [open "$fname" "w"]} e]} {
       em_message "ERROR of creating\n\n$fname\n\n$e"
     } else {
+      chan configure $chan -encoding utf-8
       set dir [file dirname $fname]
       if {[file tail $dir] == $::em::prjname} {
         set menu "$::em::prjname/nam3.mnu"
