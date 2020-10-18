@@ -7,10 +7,10 @@ t4==%b-%Y/%U-week
 u=%s
 o=0
 in=1.0
-pos=168.145
+pos=68.42
 ::FSLUSER=aplsimple
-::FSLBRANCH=v3.0a1
-::FSLBRANCHCOLOR=#65ff65
+::FSLBRANCH=TclOO forced
+::FSLBRANCHCOLOR=#fe95ca
 ::EMENUTMPFILE=%mn.tmp~
 ::EMENUBRIEF=0
 ::EM_T_DRY=0
@@ -47,7 +47,7 @@ RW:fossil gdiff $::FILETAIL ? RW: fossil tim -t ci -n 99 > $::EMENUTMPFILE
    v_ {{} {-pady 4} {}} {} \
    fil1 {{   File:} {} {}} {"$::EMENUFILE"}\
    fco1 {{Version:} {} {-h 10 -state readonly -inpval "$::EMENUCOMMIT"}}\
-     {/@-div1 "\[" -div2 "\]" -ret 1 $::EMENUTMPFILE/@    INFO: /@-div1 "\] " -list {{}} $::EMENUTMPFILE/@}\
+     {@@-div1 "\[" -div2 "\]" -ret 1 $::EMENUTMPFILE@@    INFO: @@-div1 "\] " -list {{}} $::EMENUTMPFILE@@}\
    seh {{} {-pady 3} {}} {}\
    texc {{   Hint:} {} {-h 9 -w 60 -ro 1 -wrap word}}\
    {\n Select a version from the combobox to be compared to tip.\n\n If it's blank, the current file is compared to tip.\n\n No response means no differences.\n\n (temp file: $::EMENUTMPFILE)}\
@@ -61,11 +61,11 @@ RW:fossil diff ? RW: fossil tim -t ci -n 99 > $::EMENUTMPFILE
  R:fossil diff ? R: %I {} "DIFF" { \
    v_ {{} {-pady 4} {}} {} \
    fco1  {{         From:} {} {-h 10 -state readonly -cbxsel "$::EMENUCOMMIT1"}} \
-     {/@-div1 "\[" -div2 "\]" -ret 1 -list {"" tip} $::EMENUTMPFILE/@ \
-     INFO: /@-div1 "\] " $::EMENUTMPFILE/@} \
+     {@@-div1 "\[" -div2 "\]" -ret 1 -list {"" tip} $::EMENUTMPFILE@@ \
+     INFO: @@-div1 "\] " $::EMENUTMPFILE@@} \
    fco2  {{           To:} {} {-h 10 -state readonly -cbxsel "$::EMENUCOMMIT2"}} \
-     {/@-div1 "\[" -div2 "\]" -ret 1 -list {"" tip} $::EMENUTMPFILE/@ \
-     INFO: /@-div1 "\] " $::EMENUTMPFILE/@} \
+     {@@-div1 "\[" -div2 "\]" -ret 1 -list {"" tip} $::EMENUTMPFILE@@ \
+     INFO: @@-div1 "\] " $::EMENUTMPFILE@@} \
    cbx1  {{Regexp filter:} {} {}} { {$::EMENUGREP} {} {^[+]} } \
    chbBr {{        Brief:} {-pady 4} {-var ::EMENUBRIEF}} {} \
    seh {{} {-pady 3} {}} {} \

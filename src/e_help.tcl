@@ -331,35 +331,12 @@ proc ::eh::html { {help ""} {local 0}} {
   }
   return $link
 }
-
-#====== borrowed from http://wiki.tcl.tk/557
-proc ::eh::invokeBrowser {url} {
-  # open is the OS X equivalent to xdg-open on Linux, start is used on Windows
-  set commands {xdg-open open start}
-  foreach browser $commands {
-    if {$browser eq "start"} {
-      set command [list {*}[auto_execok start] {}]
-    } else {
-      set command [auto_execok $browser]
-    }
-    if {[string length $command]} {
-      break
-    }
-  }
-  if {[string length $command] == 0} {
-    message_box "ERROR: couldn't find browser"
-  }
-  if {[catch {exec {*}$command $url &} error]} {
-    message_box "ERROR: couldn't execute '$command':\n$error"
-  }
-}
-
 #====== to call browser
 proc ::eh::browse { {help ""} } {
   if {$::eh::my_browser ne ""} {
     exec ${::eh::my_browser} "$help" &
   } else {
-    invokeBrowser "$help"
+    ::apave::openDoc "$help"
   }
 }
 

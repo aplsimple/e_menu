@@ -13,20 +13,21 @@ in=1.0
 ::EMENUOPTS=-r -f
 ::EMENUMULSTER=1
 ::EMENUMULSTRES1=~/PG/github/aplsimple.github.io/en/tcl/
-::EMENUMULSTRES2=~/PG/github/aplsimple.github.io/en/tcl/aplsimple.github.io
+::EMENUMULSTRES2=~/PG/github/aplsimple.github.io/en/tcl/screenshooter
 ::EMENUMULSTRES3=/home/apl/PG/github/aplsimple.github.io/en/tcl
-::EMENURUFFDIR=~/PG/github/pave apave\n~/PG/github/hl_tcl\n~/PG/github/bartabs\n~/PG/github/trimmer\n~/PG/github/mulster\n~/PG/github/transpops
+::EMENURUFFDIR=~/PG/github/pave apave\n~/PG/github/hl_tcl\n~/PG/github/bartabs\n~/PG/github/trimmer\n~/PG/github/mulster\n~/PG/github/transpops\n~/PG/github/screenshooter
+::EMENURUFFIT=~/PG/github/aplsimple.github.io/en/tcl/bartabs/index.html\n~/PG/github/aplsimple.github.io/en/tcl/booksum/index.html\n~/PG/github/aplsimple.github.io/en/tcl/doctest/index.html\n~/PG/github/aplsimple.github.io/en/tcl/pave/index.html
 ::EMENU7ZCNT=2
 ::EMENU7ZCOM=zip -r
 ::EMENU7ZARC=~/PG/github/apl-github
-::EMENU7ZDIR=~/PG/github/pave/*\n~/PG/github/e_menu/*\n~/PG/github/hl_tcl/*\n~/PG/github/bartabs/*\n~/PG/github/doctest/*\n~/PG/github/booksum/*\n~/PG/github/trimmer/*\n~/PG/github/mulster/*\n~/PG/github/transpops/*\n~/PG/github/aplsimple.github.io/*
+::EMENU7ZDIR=~/PG/github/pave/*\n~/PG/github/e_menu/*\n~/PG/github/hl_tcl/*\n~/PG/github/bartabs/*\n~/PG/github/doctest/*\n~/PG/github/booksum/*\n~/PG/github/trimmer/*\n~/PG/github/mulster/*\n~/PG/github/transpops/*\n~/PG/github/screenshooter/*\n~/PG/github/aplsimple.github.io/*
 ::EMENU7ZSKIP=
 ::EMENU7ZBAK=/media/apl/KINGSTON/
 %C set ::EMENU_MULST3 [set ::EMENU_MULST4 ""]
 ::EMENU_MULST1=~/TMP/em_mulst.ini
 ::EMENU_MULST2=~/TMP/em_mulst.txt
 ::EMENU_MULST5=regexp--
-pos=112.0
+pos=93.0
 [MENU]
 
  R: Trimmer *.tcl R: cd $::EMENUDIR1
@@ -83,10 +84,11 @@ RE: Ruff! $::EMENUP2 ... RE: %B $::EMENUP2html
    v_ {{} {-pady 4}} {} \
    tex1 {{ Projects to Ruff!:} {} {-h 8 -w 60 -wrap word}} {$::EMENURUFFDIR} \
    chb1 {{Mulster afterwards:}} {$::EMENUMULSTER} \
-   dir2 {{ Copy to directory:} {} {-tvar ::EMENUMULSTRES3}} {"$::EMENUMULSTRES3"} \
-   seh {{} {-pady 3} {}} {} \
+   dir2 {{ Copy to directory:}} {"$::EMENUMULSTRES3"} \
+   seh {{} {-pady 5} {}} {} \
+   tex2 {{   Ruff! the files:} {} {-h 8}} {$::EMENURUFFIT} \
    } -head {\n This creates Ruff! documentation of Tcl files. \
-   \n Customize ruff.tcl at need. } -weight bold == ::EMENURUFFDIR ::EMENUMULSTER ::EMENUMULSTRES3
+   \n Customize ruff.tcl at need. } -weight bold == ::EMENURUFFDIR ::EMENUMULSTER ::EMENUMULSTRES3 ::EMENURUFFIT
 SW: Ruff! all ... SW: %C \
    set home [glob ~] ; \
    set plist [string map {\\n \n} $::EMENURUFFDIR] ; \
@@ -108,6 +110,10 @@ SW: Ruff! all ... SW: %C \
        set prjnamehtml $::EMENUMULSTRES3/$prjtail/$prjnamehtml \
      } ; \
      exec tclsh $home/UTILS/highlight_tcl/tcl_html.tcl $prjnamehtml \
+   } ; \
+   set flist [string map {\\n \n} $::EMENURUFFIT] ; \
+   foreach fit [split $flist \n] { ; \
+     exec tclsh $home/UTILS/highlight_tcl/tcl_html.tcl $fit \
    }
 SW: Ruff! all ... SW: %B file://$::EMENUMULSTRES3
 
@@ -115,7 +121,8 @@ SW: Ruff! all ... SW: %B file://$::EMENUMULSTRES3
  R: Freewrap Tcl R: %q FREEWRAP " Want to get freewrapped Tcl executables?"
 SW: Freewrap Tcl SW: tclsh mulster.tcl -b 0 tasks/mulster-freewrap
  R: Freewrap Tcl R: cd ~/PG/github/freewrap
- R: Freewrap Tcl R: ./linux64/freewrap ./e_menu/s_menu.tcl -w ./linux64/freewrap -forcewrap -o ./e_menu/s_menu
+ RW: Freewrap Tcl RW: ./linux64.672/freewrap ./screenshooter/screenshooter.tcl -w ./linux64.672/freewrap -forcewrap -o ./screenshooter/screenshooter
+ R: Freewrap Tcl R: ./linux64.672/freewrap ./e_menu/s_menu.tcl -w ./linux64.672/freewrap -forcewrap -o ./e_menu/s_menu
 
 R: R: 3
 

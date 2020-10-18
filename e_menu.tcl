@@ -25,7 +25,7 @@
 #####################################################################
 
 namespace eval ::em {
-  variable em_version "e_menu v3.1.4"
+  variable em_version "e_menu v3.2b3"
   variable solo [expr {[info exist ::argv0] && [file normalize $::argv0] eq \
     [file normalize [info script]]} ? 1 : 0]
   variable argv0

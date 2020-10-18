@@ -1,8 +1,8 @@
 [OPTIONS]
-dk=dock
+#dk=dock
 in=1.0
 o=0
-pos=177.15
+pos=53.90
 ::EMENUTMPFILE=%mn.tmp~
 %C if {![info exist ::EMENUCOMMIT]} {set ::EMENUCOMMIT [set ::EMENUCOMMIT2 ""]}
 %C if {![info exist ::EMENUFILE]} {set ::EMENUFILE "%f"}
@@ -12,7 +12,7 @@ pos=177.15
 ::EMENU7ZCNT=3
 ::EMENU7ZCOM=zip -r
 ::EMENU7ZARC=~/PG/github/apl-github
-::EMENU7ZDIR=~/PG/github/pave/*\n~/PG/github/e_menu/*\n~/PG/github/hl_tcl/*\n~/PG/github/bartabs/*\n~/PG/github/doctest/*\n~/PG/github/booksum/*\n~/PG/github/trimmer/*\n~/PG/github/mulster/*\n~/PG/github/transpops/*\n~/PG/github/aplsimple.github.io/*
+::EMENU7ZDIR=~/PG/github/pave/*\n~/PG/github/e_menu/*\n~/PG/github/hl_tcl/*\n~/PG/github/bartabs/*\n~/PG/github/doctest/*\n~/PG/github/booksum/*\n~/PG/github/trimmer/*\n~/PG/github/mulster/*\n~/PG/github/transpops/*\n~/PG/github/screenshooter/*\n~/PG/github/aplsimple.github.io/*
 ::EMENU7ZSKIP=
 ::EMENU7ZBAK=/media/apl/KINGSTON/
 %#W geo=1089x560+0+56;pos=23.62 # Below are the commands to get the Web page by wget.|!|# The downloaded pages are stored in ~/WGET directory (change this if needed).|!|#|!|# Note that .+ are used to edge "some unique string of the page address", e.g.|!|#   wget -r -k -l 2 -p --accept-regex=.+/UNIQUE/.+ https://www.some.com/UNIQUE/some|!|# would download all of https://www.some.com/UNIQUE/some|!|# excluding all external links that don't most likely match /UNIQUE/.|!|#|!|# Note also that -l option means "maximum level to dig".|!|###################################################################################|!||!|mkdir ~/WGET|!|cd ~/WGET|!||!|# wget -r -k -l 2 -p --accept-regex=.+/man/tcl8\.6.+ https://www.tcl.tk/man/tcl8.6/|!||!|# wget -r -k -l 2 -p --accept-regex=.+tablelist/.+ https://www.nemethi.de/tablelist/index.html|!|# wget -r -k -l 2 -p --accept-regex=.+mentry/.+ https://www.nemethi.de/mentry/index.html|!||!|# wget -r -k -l 2 -p --accept-regex=.+/manual3.1/.+ http://tcl.apache.org/rivet/manual3.1/|!||!|# wget -r -k -l 2 -p --accept-regex=.+letter-to-peter.+ http://catesfamily.org.uk/letter-to-peter/|!|wget -r -k -l 2 -p --accept-regex=.+/tcart.+ http://tcart.com/
@@ -38,7 +38,7 @@ RW:git difftool $::FILETAIL ? RW: git log --format=oneline -10 > $::EMENUTMPFILE
    v_ {{} {-pady 4} {}} {} \
    fil1 {{   File:} {} {-w 70}} {"$::EMENUFILE"} \
    fco1 {{Version:} {} {-h 10 -state readonly -retpos 0:10 -inpval "$::EMENUCOMMIT"}} \
-     {/@-pos 0 -len 10 $::EMENUTMPFILE/@    INFO: /@-div1 { } $::EMENUTMPFILE/@} \
+     {@@-pos 0 -len 10 $::EMENUTMPFILE@@    INFO: @@-div1 { } $::EMENUTMPFILE@@} \
    seh {{} {-pady 3} {}} {} \
    texc {{   Hint:} {} {-h 9 -w 70 -ro 1 -wrap word}} \
    {\n Select a version from the combobox to be compared to HEAD.\n\n If it's blank, the current file is compared to HEAD.\n\n No response means no differences.\n\n (temp file: $::EMENUTMPFILE)} \
@@ -50,7 +50,7 @@ RW:git diff ? RW: git log --format=oneline -10 > $::EMENUTMPFILE
  R:git diff ? R: %I {} "DIFF" { \
    v_ {{} {-pady 4} {}} {} \
    fco1 {{     Version :} {} {-h 10 -state readonly -retpos 0:10 -inpval "$::EMENUCOMMIT"}} \
-     {/@-pos 0 -len 10 -list {""} $::EMENUTMPFILE/@    INFO: /@-div1 { } $::EMENUTMPFILE/@} \
+     {@@-pos 0 -len 10 -list {""} $::EMENUTMPFILE@@    INFO: @@-div1 { } $::EMENUTMPFILE@@} \
    ent1 {{Regexp filter:} {} {-w 55}} {"$::EMENUGREP"} \
    seh {{} {-pady 3} {}} {} \
    texc {{        Hint :} {} {-h 9 -w 55 -ro 1 -wrap word}} \

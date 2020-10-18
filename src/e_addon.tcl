@@ -430,17 +430,20 @@ proc ::em::edit_menu {} {
 #=== help
 proc ::em::help {} {
   set textTags [list [list "red" " -font {-weight bold -size 12} \
-    -foreground $::em::clractf -background $::em::clractb"]]
+    -foreground $::em::clractf -background $::em::clractb"] \
+    [list "link" "::eh::browse %t@@https://%l"] \
+    [list "linkM" "::apave::openDoc %l@@e-mail: %l"] \
+    ]
   set doc "https://aplsimple.github.io/en/tcl/e_menu"
   set dialog [::apave::APaveInput new]
   set res [$dialog misc info "About e_menu" "
   <red> $::em::em_version </red>
   [file dirname $::em::argv0] \n
   by Alex Plotnikov
-  aplsimple@gmail.com
-  https://aplsimple.github.io
-  https://chiselapp.com/user/aplsimple \n" "{Help:: $doc } 1 Close 0" \
-    0 -t 1 -w 60 -tags textTags -head \
+  <linkM>aplsimple@gmail.com</linkM>
+  <link>aplsimple.github.io</link>
+  <link>chiselapp.com/user/aplsimple</link> \n" "{Help:: $doc } 1 Close 0" \
+    0 -t 1 -w 55 -tags textTags -head \
     "\n Menu system for editors and file managers. \n" \
     -centerme .em {*}[theming_pave]]
   $dialog destroy
@@ -505,7 +508,7 @@ proc ::em::change_PD {} {
     set fco1 [list \
       fco1 [list {Project:} {} \
       [list -h 10 -state readonly -inpval [get_PD]]] \
-      "/@-RE {^(\\s*)(\[^#\]+)\$} {$::em::PD}/@" \
+      "@@-RE {^(\\s*)(\[^#\]+)\$} {$::em::PD}@@" \
       but1 [list {} {-padx 5} "-com {::em::edit {$::em::PD}; ::em::dialog \
         res .em -1} -takefocus 0 -tooltip {Click to edit $::em::PD} \
         -toprev 1 -image [::apave::iconImage OpenFile]"] {}]

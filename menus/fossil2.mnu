@@ -1,13 +1,13 @@
 [OPTIONS]
 o=0
 in=1.0
-pos=228.22
+pos=154.42
 ::FSLUSER=aplsimple
-::FSLBRANCH=v3.0a1
-::FSLBRANCHCOLOR=#65ff65
+::FSLBRANCH=TclOO forced
+::FSLBRANCHCOLOR=#fe95ca
 ::EMENUTMPFILE=%mn.tmp~
 ::EM_T_FILE=-g *,src/*,menus/*
-::EM_T_TIME=none
+::EM_T_TIME=--now
 ::EM_T_DRY=0
 ::EM_T_VERBOSE=1
 
@@ -125,8 +125,8 @@ SW:fossil commit -m ? --branch ? SW: fossil commit -m "$::COMMES" --branch "$::F
 RW:fossil checkout ? RW: fossil tim -t ci -n 99 > $::EMENUTMPFILE
  R:fossil checkout ? R: %I {} "CHECKOUT" { \
    fco1 {{Version / branch / tag :} {} {-h 10 -state readonly -cbxsel "$::FSLBRANCH"}} \
-     {/@-div1 "\[" -div2 "\]" -ret 1 -list {"" tip} $::EMENUTMPFILE/@ \
-     INFO: /@-div1 "\] " $::EMENUTMPFILE/@} \
+     {@@-div1 "\[" -div2 "\]" -ret 1 -list {"" tip} $::EMENUTMPFILE@@ \
+     INFO: @@-div1 "\] " $::EMENUTMPFILE@@} \
    v_ {{} {-pady 7} {}} {} seh {{} {} {}} {} \
    texc {{Hint:} {} {-h 7 -w 70 -ro 1 -wrap word}} \
    { The VERSION can be the name of a branch or tag or any abbreviation to the 40-character artifact ID for a check-in. \
@@ -139,8 +139,8 @@ RW:fossil checkout ? RW: fossil tim -t ci -n 99 > $::EMENUTMPFILE
 RW:fossil merge ? RW: fossil tim -t ci -n 99 > $::EMENUTMPFILE
  R:fossil merge ? R: %I warn "MERGE" { \
    fco1 {{Version / branch / tag :} {} {-h 10 -w 45 -state readonly -cbxsel "$::FSLBRANCH"}} \
-     {/@-div1 "\[" -div2 "\]" -ret 1 -list {"" tip} $::EMENUTMPFILE/@ \
-     INFO: /@-div1 "\] " $::EMENUTMPFILE/@} \
+     {@@-div1 "\[" -div2 "\]" -ret 1 -list {"" tip} $::EMENUTMPFILE@@ \
+     INFO: @@-div1 "\] " $::EMENUTMPFILE@@} \
    v_} -head {\n This will MERGE changes from a branch, \
    \n then commits (you may cancel the commit afterwards). \n} -weight bold == ::FSLBRANCH
  S:fossil merge ? S: fossil merge "$::FSLBRANCH"\nfossil commit
@@ -150,8 +150,8 @@ RW:fossil merge ? RW: fossil tim -t ci -n 99 > $::EMENUTMPFILE
 RW:fossil update ? RW: fossil tim -t ci -n 99 > $::EMENUTMPFILE
  R:fossil update ? R: %I {} "UPDATE" { \
    fco1 {{Version / branch / tag :} {} {-h 10 -state readonly -cbxsel "$::FSLUPD"}} \
-     {/@-div1 "\[" -div2 "\]" -ret 1 -list {"" tip} $::EMENUTMPFILE/@ \
-     INFO: /@-div1 "\] " $::EMENUTMPFILE/@} \
+     {@@-div1 "\[" -div2 "\]" -ret 1 -list {"" tip} $::EMENUTMPFILE@@ \
+     INFO: @@-div1 "\] " $::EMENUTMPFILE@@} \
    v_ {{} {-pady 7} {}} {} seh {{} {} {}} {} \
    texc {{Hint:} {} {-h 7 -w 70 -ro 1 -wrap word}} \
    { VERSION can be 'trunk' to move to the trunk branch. \
