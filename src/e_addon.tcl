@@ -145,7 +145,7 @@ proc ::em::createpopup {} {
     -label "Decrease the menu's width" -command  {::em::win_width -1}
   .em.emPopupMenu add separator
   .em.emPopupMenu add command {*}[iconA info] -accelerator F1 \
-    -label "About" -command ::em::help
+    -label "About" -command ::em::about
   .em.emPopupMenu add separator
   .em.emPopupMenu add command {*}[iconA exit] -accelerator Esc \
     -label "Exit" -command ::em::on_exit
@@ -357,7 +357,7 @@ proc ::em::edit {fname {prepost ""}} {
        true "::em::menuTextBrackets %w $fgc {$bfont}"] \
       -myown [list ::em::set_highlight_matches %w] \
       -popup "\$pop add separator
-         \$pop add command -accelerator Alt+W $ico \\
+         \$pop add command -accelerator Alt+Q $ico \\
          -label \"Highlight First\" -command \"::em::seek_highlight %w 2\"
          \$pop add command -accelerator Alt+W $ico \\
          -label \"Highlight Last\" -command \"::em::seek_highlight %w 3\"
@@ -428,12 +428,13 @@ proc ::em::edit_menu {} {
   }
 }
 #=== help
-proc ::em::help {} {
+proc ::em::about {} {
   set textTags [list [list "red" " -font {-weight bold -size 12} \
     -foreground $::em::clractf -background $::em::clractb"] \
     [list "link" "::eh::browse %t@@https://%l"] \
     [list "linkM" "::apave::openDoc %l@@e-mail: %l"] \
     ]
+  set width [expr {max(33,[string length $::em::argv0])}]
   set doc "https://aplsimple.github.io/en/tcl/e_menu"
   set dialog [::apave::APaveInput new]
   set res [$dialog misc info "About e_menu" "
@@ -443,7 +444,7 @@ proc ::em::help {} {
   <linkM>aplsimple@gmail.com</linkM>
   <link>aplsimple.github.io</link>
   <link>chiselapp.com/user/aplsimple</link> \n" "{Help:: $doc } 1 Close 0" \
-    0 -t 1 -w 55 -tags textTags -head \
+    0 -t 1 -w $width -scroll 0 -tags textTags -head \
     "\n Menu system for editors and file managers. \n" \
     -centerme .em {*}[theming_pave]]
   $dialog destroy
@@ -488,10 +489,10 @@ proc ::em::destroy_emenus {} {
 #=== get color scheme's attributes for 'Project...' dialog
 proc ::em::change_PD_Spx {} {
   lassign [::apave::paveObj csGet $::em::ncolor] - fg - bg
-  set ret "-selectforeground $fg -selectbackground $bg -fieldbackground $bg"
-  [dialog LabMsg] configure -foreground $fg -background $bg \
+  set labmsg [dialog LabMsg]
+  set font [dict set [$labmsg configure -font] -size $::em::fs]
+  $labmsg configure -foreground $fg -background $bg -font $font \
     -padding {16 5 16 5} -text "[::apave::paveObj csGetName $::em::ncolor]"
-  return $ret
 }
 #=== change a project's directory and other parameters
 proc ::em::change_PD {} {
@@ -524,6 +525,11 @@ proc ::em::change_PD {} {
   set sa [::apave::shadowAllowed 0]
   set ncolorsav $::em::ncolor
   set geo [wm geometry .em]
+  set ornams [list {-1 None} { 0 Top line only} { 1 Header} { 2 Prompts} { 3 All}]
+  switch $::em::ornament {
+    -1 - 0 - 1 - 2 - 3 {set ornam [lindex $ornams [expr {$::em::ornament+1}]]}
+    default {set ornam [lindex $ornams 0]}
+  }
   ::apave::APaveInput create ::em::dialog .em
   set r -1
   while {$r == -1} {
@@ -534,16 +540,23 @@ proc ::em::change_PD {} {
       Spx [list "    Color scheme:" {} \
         {-tvar ::em::ncolor -from -2 -to $::apave::_CS_(MAXCS) -w 5 \
         -justify center -state $::em::noCS -msgLab {LabMsg {  Color Scheme 1}} \
-        -command "ttk::style configure TSpinbox {*}[::em::change_PD_Spx]"}] {} \
-      chb1 {{} {-padx 5} {-toprev 1 -t {Use it} -state $::em::noCS}} {0} \
+        -command ::em::change_PD_Spx -tooltip "Applied anyhow\nexcept for 'Default'"}] {} \
+      chb1 {{} {-padx 5} {-toprev 1 -state $::em::noCS -t "Use it"}} {0} \
+      spx2 [list "       Font size:" {} \
+        {-tvar ::em::fs -from 6 -to 32 -w 5 -justify center -msgLab {Lab_ {}} \
+        -command ::em::change_PD_Spx}] {} \
+      chb12 {{} {-padx 5} {-toprev 1 -t "Use it"}} {0} \
       seh_2 {{} {-pady 10}} {} \
       ent2 {"Geometry of menu:"} "$geo" \
-      chb2 {{} {-padx 5} {-toprev 1 -t {Use it}}} {0} \
+      chb2 {{} {-padx 5} {-toprev 1 -t "Use it"}} {0} \
+      seh_22 {{} {-pady 10}} {} \
+      cbx1 {{        Ornament:} {} {-state readonly -width 10}} [list $ornam {*}$ornams] \
+      chb22 {{} {-padx 5} {-toprev 1 -t "Use it"}} {0} \
       seh_3 {{} {-pady 10}} {} \
       chbT {"    Type of menu:" {-expand 0} {-w 8 -t "topmost"}} $::em::ontop \
       rad3 [list "                 " {-fill x -expand 1} "-state $dkst"] \
         [list "$::em::dk" dialog dock desktop] \
-      chb3 {{} {-padx 5} {-toprev 1 -t {Use it}}} {0} \
+      chb3 {{} {-padx 5} {-toprev 1 -t "Use it"}} {0} \
     ] -head $em_message -weight bold -centerme .em {*}[theming_pave]]
     set r [lindex $res 0]
   }
@@ -551,28 +564,28 @@ proc ::em::change_PD {} {
   set ::em::ncolor [::apave::getN $::em::ncolor $ncolorsav -2 $::apave::_CS_(MAXCS)]
   if {$r} {
     if {$fco1 eq ""} {
-      lassign $res - - chb1 geo chb2 chbT dk chb3
+      lassign $res - - chb1 - chb12 geo chb2 orn chb22 chbT dk chb3
     } else {
-      lassign $res - PD - - chb1 geo chb2 chbT dk chb3
+      lassign $res - PD - - chb1 - chb12 geo chb2 orn chb22 chbT dk chb3
     }
-    # save CS and/or geometry in menu's options
+    set orn [string trim [string range $orn 0 1]]
+    # save options to menu's file
     if {$chb1} {::em::save_options c= $::em::ncolor}
+    if {$chb12} {::em::save_options fs= $::em::fs}
     if {$chb2} {::em::save_options g= $geo}
+    if {$chb22} {::em::save_options o= $orn}
     if {$chb3} {
       ::em::save_options dk= $dk
       ::em::save_options t= $chbT
     }
-    set ::em::dk $dk
-    ::em::initdk
-    wm deiconify .em
-    set ::em::argv [::apave::removeOptions $::em::argv dk=*]
     if {($fco1 ne "") && ([get_PD] ne $PD)} {
       set ::em::prjname [file tail $PD]
-      set f "f $PD/*"
-      set ::em::argv [::apave::removeOptions $::em::argv d=* f=* c=*]
-      foreach {p a} [list d $PD {*}$f c $::em::ncolor] {
-        lappend ::em::argv "${p}=${a}"
-      }
+      set ::em::argv [::apave::removeOptions $::em::argv d=* f=*]
+      foreach {o v} [list d $PD f "$PD/*"] {lappend ::em::argv "$o=\"$v\""}
+    }
+    set ::em::argv [::apave::removeOptions $::em::argv c=* fs=* o=* dk=* t=*]
+    foreach {o v} [list c $::em::ncolor fs $::em::fs o $orn dk $dk t $chbT] {
+      lappend ::em::argv "$o=$v"
     }
     set ::em::argc [llength $::em::argv]
 
@@ -592,13 +605,12 @@ proc ::em::change_PD {} {
     #  - e_menu allows to set fI=, bI= arguments for active item's colors;
     #    it's not related to apave's CS and used by e_menu only;
     #    this way is followed in TKE editor's e_menu plugin
+    wm deiconify .em
     if {$::em::ncolor>-2} {
       set ::em::optsFromMenu 0
       set instead [::em::insteadCS]
       array unset ::em::ar_geany
       set ::em::insteadCSlist [list]
-      set ::em::argv [::apave::removeOptions $::em::argv c=*]
-      lappend ::em::argv c=$::em::ncolor
       if {$instead} {
         # when all colors are set as e_menu's arguments instead of CS,
         # just set the selected CS and remove the 'argumented' colors
@@ -690,11 +702,10 @@ proc ::em::writeable_command {cmd} {
     }
   }
   set dialog [::apave::APaveInput new]
-  if {$::em::ontop} {set top "-ontop 1"} {set top ""}
   set cmd [string map {"|!|" "\n"} $cmd]
   set res [$dialog misc "" "EDIT: $mark" "$cmd" {"Save & Run" 1 Cancel 0} TEXT \
-    -text 1 -ro 0 -w 70 -h 10 -pos $pos {*}[::em::theming_pave] {*}$top -head \
-    "UNCOMMENT usable commands, COMMENT unusable ones.\nUse  \\\\\\\\ \
+    -text 1 -ro 0 -w 70 -h 10 -pos $pos {*}[::em::theming_pave] -ontop $::em::ontop \
+    -head "UNCOMMENT usable commands, COMMENT unusable ones.\nUse  \\\\\\\\ \
     instead of  \\\\  in patterns." -family Times -hsz 14 -size 12 -g $geo]
   $dialog destroy
   lassign $res res geo cmd

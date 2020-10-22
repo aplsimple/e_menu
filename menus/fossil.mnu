@@ -67,7 +67,7 @@ RW:fossil diff ? RW: fossil tim -t ci -n 99 > $::EMENUTMPFILE
      {@@-div1 "\[" -div2 "\]" -ret 1 -list {"" tip} $::EMENUTMPFILE@@ \
      INFO: @@-div1 "\] " $::EMENUTMPFILE@@} \
    cbx1  {{Regexp filter:} {} {}} { {$::EMENUGREP} {} {^[+]} } \
-   chbBr {{        Brief:} {-pady 4} {-var ::EMENUBRIEF}} {} \
+   chbBr {{        Brief:} {-pady 4} {}} {$::EMENUBRIEF} \
    seh {{} {-pady 3} {}} {} \
    texc  {{         Hint:} {} {-h 11 -w 67 -ro 1 -wrap word}} \
    { Select versions from the comboboxes to be compared. \

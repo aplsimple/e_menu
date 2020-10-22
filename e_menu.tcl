@@ -25,7 +25,7 @@
 #####################################################################
 
 namespace eval ::em {
-  variable em_version "e_menu v3.2b3"
+  variable em_version "e_menu v3.2b5"
   variable solo [expr {[info exist ::argv0] && [file normalize $::argv0] eq \
     [file normalize [info script]]} ? 1 : 0]
   variable argv0
@@ -1539,14 +1539,18 @@ proc ::em::prepare_buttons {refcommands} {
     }
     if {$::em::itviewed < 5} {set ::em::itviewed $::em::viewed}
   }
-  set ::em::font1a "\"[string trim $::em::font1 \"]\" [expr {$::em::fs-1}]"
+  set fs [expr {min(9,[::apave::paveObj basicFontSize])}]
+  set ::em::font1a "\"[string trim $::em::font1 \"]\" $fs"
   set ::em::font2a "\"[string trim $::em::font2 \"]\" $::em::fs"
+  set ::em::font3a "\"[string trim $::em::font2 \"]\" [expr {$::em::fs-1}]"
   checkbutton .em.fr.cb -text "On top" -variable ::em::ontop -fg $::em::clrhotk \
-      -bg $::em::clrtitb -takefocus 0 -command {::em::toggle_ontop} \
-      -font $::em::font1a
-  grid [label .em.fr.h0 -text [string repeat " " [expr $::em::itviewed -3]] \
+    -bg $::em::clrtitb -takefocus 0 -command {::em::toggle_ontop} \
+    -font $::em::font1a
+  if {$::em::ornament != -1} {
+    grid [label .em.fr.h0 -text [string repeat " " [expr $::em::itviewed -3]] \
       -bg $::em::clrinab] -row 0 -column 0 -sticky nsew
-  grid .em.fr.cb -row 0 -column 1 -sticky ne
+    grid .em.fr.cb -row 0 -column 1 -sticky ne
+  }
   label .em.fr.win -bg $::em::clrinab -fg $::em::clrinab -state disabled \
     -takefocus 0
   if {[isheader]} {
@@ -1560,10 +1564,12 @@ proc ::em::prepare_buttons {refcommands} {
   tooltip::tooltip delay 1000
   if {[isheader]} {set hlist {.em.fr.h0 .em.fr.h1 .em.fr.h2}} {set hlist {.em.fr.h0}}
   foreach l $hlist {
-    bind $l <ButtonPress-1>   {
-      ::eh::mouse_drag .em 1 %x %y; ::em::focus_button $::em::lasti true}
-    bind $l <Motion>          {::eh::mouse_drag .em 2 %x %y}
-    bind $l <ButtonRelease-1> {::eh::mouse_drag .em 3 %x %y}
+    if {[winfo exists $l]} {
+      bind $l <ButtonPress-1>   {
+        ::eh::mouse_drag .em 1 %x %y; ::em::focus_button $::em::lasti true}
+      bind $l <Motion>          {::eh::mouse_drag .em 2 %x %y}
+      bind $l <ButtonRelease-1> {::eh::mouse_drag .em 3 %x %y}
+    }
   }
   return true
 }
@@ -1801,12 +1807,15 @@ proc ::em::initcommands {lmc amc osm {domenu 0}} {
           }
         }
         c= {
-          if {![::em::insteadCS]} {
-            set ::em::ncolor [::apave::getN $seltd -2 -2 $::apave::_CS_(MAXCS)]
+          set nc [::apave::getN $seltd -2 -2 $::apave::_CS_(MAXCS)]
+          if {![::em::insteadCS] || $nc<0} {
+            if {[set ::em::ncolor $nc]<0} {
+              set ::em::insteadCSlist [list]
+            }
             ::em::initdefaultcolors
           }
         }
-        o= {set ::em::ornament [::apave::getN $seltd 0 0 3]
+        o= {set ::em::ornament [::apave::getN $seltd 0 -1 3]
           if {$::em::ornament>1} {set ::em::font2 Mono}
         }
         g= {
@@ -2077,7 +2086,7 @@ proc ::em::inithotkeys {} {
     bind .em <Control-$p> {::em::addon change_PD}
   }
   bind .em <Button-3>  {::em::addon popup %X %Y}
-  bind .em <F1> {::em::addon help}
+  bind .em <F1> {::em::addon about}
   update
 }
 #=== init window type
@@ -2141,7 +2150,7 @@ proc ::em::initmenu {} {
             -column 0 -columnspan 2 -row [expr $i+$::em::isep]
       } else {
         grid [label .em.fr.win.lu$i -font "Sans 1" -fg $::em::clrinab \
-            -bg $::em::clrinab] -pady $pady \
+            -bg $::em::clrinab] -pady $pady -sticky nsw \
             -column 0 -columnspan 2 -row [expr $i+$::em::isep]
       }
       incr ::em::isep
@@ -2152,7 +2161,7 @@ proc ::em::initmenu {} {
       button .em.fr.win.fr$i.arr {*}$img -relief flat -overrelief flat \
         -highlightthickness $::em::b0 -bg [color_button $i bg] -command "$b invoke"
     } else {set img ""}
-    button $b -text "$comtitle" -pady $::em::b1 -padx $::em::b2 -anchor w \
+    button $b -text "$comtitle" -pady $::em::b1 -padx $::em::b2 -anchor nw \
       -font $::em::font2a -width $::em::itviewed -borderwidth $::em::bd \
       -relief flat -overrelief flat -highlightthickness $::em::b0 \
       -fg [color_button $i] -bg [color_button $i bg] -command "$prbutton" \
@@ -2160,8 +2169,9 @@ proc ::em::initmenu {} {
     if {$img eq "" && \
     [string len $comtitle] > [expr $::em::itviewed * $::em::ratiomin]} \
       {tooltip::tooltip $b "$comtitle"}
-    grid [label .em.fr.win.l$i -text $hotkey -font "$::em::font1a bold" -bg \
-      $::em::clrinab -fg $::em::clrhotk] -column 0 -row [expr $i+$::em::isep] -sticky sew
+    grid [label .em.fr.win.l$i -text $hotkey -font "$::em::font3a bold" -bg \
+      $::em::clrinab -fg $::em::clrhotk] -column 0 -row [expr $i+$::em::isep] \
+      -sticky nsew
     grid .em.fr.win.fr$i -column 1 -row  [expr $i+$::em::isep] -sticky ew \
         -pady $::em::b3 -padx $::em::b4
     pack $b -expand 1 -fill both -side left
@@ -2407,4 +2417,3 @@ proc ::em::main {args} {
 if {$::em::solo} {::em::main -modal 0 -remain 0 {*}$::argv}
 
 # *****************************   EOF   *****************************
-
