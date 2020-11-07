@@ -28,13 +28,13 @@ pos=68.42
 
 [MENU]
  S:fossil status %PD S: cd %PD
- S:fossil status %PD S: echo %PD\ndir\necho ---\nfossil status
+ S:fossil status %PD S: echo %PD\ndir\necho ------------\nfossil status
 
  S:fossil changes S: cd %PD
- S:fossil changes S: pwd\necho ---\necho --+%PD+--\ndir\necho ---\nfossil changes
+ S:fossil changes S: pwd\necho ------------\ndir\necho ------------\nfossil changes
 
  S:fossil extras S: cd %PD
- S:fossil extras S: pwd\necho ---\ndir\necho ---\nfossil extras
+ S:fossil extras S: pwd\necho ------------\ndir\necho ------------\nfossil extras
 
  R:fossil ui R: cd %PD
  R:fossil ui R: fossil ui

@@ -24,8 +24,10 @@
 # source ~/PG/bb.tcl
 #####################################################################
 
+package require Tk
+
 namespace eval ::em {
-  variable em_version "e_menu v3.2b5"
+  variable em_version "e_menu v3.2"
   variable solo [expr {[info exist ::argv0] && [file normalize $::argv0] eq \
     [file normalize [info script]]} ? 1 : 0]
   variable argv0
@@ -35,7 +37,13 @@ namespace eval ::em {
   variable exedir [file normalize [file dirname $argv0]]
   if {[info exists ::e_menu_dir]} {set exedir $::e_menu_dir}
   variable srcdir [file join $exedir src]
-  if {!$solo && [info exists ::argv0]} {append em_version " / [file tail $::argv0]"}
+  if {[info exists ::argv0]} {
+    if {$solo} {
+      catch {source [file join $::em::srcdir tooltip4 tooltip4.tcl]}
+    } else {
+      append em_version " / [file tail $::argv0]"
+    }
+  }
 }
 
 if {[catch {source [file join $::em::srcdir e_help.tcl]} e]} {
@@ -118,7 +126,8 @@ namespace eval ::em {
   variable thisapp emenuapp
   variable appname $::em::thisapp
   variable fs 9           ;# font size
-  variable font1 "TkHeadingFont" font2 "TkDefaultFont" font3 "" ;# font of header & item
+  variable font1 [font config "TkSmallCaptionFont"]
+  variable font2 [font config "TkDefaultFont"]
   variable viewed 40      ;# width of item (in characters)
   variable maxitems 64    ;# maximum of menu.txt items
   variable timeafter 10   ;# interval (in sec.) for updating times/dates
@@ -355,8 +364,10 @@ proc ::em::mouse_button {i} {
   lassign [split [winfo geom .em.fr.win] +] -> x1 y1
   lassign [split [winfo geom .em.fr.win.fr$i] +x] w - x2 y2
   lassign [split [winfo geom .em.fr.win.fr$i.butt] +x] - h x3 y3
-  event generate .em <Motion> -warp 1 -x [expr $x1+$x2+$x3+$w/2] \
+  if {$::em::solo} {
+    event generate .em <Motion> -warp 1 -x [expr $x1+$x2+$x3+$w/2] \
     -y [expr $y1+$y2+$y3+$h-5]
+  }
 }
 #=== 'proc' all buttons
 proc ::em::for_buttons {proc} {
@@ -622,6 +633,20 @@ proc ::em::term {sel amp {term ""}} {
   if {[string match "xterm *" "$::em::linuxconsole "]} {
     ::em::xterm $sel $amp
   } else {
+    if {[string match "qterminal *" "$::em::linuxconsole "]} {
+      # bad style, for qterminal only
+      set sel2 [string map {\\n \n} $sel]
+      set sel ""
+      foreach l [split $sel2 \n] {
+        set l2 [string trimleft $l]
+        if {[string match "#*" $l2] || $l2 eq ""} continue
+        if {[string match "if *" $l2] || [string match "then" $l2] || [string match "else" $l2] || [string match "while *" $l2] || [string match "for *" $l2]} {
+          append sel $l " "
+        } else {
+          append sel $l " ; "
+        }
+      }
+    }
     set composite "$::em::lin_console $sel $amp"
     exec -ignorestderr {*}$::em::linuxconsole -e {*}$composite
   }
@@ -773,7 +798,7 @@ proc ::em::update_itname {it inc {pr ""}} {
         prepr_09 itname ::em::ar_i09 "i" $inc  ;# incr N of runs
         prepr_idiotic itname 0
         $b configure -text [set comtitle $ornam$itname]
-        tooltip::tooltip $b "$comtitle"
+        catch {::tooltip4::tooltip $b "$comtitle"}
       }
     }
   }
@@ -1194,6 +1219,10 @@ proc ::em::prepr_pn {refpn {dt 0}} {
   prepr_1 pn "m"  $::em::exedir       ;# %m is e_menu.tcl dir
   prepr_1 pn "s"  $::em::seltd        ;# %s is a selected text
   prepr_1 pn "u"  $::em::useltd       ;# %u is %s underscored
+  prepr_1 pn "+"  $::em::pseltd ;# %+  is %s with " " as "+"
+  prepr_1 pn "qq" $::em::qseltd ;# %qq is %s with quotes escaped
+  prepr_1 pn "dd" $::em::dseltd ;# %dd is %s with special simbols deleted
+  prepr_1 pn "ss" $::em::sseltd ;# %ss is %s trimmed
   prepr_1 pn "lg" [::eh::get_language] ;# %lg is a locale (e.g. ru_RU.utf8)
   lassign [get_AR] AR RF
   prepr_1 pn "AR" $AR                 ;# %AR is contents of #ARGS..: line
@@ -1540,9 +1569,9 @@ proc ::em::prepare_buttons {refcommands} {
     if {$::em::itviewed < 5} {set ::em::itviewed $::em::viewed}
   }
   set fs [expr {min(9,[::apave::paveObj basicFontSize])}]
-  set ::em::font1a "\"[string trim $::em::font1 \"]\" $fs"
-  set ::em::font2a "\"[string trim $::em::font2 \"]\" $::em::fs"
-  set ::em::font3a "\"[string trim $::em::font2 \"]\" [expr {$::em::fs-1}]"
+  set ::em::font1a "$::em::font1 -size $fs"
+  set ::em::font2a "$::em::font2 -size $::em::fs"
+  set ::em::font3a "$::em::font2 -size [expr {$::em::fs-1}]"
   checkbutton .em.fr.cb -text "On top" -variable ::em::ontop -fg $::em::clrhotk \
     -bg $::em::clrtitb -takefocus 0 -command {::em::toggle_ontop} \
     -font $::em::font1a
@@ -1560,8 +1589,9 @@ proc ::em::prepare_buttons {refcommands} {
     grid [label .em.fr.h2 -text "(or press hotkeys)\n" -font $::em::font1a \
       -fg $::em::clrhotk -bg $::em::clrinab -anchor n] -columnspan 2 -sticky nsew
   }
-  tooltip::tooltip .em.fr.cb "Press Ctrl+T to toggle"
-  tooltip::tooltip delay 1000
+  catch {
+    ::tooltip4::tooltip .em.fr.cb "Press Ctrl+T to toggle"
+  }
   if {[isheader]} {set hlist {.em.fr.h0 .em.fr.h1 .em.fr.h2}} {set hlist {.em.fr.h0}}
   foreach l $hlist {
     if {[winfo exists $l]} {
@@ -1627,7 +1657,6 @@ proc ::em::focused_win {focused} {
         }
       }
     }
-    ::tooltip::tooltip on
     set ::em::skipfocused 1  ;# to disable blinking FocusOut/FocusIn
     ::em::repaint_menu  ;# important esp. for Windows
   } elseif {!$focused && [isMenuFocused]} {
@@ -1642,7 +1671,6 @@ proc ::em::focused_win {focused} {
       }
     }
     catch {.em.fr.win.fr$::em::lasti.butt configure -fg $::em::clrhotk}
-    ::tooltip::tooltip off
     set ::eh::mx [set ::eh::my 0]
     update
   }
@@ -1790,7 +1818,10 @@ proc ::em::initcommands {lmc amc osm {domenu 0}} {
           set ::em::prjname $seltd  ;# deliberately sets the project name
           set ::em::prjset 2
         }
-        s= {::em::init_header $s1 $seltd}
+        s= {
+          ::em::init_header $s1 $seltd
+          set ::em::pseltd [::eh::escape_links $seltd]
+        }
         h= {
           set ::eh::hroot [file normalize $seltd]
           set ::em::offline true
@@ -1816,7 +1847,9 @@ proc ::em::initcommands {lmc amc osm {domenu 0}} {
           }
         }
         o= {set ::em::ornament [::apave::getN $seltd 0 -1 3]
-          if {$::em::ornament>1} {set ::em::font2 Mono}
+          if {$::em::ornament>1} {
+            set ::em::font2 "-family [::apave::paveObj basicTextFont]"
+          }
         }
         g= {
           lassign [split $seltd x+] w h x y
@@ -1863,7 +1896,7 @@ proc ::em::initcommands {lmc amc osm {domenu 0}} {
         fs= {set ::em::fs [::apave::getN $seltd $::em::fs]}
         f1= {set ::em::font1 $seltd}
         f2= {set ::em::font2 $seltd}
-        f3= {set ::em::font3 $seltd}
+        f3= {::apave::paveObj basicTextFont $seltd}
         qq= {set ::em::qseltd [::eh::escape_quotes $seltd]}
         dd= {set ::em::dseltd [::eh::delete_specsyms $seltd]}
         ss= {set ::em::sseltd [string trim $seltd]}
@@ -1938,11 +1971,6 @@ proc ::em::initcolorscheme {{nothemed false}} {
   lassign [::apave::paveObj csGet $::em::ncolor] {*}$clrs
   foreach clr $clrs {set ::em::$clr [set $clr]}
   ::apave::paveObj basicFontSize $::em::fs
-  if {$::em::font3 ne ""} {
-    ::apave::paveObj basicTextFont $::em::font3
-  } else {
-    ::apave::paveObj basicTextFont $::em::font1
-  }
   # set real colors, based on fg=, bg=, fS=, bS=, gr= arguments of e_menu
   if {[info exist ::em::clrfg]} {set ::em::clrinaf $::em::clrfg}
   if {[info exist ::em::clrbg]} {set ::em::clrinab $::em::clrbg}
@@ -2167,9 +2195,10 @@ proc ::em::initmenu {} {
       -fg [color_button $i] -bg [color_button $i bg] -command "$prbutton" \
       -activeforeground [color_button $i fg] -activebackground [color_button $i bg]
     if {$img eq "" && \
-    [string len $comtitle] > [expr $::em::itviewed * $::em::ratiomin]} \
-      {tooltip::tooltip $b "$comtitle"}
-    grid [label .em.fr.win.l$i -text $hotkey -font "$::em::font3a bold" -bg \
+    [string len $comtitle] > [expr $::em::itviewed * $::em::ratiomin]} { \
+      catch {::tooltip4::tooltip $b "$comtitle"}
+    }
+    grid [label .em.fr.win.l$i -text $hotkey -font "$::em::font3a -weight bold" -bg \
       $::em::clrinab -fg $::em::clrhotk] -column 0 -row [expr $i+$::em::isep] \
       -sticky nsew
     grid .em.fr.win.fr$i -column 1 -row  [expr $i+$::em::isep] -sticky ew \

@@ -48,7 +48,7 @@ pos=77.106
  RE: Search in Firefox for "%s" RE: firefox -search "%s"
  RE: Wikipedia for "%s" RE:%b https://en.wikipedia.org/w/index.php?cirrusUserTesting=classic-explorer-i&search=%+
 # RE: Youtube for "%s" RE:%b https://www.youtube.com/results?search_query=%+
- RE: GoldenDict for "%s" RE: goldendict %s
+ RE: GoldenDict for "%s" RE: goldendict "%s"
 
  M:  M: 3
  ME: Search All "%s" in %D  ME: m=grep.mnu

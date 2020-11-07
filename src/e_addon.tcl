@@ -80,6 +80,30 @@ proc ::em::countCh {str ch {plistName ""}} {
   return $icnt
 }
 
+proc ::em::countCh2 {str ch {plistName ""}} {
+
+  # Counts a character in a string.
+  #   str - a string
+  #   ch - a character
+  #   plistName - variable name for a list of positions of *ch*
+  # Returns a number of ANY occurences of character *ch* in string *str*.
+  # See also: my::CountChar
+
+  if {$plistName ne ""} {
+    upvar 1 $plistName plist
+    set plist [list]
+  }
+  set icnt [set begidx 0]
+  while {[set idx [string first $ch $str]] >= 0} {
+    set nidx $idx
+    incr icnt
+    if {$plistName ne ""} {lappend plist [expr {$begidx+$idx}]}
+    incr begidx [incr idx]
+    set str [string range $str $idx end]
+  }
+  return $icnt
+}
+
 ###########################################################################
 
 proc ::em::matchedBrackets {inplist curpos schar dchar dir} {
@@ -100,8 +124,8 @@ proc ::em::matchedBrackets {inplist curpos schar dchar dir} {
   while {$nl>=0 && $nl<$inplen} {
     set line [lindex $inplist $nl]
     set line [string range $line {*}$rng1]
-    set sc [countCh $line $schar slist]
-    set dc [countCh $line $dchar dlist]
+    set sc [countCh2 $line $schar slist]
+    set dc [countCh2 $line $dchar dlist]
     set plen [llength [set plist [mergePosList -1 $slist $dlist]]]
     for {set i [expr {$dir>0?0:($plen-1)}]} {$i>=0 && $i<$plen} {incr i $dir} {
       lassign [lindex $plist $i] src pos
@@ -347,8 +371,8 @@ proc ::em::edit {fname {prepost ""}} {
   set fname [string trim $fname]
   lassign [::apave::paveObj csGet] bg - fg  - - - - - - fgc
   if {$::em::editor eq ""} {
-    if {[catch {set fs [font configure [$w cget -font] -size]}]} {set fs 10}
-    set bfont "-family \"$::apave::_CS_(textFont)\" -weight bold -size $fs"
+    set fs [::apave::paveObj basicFontSize]
+    set bfont "[font configure TkFixedFont] -weight bold -size $fs"
     set dialog [::apave::APaveInput new]
     set ico [::apave::paveObj iconA none]
     set res [$dialog editfile $fname $::em::clrtitf $::em::clrinab $::em::clrtitf \
@@ -490,9 +514,12 @@ proc ::em::destroy_emenus {} {
 proc ::em::change_PD_Spx {} {
   lassign [::apave::paveObj csGet $::em::ncolor] - fg - bg
   set labmsg [dialog LabMsg]
-  set font [dict set [$labmsg configure -font] -size $::em::fs]
+  set font [font configure TkFixedFont]
+  set font [dict set font -size $::em::fs]
+  set txt [::apave::paveObj csGetName $::em::ncolor]
+  set txt [string range [append txt [string repeat " " 20]] 0 20]
   $labmsg configure -foreground $fg -background $bg -font $font \
-    -padding {16 5 16 5} -text "[::apave::paveObj csGetName $::em::ncolor]"
+    -padding {16 5 16 5} -text $txt
 }
 #=== change a project's directory and other parameters
 proc ::em::change_PD {} {
@@ -511,8 +538,8 @@ proc ::em::change_PD {} {
       [list -h 10 -state readonly -inpval [get_PD]]] \
       "@@-RE {^(\\s*)(\[^#\]+)\$} {$::em::PD}@@" \
       but1 [list {} {-padx 5} "-com {::em::edit {$::em::PD}; ::em::dialog \
-        res .em -1} -takefocus 0 -tooltip {Click to edit $::em::PD} \
-        -toprev 1 -image [::apave::iconImage OpenFile]"] {}]
+        res .em -1} -takefocus 0 -tooltip {Click to edit\n$::em::PD} \
+        -toprev 1 -image [::apave::iconImage file]"] {}]
   }
   if {[::iswindows]} {
     set dkst "disabled"
@@ -534,24 +561,26 @@ proc ::em::change_PD {} {
   set r -1
   while {$r == -1} {
     after idle ::em::change_PD_Spx
+    set tip1 "Applied anyhow\nexcept for Default CS"
     set res [::em::dialog input "" "Project..." [list \
       {*}$fco1 \
       seh_1 {{} {-pady 10}} {} \
       Spx [list "    Color scheme:" {} \
-        {-tvar ::em::ncolor -from -2 -to $::apave::_CS_(MAXCS) -w 5 \
+        [list -tvar ::em::ncolor -from -2 -to $::apave::_CS_(MAXCS) -w 5 \
         -justify center -state $::em::noCS -msgLab {LabMsg {  Color Scheme 1}} \
-        -command ::em::change_PD_Spx -tooltip "Applied anyhow\nexcept for 'Default'"}] {} \
+        -command ::em::change_PD_Spx -tooltip $tip1]] {} \
       chb1 {{} {-padx 5} {-toprev 1 -state $::em::noCS -t "Use it"}} {0} \
       spx2 [list "       Font size:" {} \
-        {-tvar ::em::fs -from 6 -to 32 -w 5 -justify center -msgLab {Lab_ {}} \
-        -command ::em::change_PD_Spx}] {} \
+        [list -tvar ::em::fs -from 6 -to 32 -w 5 -justify center -msgLab {Lab_ {}} \
+        -command ::em::change_PD_Spx -tooltip $tip1]] {} \
       chb12 {{} {-padx 5} {-toprev 1 -t "Use it"}} {0} \
+      seh_22 {{} {-pady 10}} {} \
+      cbx1 [list {        Ornament:} {} \
+        [list -state readonly -width 10 -tooltip $tip1]] [list $ornam {*}$ornams] \
+      chb22 {{} {-padx 5} {-toprev 1 -t "Use it"}} {0} \
       seh_2 {{} {-pady 10}} {} \
       ent2 {"Geometry of menu:"} "$geo" \
       chb2 {{} {-padx 5} {-toprev 1 -t "Use it"}} {0} \
-      seh_22 {{} {-pady 10}} {} \
-      cbx1 {{        Ornament:} {} {-state readonly -width 10}} [list $ornam {*}$ornams] \
-      chb22 {{} {-padx 5} {-toprev 1 -t "Use it"}} {0} \
       seh_3 {{} {-pady 10}} {} \
       chbT {"    Type of menu:" {-expand 0} {-w 8 -t "topmost"}} $::em::ontop \
       rad3 [list "                 " {-fill x -expand 1} "-state $dkst"] \
@@ -564,9 +593,9 @@ proc ::em::change_PD {} {
   set ::em::ncolor [::apave::getN $::em::ncolor $ncolorsav -2 $::apave::_CS_(MAXCS)]
   if {$r} {
     if {$fco1 eq ""} {
-      lassign $res - - chb1 - chb12 geo chb2 orn chb22 chbT dk chb3
+      lassign $res - - chb1 - chb12 orn chb22 geo chb2 chbT dk chb3
     } else {
-      lassign $res - PD - - chb1 - chb12 geo chb2 orn chb22 chbT dk chb3
+      lassign $res - PD - - chb1 - chb12 orn chb22 geo chb2 chbT dk chb3
     }
     set orn [string trim [string range $orn 0 1]]
     # save options to menu's file

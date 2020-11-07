@@ -17,8 +17,6 @@
 # *******************************************************************
 
 package require Tk
-package require http
-catch {package require tls}
 
 # for better performance, try to 'source' directly, not 'package require apave'
 if {![namespace exists apave]} {source [file join [file normalize [file dirname [info script]]] apaveinput.tcl]}
@@ -258,6 +256,8 @@ proc ::eh::get_underlined_name {name} {
 proc ::eh::lexists {url} {
   if {$::eh::reginit} {
     set ::eh::reginit 0
+    package require http
+    package require tls
     ::http::register https 443 ::tls::socket
   }
   if {[catch {set token [::http::geturl $url]} e]} {
@@ -334,7 +334,8 @@ proc ::eh::html { {help ""} {local 0}} {
 #====== to call browser
 proc ::eh::browse { {help ""} } {
   if {$::eh::my_browser ne ""} {
-    exec ${::eh::my_browser} "$help" &
+    # my_browser may contain options, e.g. "chromium --no-sandbox" for root
+    exec {*}${::eh::my_browser} "$help" &
   } else {
     ::apave::openDoc "$help"
   }
