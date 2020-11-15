@@ -39,7 +39,10 @@ namespace eval ::em {
   variable srcdir [file join $exedir src]
   if {[info exists ::argv0]} {
     if {$solo} {
-      catch {source [file join $::em::srcdir tooltip4 tooltip4.tcl]}
+      catch {
+        source [file join $::em::srcdir baltip baltip.tcl]
+        ::baltip config -bg #ffd693
+      }
     } else {
       append em_version " / [file tail $::argv0]"
     }
@@ -798,7 +801,7 @@ proc ::em::update_itname {it inc {pr ""}} {
         prepr_09 itname ::em::ar_i09 "i" $inc  ;# incr N of runs
         prepr_idiotic itname 0
         $b configure -text [set comtitle $ornam$itname]
-        catch {::tooltip4::tooltip $b "$comtitle"}
+        catch {::baltip tip $b "$comtitle"}
       }
     }
   }
@@ -1590,7 +1593,7 @@ proc ::em::prepare_buttons {refcommands} {
       -fg $::em::clrhotk -bg $::em::clrinab -anchor n] -columnspan 2 -sticky nsew
   }
   catch {
-    ::tooltip4::tooltip .em.fr.cb "Press Ctrl+T to toggle"
+    ::baltip tip .em.fr.cb "Press Ctrl+T to toggle"
   }
   if {[isheader]} {set hlist {.em.fr.h0 .em.fr.h1 .em.fr.h2}} {set hlist {.em.fr.h0}}
   foreach l $hlist {
@@ -2196,7 +2199,7 @@ proc ::em::initmenu {} {
       -activeforeground [color_button $i fg] -activebackground [color_button $i bg]
     if {$img eq "" && \
     [string len $comtitle] > [expr $::em::itviewed * $::em::ratiomin]} { \
-      catch {::tooltip4::tooltip $b "$comtitle"}
+      catch {::baltip tip $b "$comtitle"}
     }
     grid [label .em.fr.win.l$i -text $hotkey -font "$::em::font3a -weight bold" -bg \
       $::em::clrinab -fg $::em::clrhotk] -column 0 -row [expr $i+$::em::isep] \
