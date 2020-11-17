@@ -27,7 +27,7 @@
 package require Tk
 
 namespace eval ::em {
-  variable em_version "e_menu v3.2.1"
+  variable em_version "e_menu v3.2.2"
   variable solo [expr {[info exist ::argv0] && [file normalize $::argv0] eq \
     [file normalize [info script]]} ? 1 : 0]
   variable argv0
@@ -39,10 +39,7 @@ namespace eval ::em {
   variable srcdir [file join $exedir src]
   if {[info exists ::argv0]} {
     if {$solo} {
-      catch {
-        source [file join $::em::srcdir baltip baltip.tcl]
-        ::baltip config -bg #ffd693
-      }
+      catch {source [file join $::em::srcdir baltip baltip.tcl]}
     } else {
       append em_version " / [file tail $::argv0]"
     }
@@ -1961,11 +1958,11 @@ proc ::em::initcommands {lmc amc osm {domenu 0}} {
 #=== get a list of colors used by e_menu
 proc ::em::colorlist {} {
   return [list clrtitf clrinaf clrtitb clrinab clrhelp \
-    clractb clractf clrcurs clrgrey clrhotk fI bI fM bM]
+    clractb clractf clrcurs clrgrey clrhotk fI bI fM bM fW bW]
 }
 #=== clear off default colors
 proc ::em::unsetdefaultcolors {} {
-  foreach c {fg bg fE bE fS bS fI bI ht hh cc gr fM bM} {catch {unset ::em::clr$c}}
+  foreach c {fg bg fE bE fS bS fI bI ht hh cc gr fM bM fW bW} {catch {unset ::em::clr$c}}
 }
 #=== set default colors from color scheme
 proc ::em::initcolorscheme {{nothemed false}} {
@@ -1989,6 +1986,7 @@ proc ::em::initcolorscheme {{nothemed false}} {
   if {[info exist ::em::clrbI]} {set ::em::bI $::em::clrbI}
   if {[info exist ::em::clrfM]} {set ::em::fM $::em::clrfM}
   if {[info exist ::em::clrbM]} {set ::em::bM $::em::clrbM}
+  catch {::baltip config -fg $::em::fW -bg $::em::bW -padding 1 -padx 6 -pady 5 -alpha 0.9}
   if {[winfo exist .em.fr.win]} {
     .em configure -bg [.em.fr.win cget -bg]
   } else {
