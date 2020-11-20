@@ -27,7 +27,7 @@
 package require Tk
 
 namespace eval ::em {
-  variable em_version "e_menu v3.2.2"
+  variable em_version "e_menu v3.2.4"
   variable solo [expr {[info exist ::argv0] && [file normalize $::argv0] eq \
     [file normalize [info script]]} ? 1 : 0]
   variable argv0
@@ -726,12 +726,16 @@ proc ::em::run_Tcl_code {sel {dosubst false}} {
 proc ::em::execom {comm} {
   set argm [lrange $comm 1 end]
   set comm1 [lindex $comm 0]
-  set comm2 [auto_execok $comm1]
-  if {[catch {exec $comm2 {*}$argm} e]} {
-    if {$comm2 eq ""} {
-      return "couldn't execute \"$comm1\": no such file or directory"
+  if {$comm1 eq "%O"} {
+    ::apave::openDoc $argm
+  } else {
+    set comm2 [auto_execok $comm1]
+    if {[catch {exec $comm2 {*}$argm} e]} {
+      if {$comm2 eq ""} {
+        return "couldn't execute \"$comm1\": no such file or directory"
+      }
+      return $e
     }
-    return $e
   }
   return ""
 }

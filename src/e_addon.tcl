@@ -911,12 +911,12 @@ proc ::em::IF {sel {callcommName ""}} {
     }
     set comm [string trim $comm]
     catch {set comm [subst -nobackslashes $comm]}
+    set ::em::IF_exit [expr {$comm ne ""}]
     if {$callcommName ne ""} {
       upvar 2 $callcommName callcomm ;# to run in a caller
       set callcomm $comm
       return true
     }
-    set ::em::IF_exit [expr {$comm ne ""}]
     if {$::em::IF_exit} {
       switch -- [string range $comm 0 2] {
         "%I " {
@@ -934,11 +934,17 @@ proc ::em::IF {sel {callcommName ""}} {
           } elseif {[checkForShell comm]} {
             shell0 $comm &
           } else {
-            if {[::iswindows]} {
-              set comm "cmd.exe /c $comm"
-            }
-            if {[catch {exec {*}$comm &} e]} {
-              em_message "ERROR: incorrect command of IF:\n$comm\n\n($e)"
+            set argm [lrange $comm 1 end]
+            set comm1 [lindex $comm 0]
+            if {$comm1 eq "%O"} {
+              ::apave::openDoc $argm
+            } else {
+              if {[::iswindows]} {
+                set comm "cmd.exe /c $comm"
+              }
+              if {[catch {exec {*}$comm &} e]} {
+                em_message "ERROR: incorrect command of IF:\n$comm\n\n($e)"
+              }
             }
           }
           return false ;# to run the command and exit
