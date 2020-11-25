@@ -27,7 +27,7 @@
 package require Tk
 
 namespace eval ::em {
-  variable em_version "e_menu v3.2.4"
+  variable em_version "e_menu v3.2.4.1"
   variable solo [expr {[info exist ::argv0] && [file normalize $::argv0] eq \
     [file normalize [info script]]} ? 1 : 0]
   variable argv0
@@ -37,12 +37,9 @@ namespace eval ::em {
   variable exedir [file normalize [file dirname $argv0]]
   if {[info exists ::e_menu_dir]} {set exedir $::e_menu_dir}
   variable srcdir [file join $exedir src]
-  if {[info exists ::argv0]} {
-    if {$solo} {
-      catch {source [file join $::em::srcdir baltip baltip.tcl]}
-    } else {
-      append em_version " / [file tail $::argv0]"
-    }
+  catch {source [file join $::em::srcdir baltip baltip.tcl]}
+  if {[info exists ::argv0] && !$solo} {
+    append em_version " / [file tail $::argv0]"
   }
 }
 
@@ -1356,7 +1353,8 @@ proc ::em::menuof {commands s1 domenu} {
     }
     set seltd [file normalize [get_menuname $seltd]]
     if {[catch {set chan [open "$seltd"]} e]} {
-      ::em::addon create_template $seltd
+      set cr [::em::addon create_template $seltd]
+      if {!$::em::solo} {set ::em::reallyexit [expr {$cr ? 2 : 1}]}
       set ::em::start0 0  ;# no more messages
       return
     }
@@ -1898,8 +1896,8 @@ proc ::em::initcommands {lmc amc osm {domenu 0}} {
         t4= - t5= - t6= - t7= - t8= -
         t9= {set ::em::ar_tformat([string range $s1 0 1]) $seltd}
         fs= {set ::em::fs [::apave::getN $seltd $::em::fs]}
-        f1= {set ::em::font1 $seltd}
-        f2= {set ::em::font2 $seltd}
+        f1= {catch {set ::em::font1 [font config $seltd]}}
+        f2= {catch {set ::em::font2 [font config $seltd]}}
         f3= {::apave::paveObj basicTextFont $seltd}
         qq= {set ::em::qseltd [::eh::escape_quotes $seltd]}
         dd= {set ::em::dseltd [::eh::delete_specsyms $seltd]}
@@ -2045,6 +2043,7 @@ proc ::em::initcomm {} {
     }
   }
   initcommands $::em::argc $::em::argv {o= s= m=} 1
+  if {$::em::reallyexit} {return no}
   if {[set lmc [llength $::em::menuoptions]] > 1} {
       # o=, s=, m= options define menu contents & are processed particularly
     initcommands $lmc $::em::menuoptions {o=}
@@ -2058,12 +2057,13 @@ proc ::em::initcomm {} {
     }
   }
   if {$::em::savelasti>-1} {  ;# o= s= m= options influence ::em::lasti
-   if {$::em::begsel==0} {
-     incr ::em::lasti -$::em::savelasti  ;# header was, now is not
-   } elseif {$::em::savelasti==0} {
-     incr ::em::lasti $::em::begsel      ;# header was not, now is
-   }
- }
+    if {$::em::begsel==0} {
+      incr ::em::lasti -$::em::savelasti  ;# header was, now is not
+    } elseif {$::em::savelasti==0} {
+      incr ::em::lasti $::em::begsel      ;# header was not, now is
+    }
+  }
+ return yes
 }
 #=== initialize main properties
 proc ::em::initmain {} {
@@ -2398,11 +2398,12 @@ proc ::em::initall {} {
   ::em::init_arrays
   ::em::initdefaultcolors
   ::em::initcolorscheme
-  ::em::initcomm
-  ::em::initmain
-  ::em::initmenu
-  ::em::initauto
-  ::em::initend
+  if {[::em::initcomm]} {
+    ::em::initmain
+    ::em::initmenu
+    ::em::initauto
+    ::em::initend
+  }
 }
 #=== main procedure to run
 proc ::em::main {args} {
@@ -2440,6 +2441,9 @@ proc ::em::main {args} {
       if {$modal} {grab release .em}
       destroy .em
       if {![::em::pool_pull]} break
+    } elseif {$::em::reallyexit eq "2"} {
+      set ::em::empool []
+      set ::em::reallyexit false  ;# enter the newly created menu
     }
   }
   if [winfo exists .em] {destroy .em}

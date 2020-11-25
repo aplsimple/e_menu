@@ -874,6 +874,7 @@ proc ::em::set_timed {from inf typ c1 inpsel} {
 }
 #=== create file.mnu template
 proc ::em::create_template {fname} {
+  set res no
   if {[em_question "Menu isn't open" \
   "ERROR of opening\n$fname\n\nCreate it?"]} {
     if {[catch {set chan [open "$fname" "w"]} e]} {
@@ -888,9 +889,11 @@ proc ::em::create_template {fname} {
       }
       puts $chan "R: nam1 R: prog\n\nS: nam2 S: comm\n\nM: nam3 M: m=$menu"
       close $chan
-      if {![::em::addon edit $fname]} {file delete $fname}
+      set res [::em::addon edit $fname]
+      if {!$res} {file delete $fname}
     }
   }
+  return $res
 }
 #=== process %IF wildcard
 proc ::em::IF {sel {callcommName ""}} {
