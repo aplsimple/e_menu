@@ -27,7 +27,7 @@
 package require Tk
 
 namespace eval ::em {
-  variable em_version "e_menu v3.2.4.1"
+  variable em_version "e_menu v3.2.5"
   variable solo [expr {[info exist ::argv0] && [file normalize $::argv0] eq \
     [file normalize [info script]]} ? 1 : 0]
   variable argv0
@@ -76,13 +76,14 @@ proc M {cme args} {
     set msg "$cme "
     set cme "-centerme .em"
   }
+  if {[set ontop [::apave::getOption -ontop {*}$args]] eq {}} {set ontop $::em::ontop}
   foreach a $args {append msg "$a "}
-  ::em::em_message $msg ok Info -ontop $::em::ontop {*}$cme
+  ::em::em_message $msg ok Info -ontop $ontop {*}$cme
 }
 proc Q {ttl mes {typ okcancel} {icon warn} {defb OK} args} {
   if {[lsearch $args -centerme]<0} {lappend args -centerme .em}
-  return [set ::em::Q [::em::em_question $ttl $mes $typ $icon $defb {*}$args \
-  -ontop $::em::ontop]]
+  if {[set ontop [::apave::getOption -ontop {*}$args]] eq {}} {set ontop $::em::ontop}
+  return [set ::em::Q [::em::em_question $ttl $mes $typ $icon $defb {*}$args -ontop $ontop]]
 }
 proc T {args} {
   set cc ""; foreach c $args {set cc "$cc$c "}
