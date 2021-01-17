@@ -1,6 +1,22 @@
 # Last changes:
 
 
+Version `3.2.7 (17 Jan'21)`
+
+  - baltip package in.
+  - apave package upd.
+  - 'Project' dialog rearranged ('Ornament' etc.)
+  - 'About' dialog got links
+  - editor: color highlighting; new menu items; brackets matched at left
+  - encoding utf-8 for all files, incl. doctested
+  - invokeBrowser removed
+  - openDoc to open documents
+  - colors added for tips (fW bW)
+  - check for qterminal in Linux
+  - .mnu updated
+  - BUGFIX: f1=, f2= options (font names)
+
+
 Version `3.1 (12 Sep'20)`
 
   - apave 3.1

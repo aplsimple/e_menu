@@ -88,7 +88,26 @@ rt=2/5
   -head "Enter data:" -weight bold == ::EN1 ::EN2 ::V1 ::C1 ::C2 ::W1 ::TEX ::LBX ::OPT ::TBL
  R: Input dialog R: %M "> RESULTS:\n ::EN1= '$::EN1' \n ::EN2= '$::EN2' \n ::V1 = $::V1 \
 \n ::C1 = $::C1 \n ::C2 = $::C2\n ::W1 = $::W1 \
-\n ::TEX = $::TEX\n ::LBX = $::LBX\n ::OPT = $::OPT\n ::TBL = $::TBL"
+\n ::TEX = $::TEX\n ::LBX = $::LBX\n ::OPT = $::OPT\n ::TBL = $::TBL\n"
+
+
+ R: Input dialog: choosers R: cd %d
+ R: Input dialog: choosers R: %C if {![info exists ::CHFIL]} { \
+   set ::CHFIL [set ::CHFIS [set ::CHDIR [set ::CHFON [set ::CHCLR [set ::CHDAT ""]]]]]}
+ R: Input dialog: choosers R: \
+  %I "" "TEST OF %I" { \
+  fil1  {{        File: } {} {-w 50}} {"$::CHFIL"} \
+  fis1  {{File to save: }} {"$::CHFIS"} \
+  dir1  {{   Directory: }} {"$::CHDIR"} \
+  fon1  {{        Font: }} {"$::CHFON"} \
+  clr1  {{       Color: }} {"$::CHCLR"} \
+  dat1  {{        Data: }} {"$::CHDAT"} \
+  } \
+  -head "Choose data\nwith clicking buttons or pressing F2:" -weight bold == ::CHFIL ::CHFIS ::CHDIR ::CHFON ::CHCLR ::CHDAT
+ R: Input dialog: choosers R: %M "> RESULTS:\n ::CHFIL= $::CHFIL \n ::CHFIS= $::CHFIS\n ::CHDIR= $::CHDIR \n ::CHFON= $::CHFON\n ::CHCLR= $::CHCLR \n ::CHDAT= $::CHDAT\n"
+
+ S: Test utf-8 (Пусть всегда будет солнце) S: cd ~
+ S: Test utf-8 (Пусть всегда будет солнце) S: echo "Пусть всегда будет солнце," ; echo "Пусть всегда будет мама"
 
  M:  M: 3
 

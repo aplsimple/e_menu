@@ -27,20 +27,19 @@
 package require Tk
 
 namespace eval ::em {
-  variable em_version "e_menu v3.2.5"
+  variable em_version "e_menu 3.2.7"
   variable solo [expr {[info exist ::argv0] && [file normalize $::argv0] eq \
     [file normalize [info script]]} ? 1 : 0]
-  variable argv0
-  if {[info exist ::argv0]} {set argv0 [file normalize $::argv0]} {set argv0 [info script]}
-  variable argv; if {[info exist ::argv]} {set argv $::argv} {set argv [list]}
-  variable argc; if {[info exist ::argc]} {set argc $::argc} {set argc 0}
-  variable exedir [file normalize [file dirname $argv0]]
+  variable Argv0
+  if {[info exist ::argv0]} {set Argv0 [file normalize $::argv0]} {set Argv0 [info script]}
+  if {[info exist ::em::executable]} {set Argv0 [file dirname $Argv0]}
+  variable Argv; if {[info exist ::argv]} {set Argv $::argv} {set Argv [list]}
+  variable Argc; if {[info exist ::argc]} {set Argc $::argc} {set Argc 0}
+  variable exedir [file normalize [file dirname $Argv0]]
   if {[info exists ::e_menu_dir]} {set exedir $::e_menu_dir}
   variable srcdir [file join $exedir src]
   catch {source [file join $::em::srcdir baltip baltip.tcl]}
-  if {[info exists ::argv0] && !$solo} {
-    append em_version " / [file tail $::argv0]"
-  }
+  if {!$solo} {append em_version " / [file tail $::em::Argv0]"}
 }
 
 if {[catch {source [file join $::em::srcdir e_help.tcl]} e]} {
@@ -54,8 +53,8 @@ if {[catch {source [file join $::em::srcdir e_help.tcl]} e]} {
 # *******************************************************************
 # customized block
 
-set ::em::lin_console "src/run_pause.sh"   ;# (for Linux)
-set ::em::win_console "src/run_pause.bat"  ;# (for Windows)
+set ::em::lin_console [file join $::em::srcdir run_pause.sh]  ;# (for Linux)
+set ::em::win_console [file join $::em::srcdir run_pause.bat] ;# (for Windows)
 
 set ::em::ncolor -2  ;# default color scheme
 if {$::em::solo} {set ::em::ncolor 0}
@@ -124,8 +123,8 @@ namespace eval ::em {
   variable thisapp emenuapp
   variable appname $::em::thisapp
   variable fs 9           ;# font size
-  variable font1 [font config "TkSmallCaptionFont"]
-  variable font2 [font config "TkDefaultFont"]
+  variable font_f1 [font config "TkSmallCaptionFont"]
+  variable font_f2 [font config "TkDefaultFont"]
   variable viewed 40      ;# width of item (in characters)
   variable maxitems 64    ;# maximum of menu.txt items
   variable timeafter 10   ;# interval (in sec.) for updating times/dates
@@ -137,7 +136,7 @@ namespace eval ::em {
   variable workdir "" PD "" prjname "" PN2 "" prjdirlist [list]
   variable ornament 1  ;# 1 - header only; 2 - prompt only; 3 - both; 0 - none
   variable inttimer 1  ;# interval to check the timed tasks
-  variable bd 1 b0 0 b1 1 b2 1 b3 1 b4 1
+  variable bd 1 b0 0 b1 0 b2 1 b3 1 b4 1
   variable incwidth 15
   variable wc 0
   variable tf 10 tg 80x24+200+200
@@ -924,7 +923,7 @@ proc ::em::callmenu {typ s1 {amp ""} {from ""}} {
     append pars " \"cs=[lindex $::apave::_CS_(ALL) $::apave::_CS_(MAXCS)]\""
   }
   prepr_1 pars "in" [string range $s1 1 end]  ;# %in is menu's index
-  set sel "\"$::em::argv0\""
+  set sel "\"$::em::Argv0\""
   prepr_win sel "M/"  ;# force converting
   if {$::em::solo} {
     catch {exec [auto_execok tclsh] {*}$sel {*}$pars $amp}
@@ -933,8 +932,8 @@ proc ::em::callmenu {typ s1 {amp ""} {from ""}} {
     }
   } else {
     ::em::pool_set
-    set ::em::argv [list {*}$pars]
-    set ::em::argc [llength $::em::argv]
+    set ::em::Argv [list {*}$pars]
+    set ::em::Argc [llength $::em::Argv]
     if {!$stay} {::em::pool_set}
     ::em::pool_push
     set ::em::em_win_var 1
@@ -1572,9 +1571,9 @@ proc ::em::prepare_buttons {refcommands} {
     if {$::em::itviewed < 5} {set ::em::itviewed $::em::viewed}
   }
   set fs [expr {min(9,[::apave::paveObj basicFontSize])}]
-  set ::em::font1a "$::em::font1 -size $fs"
-  set ::em::font2a "$::em::font2 -size $::em::fs"
-  set ::em::font3a "$::em::font2 -size [expr {$::em::fs-1}]"
+  set ::em::font1a "$::em::font_f1 -size $fs"
+  set ::em::font2a "$::em::font_f2 -size $::em::fs"
+  set ::em::font3a "$::em::font_f2 -size [expr {$::em::fs-1}]"
   checkbutton .em.fr.cb -text "On top" -variable ::em::ontop -fg $::em::clrhotk \
     -bg $::em::clrtitb -takefocus 0 -command {::em::toggle_ontop} \
     -font $::em::font1a
@@ -1851,7 +1850,7 @@ proc ::em::initcommands {lmc amc osm {domenu 0}} {
         }
         o= {set ::em::ornament [::apave::getN $seltd 0 -1 3]
           if {$::em::ornament>1} {
-            set ::em::font2 "-family [::apave::paveObj basicTextFont]"
+            set ::em::font_f2 "-family [::apave::paveObj basicTextFont]"
           }
         }
         g= {
@@ -1897,8 +1896,10 @@ proc ::em::initcommands {lmc amc osm {domenu 0}} {
         t4= - t5= - t6= - t7= - t8= -
         t9= {set ::em::ar_tformat([string range $s1 0 1]) $seltd}
         fs= {set ::em::fs [::apave::getN $seltd $::em::fs]}
-        f1= {catch {set ::em::font1 [font config $seltd]}}
-        f2= {catch {set ::em::font2 [font config $seltd]}}
+        f1= - f2= {catch {
+          set ::em::font_$s01 [font configure TkDefaultFont]
+          set ::em::font_$s01 [dict replace [set ::em::font_$s01] -family $seltd]
+        }}
         f3= {::apave::paveObj basicTextFont $seltd}
         qq= {set ::em::qseltd [::eh::escape_quotes $seltd]}
         dd= {set ::em::dseltd [::eh::delete_specsyms $seltd]}
@@ -2017,44 +2018,44 @@ proc ::em::initcomm {} {
   array unset ::em::ar_macros *
   array set ::em::ar_macros [list]
   set ::em::menuoptions {0}
-  if {[lsearch $::em::argv "ch=1"]>=0} {set ::em::ischild 1}
-  # external E_MENU_OPTIONS are in the beginning of ::em::argv (being default)
+  if {[lsearch $::em::Argv "ch=1"]>=0} {set ::em::ischild 1}
+  # external E_MENU_OPTIONS are in the beginning of ::em::Argv (being default)
   # if "b=firefox", OR in the end (being preferrable) if "99 b=firefox"
   if {!($::em::ischild || [catch {set ext_opts $::env(E_MENU_OPTIONS)}])} {
     set inpos 0
     foreach opt [list {*}$ext_opts] {
       if [string is digit $opt] {set inpos $opt; continue}
-      set ::em::argv [linsert $::em::argv $inpos $opt]
+      set ::em::Argv [linsert $::em::Argv $inpos $opt]
       incr inpos
-      incr ::em::argc
+      incr ::em::Argc
     }
   }
-  if {[lsearch -glob $::em::argv "s=*"]<0} {
+  if {[lsearch -glob $::em::Argv "s=*"]<0} {
     ;# if no s=selection, make it empty to hide HELP/EXEC/SHELL
-    lappend ::em::argv s=
-    incr ::em::argc
-    if {[set io [lsearch -glob $::em::argv "o=*"]]<0} {
-      lappend ::em::argv "o=0"
-      incr ::em::argc
+    lappend ::em::Argv s=
+    incr ::em::Argc
+    if {[set io [lsearch -glob $::em::Argv "o=*"]]<0} {
+      lappend ::em::Argv "o=0"
+      incr ::em::Argc
     } else {
-      set o [string index [lindex $::em::argv $io] end]
+      set o [string index [lindex $::em::Argv $io] end]
       if {$o in {1 3}} {
-        set ::em::argv [lreplace $::em::argv $io $io "o=0"]
+        set ::em::Argv [lreplace $::em::Argv $io $io "o=0"]
       }
     }
   }
-  initcommands $::em::argc $::em::argv {o= s= m=} 1
+  initcommands $::em::Argc $::em::Argv {o= s= m=} 1
   if {$::em::reallyexit} {return no}
   if {[set lmc [llength $::em::menuoptions]] > 1} {
       # o=, s=, m= options define menu contents & are processed particularly
     initcommands $lmc $::em::menuoptions {o=}
     initcommhead
     if {$::em::om} {
-      initcommands $::em::argc $::em::argv {s= m=}
+      initcommands $::em::Argc $::em::Argv {s= m=}
       initcommands $lmc $::em::menuoptions {o=}
     } else {
       initcommands $lmc $::em::menuoptions " "
-      initcommands $::em::argc $::em::argv {o= s= m=}
+      initcommands $::em::Argc $::em::Argv {o= s= m=}
     }
   }
   if {$::em::savelasti>-1} {  ;# o= s= m= options influence ::em::lasti
@@ -2205,8 +2206,8 @@ proc ::em::initmenu {} {
       catch {::baltip tip $b "$comtitle"}
     }
     grid [label .em.fr.win.l$i -text $hotkey -font "$::em::font3a -weight bold" -bg \
-      $::em::clrinab -fg $::em::clrhotk] -column 0 -row [expr $i+$::em::isep] \
-      -sticky nsew
+      $::em::clrinab -fg $::em::clrhotk -padx 0 -pady 0] -padx 0 -ipadx 0 \
+      -column 0 -row [expr $i+$::em::isep] -sticky nsew
     grid .em.fr.win.fr$i -column 1 -row  [expr $i+$::em::isep] -sticky ew \
         -pady $::em::b3 -padx $::em::b4
     pack $b -expand 1 -fill both -side left
@@ -2322,8 +2323,8 @@ proc ::em::initauto {} {
   run_tcl_commands ::em::commandA2    ;# exec the command as last init
   if {!$::em::solo} {
     # only 1st start for 1st window (non-solo)
-    set ::em::argv [::apave::removeOptions $::em::argv a=* a0=* a1=* a2=* ah=*]
-    set ::em::argc [llength $::em::argv]
+    set ::em::Argv [::apave::removeOptions $::em::Argv a=* a0=* a1=* a2=* ah=*]
+    set ::em::Argc [llength $::em::Argv]
     lassign "" ::em::autorun ::em::autohidden ::em::commandA1 ::em::commandA2
   }
   if {[is_child]} {
@@ -2415,8 +2416,8 @@ proc ::em::main {args} {
   if {$prior} { ;# continue with variables of previous session
     set ::em::empool []
   }
-  set ::em::argv $args
-  set ::em::argc [llength $args]
+  set ::em::Argv $args
+  set ::em::Argc [llength $args]
   set ::em::fs [::apave::paveObj basicFontSize]
   set ::em::ncolor [::apave::paveObj csCurrent]
   if {[winfo exists .em.fr]} {
@@ -2430,6 +2431,7 @@ proc ::em::main {args} {
     pool_item_activate 0
   }
   ::apave::initWM
+  ::apave::iconImage -init small
   set ::em::reallyexit false
   while {!$::em::reallyexit} {
     pool_push

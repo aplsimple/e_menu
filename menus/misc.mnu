@@ -13,14 +13,14 @@ in=1.0
 ::EMENUOPTS=-r -f
 ::EMENUMULSTER=1
 ::EMENUMULSTRES1=~/PG/github/aplsimple.github.io/en/tcl/
-::EMENUMULSTRES2=~/PG/github/aplsimple.github.io/en/tcl/screenshooter
+::EMENUMULSTRES2=~/PG/github/aplsimple.github.io/en/tcl/transpops
 ::EMENUMULSTRES3=/home/apl/PG/github/aplsimple.github.io/en/tcl
-::EMENURUFFDIR=~/PG/github/pave apave\n~/PG/github/hl_tcl\n~/PG/github/bartabs\n~/PG/github/trimmer\n~/PG/github/mulster\n~/PG/github/transpops\n~/PG/github/screenshooter
+::EMENURUFFDIR=~/PG/github/pave apave\n~/PG/github/hl_tcl\n~/PG/github/bartabs\n~/PG/github/trimmer\n~/PG/github/mulster\n~/PG/github/transpops\n~/PG/github/screenshooter\n~/PG/github/baltip
 ::EMENURUFFIT=~/PG/github/aplsimple.github.io/en/tcl/bartabs/index.html\n~/PG/github/aplsimple.github.io/en/tcl/booksum/index.html\n~/PG/github/aplsimple.github.io/en/tcl/doctest/index.html\n~/PG/github/aplsimple.github.io/en/tcl/pave/index.html
-::EMENU7ZCNT=2
+::EMENU7ZCNT=3
 ::EMENU7ZCOM=zip -r
 ::EMENU7ZARC=~/PG/github/apl-github
-::EMENU7ZDIR=~/PG/github/pave/*\n~/PG/github/e_menu/*\n~/PG/github/hl_tcl/*\n~/PG/github/bartabs/*\n~/PG/github/doctest/*\n~/PG/github/booksum/*\n~/PG/github/trimmer/*\n~/PG/github/mulster/*\n~/PG/github/transpops/*\n~/PG/github/screenshooter/*\n~/PG/github/baltip/*\n~/PG/github/aplsimple.github.io/*
+::EMENU7ZDIR=~/PG/github/pave/*\n~/PG/github/e_menu/*\n~/PG/github/hl_tcl/*\n~/PG/github/bartabs/*\n~/PG/github/doctest/*\n~/PG/github/booksum/*\n~/PG/github/trimmer/*\n~/PG/github/baltip/*\n~/PG/github/mulster/*\n~/PG/github/transpops/*\n~/PG/github/screenshooter/*\n~/PG/github/tkcc/*\n~/PG/github/aplited/*\n~/PG/github/aplsimple.github.io/*
 ::EMENU7ZSKIP=
 ::EMENU7ZBAK=/media/apl/KINGSTON/
 ::EMENU7ZGIT=1
@@ -28,7 +28,7 @@ in=1.0
 ::EMENU_MULST1=~/TMP/em_mulst.ini
 ::EMENU_MULST2=~/TMP/em_mulst.txt
 ::EMENU_MULST5=regexp--
-pos=130.0
+pos=156.48
 [MENU]
 
  R: Trimmer *.tcl R: cd $::EMENUDIR1
@@ -153,6 +153,7 @@ SW:Save your stuff SW: cd %PD
         append ::EMENU7ZDIR_LIST " $dirname/.git/*" ; \
         append ::EMENU7ZDIR_LIST " $dirname/.gitignore" ; \
         append ::EMENU7ZDIR_LIST " $dirname/.fslckout" ; \
+        append ::EMENU7ZDIR_LIST " $dirname/.bak" ; \
       } \
     } \
   }

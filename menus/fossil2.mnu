@@ -201,8 +201,10 @@ SW:fossil undo SW: fossil undo -n
 
  S:set standard settings of fossil (ignore etc.) S: cd %PD
  R:set standard settings of fossil (ignore etc.) R:  %q "Settings" " Set in \
-  \n\n    %PD\n\n the standard settings of fossil?" yesno warn NO
- S:set standard settings of fossil (ignore etc.) S: fossil settings ignore-glob ".*,*~,*.swp,*.tmp,*.bak,*.log,*.backup,*.*~0" ; fossil settings crnl-glob '*' ; fossil settings encoding-glob '*' ; fossil settings autosync 0 ; fossil settings gdiff meld ; fossil settings editor nano ; fossil settings binary-glob 1 ; if test -f .BIN/4init ; then .BIN/4init ; fi ; fossil settings
+  \n    %PD\n the standard settings of fossil? \
+  \n __________________________________ \
+  \n NOTE: Consider the installation of\n    meld\n    colordiff\n    nano" yesno warn NO
+ S:set standard settings of fossil (ignore etc.) S: fossil settings diff-command 'colordiff -wu'; fossil settings ignore-glob ".*,*~,*.swp,*.tmp,*.bak,*.log,*.backup,*.*~0" ; fossil settings crnl-glob '*' ; fossil settings encoding-glob '*' ; fossil settings autosync 0 ; fossil settings gdiff meld ; fossil settings editor nano ; fossil settings binary-glob 1 ; if test -f .BIN/4init ; then .BIN/4init ; fi ; fossil settings
 
  S:fossil all list S: cd %PD
  S:fossil all list S: fossil all list

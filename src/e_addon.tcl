@@ -184,17 +184,17 @@ proc ::em::popup {X Y} {
     tk_popup .em.emPopupMenu $X $Y
 }
 #=== highlights R/S/M in menu's text
-proc ::em::menuTextModified {w boldfont} {
+proc ::em::menuTextModified {w bfont} {
 
   # Handles modifications of menu's text: highlights R/S/M
   #   w - text's path
-  #   boldfont - font of boldness
+  #   bfont - font of boldness
   # The `w` might be omitted because it's a `my TexM` of APaveDialog.
   # It's here only to provide a template for similar handlers.
 
   set curpos [$w index insert]
   set text [$w get 1.0 end]
-  $w tag config tagRSM -font $boldfont
+  $w tag config tagRSM -font $bfont -foreground [lindex [::apave::paveObj csGet] 4]
   # firstly, to highlight R/S/M
   foreach line [split $text \n] {
     incr il
@@ -371,8 +371,7 @@ proc ::em::edit {fname {prepost ""}} {
   set fname [string trim $fname]
   lassign [::apave::paveObj csGet] bg - fg  - - - - - - fgc
   if {$::em::editor eq ""} {
-    set fs [::apave::paveObj basicFontSize]
-    set bfont "[font configure TkFixedFont] -weight bold -size $fs"
+    set bfont [::apave::paveObj boldTextFont [::apave::paveObj basicFontSize]]
     set dialog [::apave::APaveInput new]
     set ico [::apave::paveObj iconA none]
     set res [$dialog editfile $fname $::em::clrtitf $::em::clrinab $::em::clrtitf \
@@ -458,12 +457,12 @@ proc ::em::about {} {
     [list "link" "::eh::browse %t@@https://%l"] \
     [list "linkM" "::apave::openDoc %l@@e-mail: %l"] \
     ]
-  set width [expr {max(33,[string length $::em::argv0])}]
+  set width [expr {max(33,[string length $::em::Argv0])}]
   set doc "https://aplsimple.github.io/en/tcl/e_menu"
   set dialog [::apave::APaveInput new]
   set res [$dialog misc info "About e_menu" "
   <red> $::em::em_version </red>
-  [file dirname $::em::argv0] \n
+  [file dirname $::em::Argv0] \n
   by Alex Plotnikov
   <linkM>aplsimple@gmail.com</linkM>
   <link>aplsimple.github.io</link>
@@ -477,14 +476,14 @@ proc ::em::about {} {
 }
 #=== check if it's s_menu
 proc ::em::is_s_menu {} {
-  return [expr {[file rootname [file tail $::em::argv0]] eq "s_menu"}]
+  return [expr {[file rootname [file tail $::em::Argv0]] eq "s_menu"}]
 }
 #=== restart the app
 proc ::em::restart_e_menu {} {
-  if {[is_s_menu] && [file extension $::em::argv0] ne ".tcl"} {
-    exec $::em::argv0 {*}$::em::argv &
+  if {[is_s_menu] && [file extension $::em::Argv0] ne ".tcl"} {
+    exec $::em::Argv0 {*}$::em::Argv &
   } else {
-    execom "tclsh \"$::em::argv0\" $::em::argv &"
+    execom "tclsh \"$::em::Argv0\" $::em::Argv &"
   }
   on_exit
 }
@@ -586,12 +585,14 @@ proc ::em::change_PD {} {
       rad3 [list "                 " {-fill x -expand 1} "-state $dkst"] \
         [list "$::em::dk" dialog dock desktop] \
       chb3 {{} {-padx 5} {-toprev 1 -t "Use it"}} {0} \
-    ] -head $em_message -weight bold -centerme .em {*}[theming_pave]]
+    ] -head $em_message -weight bold -family "{[::apave::paveObj basicTextFont]}" \
+    -centerme .em {*}[theming_pave]]
     set r [lindex $res 0]
   }
   ::apave::shadowAllowed $sa
   set ::em::ncolor [::apave::getN $::em::ncolor $ncolorsav -2 $::apave::_CS_(MAXCS)]
   if {$r} {
+    if {$::em::ncolor==-2} {set ::em::ncolor -1}
     if {$fco1 eq ""} {
       lassign $res - - chb1 - chb12 orn chb22 geo chb2 chbT dk chb3
     } else {
@@ -609,14 +610,14 @@ proc ::em::change_PD {} {
     }
     if {($fco1 ne "") && ([get_PD] ne $PD)} {
       set ::em::prjname [file tail $PD]
-      set ::em::argv [::apave::removeOptions $::em::argv d=* f=*]
-      foreach {o v} [list d $PD f "$PD/*"] {lappend ::em::argv "$o=\"$v\""}
+      set ::em::Argv [::apave::removeOptions $::em::Argv d=* f=*]
+      foreach {o v} [list d $PD f "$PD/*"] {lappend ::em::Argv "$o=\"$v\""}
     }
-    set ::em::argv [::apave::removeOptions $::em::argv c=* fs=* o=* dk=* t=*]
+    set ::em::Argv [::apave::removeOptions $::em::Argv c=* fs=* o=* dk=* t=*]
     foreach {o v} [list c $::em::ncolor fs $::em::fs o $orn dk $dk t $chbT] {
-      lappend ::em::argv "$o=$v"
+      lappend ::em::Argv "$o=$v"
     }
-    set ::em::argc [llength $::em::argv]
+    set ::em::Argc [llength $::em::Argv]
 
     # the main problems of e_menu's colorizing to solve are:
     #
@@ -635,29 +636,27 @@ proc ::em::change_PD {} {
     #    it's not related to apave's CS and used by e_menu only;
     #    this way is followed in TKE editor's e_menu plugin
     wm deiconify .em
-    if {$::em::ncolor>-2} {
-      set ::em::optsFromMenu 0
-      set instead [::em::insteadCS]
-      array unset ::em::ar_geany
-      set ::em::insteadCSlist [list]
-      if {$instead} {
-        # when all colors are set as e_menu's arguments instead of CS,
-        # just set the selected CS and remove the 'argumented' colors
-        set ::em::argv [::apave::removeOptions $::em::argv \
-          fg=* bg=* fE=* bE=* fS=* bS=* cc=* fI=* bI=* fM=* bM=* ht=* hh=* gr=*]
-        set ::em::argc [llength $::em::argv]
-        initcolorscheme true
-        # this reads and shows the menu, with the new CS
-        reread_menu $::em::lasti
-      } else {
-        set ::em::argc [llength $::em::argv]
-        unsetdefaultcolors
-        initdefaultcolors
-        initcolorscheme
-        reread_menu $::em::lasti
-        # this takes up e_menu's arguments e.g. fS=white bS=green (as part of CS)
-        initcolorscheme
-      }
+    set ::em::optsFromMenu 0
+    set instead [::em::insteadCS]
+    array unset ::em::ar_geany
+    set ::em::insteadCSlist [list]
+    if {$instead} {
+      # when all colors are set as e_menu's arguments instead of CS,
+      # just set the selected CS and remove the 'argumented' colors
+      set ::em::Argv [::apave::removeOptions $::em::Argv \
+        fg=* bg=* fE=* bE=* fS=* bS=* cc=* fI=* bI=* fM=* bM=* ht=* hh=* gr=*]
+      set ::em::Argc [llength $::em::Argv]
+      initcolorscheme true
+      # this reads and shows the menu, with the new CS
+      reread_menu $::em::lasti
+    } else {
+      set ::em::Argc [llength $::em::Argv]
+      unsetdefaultcolors
+      initdefaultcolors
+      initcolorscheme
+      reread_menu $::em::lasti
+      # this takes up e_menu's arguments e.g. fS=white bS=green (as part of CS)
+      initcolorscheme
     }
   } else {
     set ::em::ncolor $ncolorsav
@@ -963,5 +962,5 @@ proc ::em::IF {sel {callcommName ""}} {
 
 #=== get an external CS to put into apave CSs (sort of tuning CS list)
 #? proc ::em::testCS {} {
- #? ::apave::initWM; ::em::initall; set cc [::apave::paveObj csCurrent]; set ca [::apave::cs_Max]; if {[catch {::em::em_message "[::apave::paveObj csGetName $cc]: $cc of $ca:\n\n CS-$ca: [::apave::paveObj csGet $ca]\n\n[string map {{ } \n} $::em::argv]" ok "CS" -text 1 -w 99 -h 15} e]} {puts "ERROR: $e"}
+ #? ::apave::initWM; ::em::initall; set cc [::apave::paveObj csCurrent]; set ca [::apave::cs_Max]; if {[catch {::em::em_message "[::apave::paveObj csGetName $cc]: $cc of $ca:\n\n CS-$ca: [::apave::paveObj csGet $ca]\n\n[string map {{ } \n} $::em::Argv]" ok "CS" -text 1 -w 99 -h 15} e]} {puts "ERROR: $e"}
 #? }

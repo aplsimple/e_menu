@@ -1,13 +1,10 @@
 [OPTIONS]
-b1=0
-b2=3
-b3=1
 w=25
 t4==%b-%Y/%U-week
 u=%s
 o=0
 in=1.0
-pos=68.42
+pos=2.0
 ::FSLUSER=aplsimple
 ::FSLBRANCH=TclOO forced
 ::FSLBRANCHCOLOR=#fe95ca
