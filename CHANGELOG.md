@@ -1,6 +1,24 @@
 # Last changes:
 
 
+Version `3.2.8 (31 Jan'21)`
+
+  - "ex=" argument to run a list of items and exit
+  - modifying style of scale, scrollbar, combobox
+  - modifying menu's font size
+  - CS made milder
+  - revising popup menus of text widget
+  - color of matching bracket is magenta
+  - modifying & moving highlight matches procs from ::em to ::apave
+  - labelFlashing's -data allows var contents along with var name
+  - fillGutter can be run to update a gutter, e.g. at switching CS
+  - squeezing icons
+  - ::apave::paveObj became ::apave::obj, using one apave object
+  - playing with widths of cbx & opc in .mnu, successfully
+  - updating hl_tcl package
+  - BUGFIX: running a= commands
+
+
 Version `3.2.7 (17 Jan'21)`
 
   - baltip package in.
@@ -402,4 +420,3 @@ Version `1.4 (16 Dec'18)`
   - %P wildcard allows to prepare a command by Tcl substitutions and replacing \n.
   - menu.mnu changed, fossil.mnu changed, git.mnu changed, new hg.mnu
   - e_menu.tcl is reformatted as for using em:: namespace.
-

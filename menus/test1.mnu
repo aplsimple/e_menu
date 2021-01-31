@@ -73,11 +73,11 @@ rt=2/5
   seh2  {} {} \
   v_    {} {} \
   cbx1  {{Where:   } {} {-state readonly}} {"$::W1" {in file} {in session} {in directory}} \
-  tex1  {{Any text:} {} {-h 3 -w 50 -wrap word -tabnext lbx1 -tooltip {Try:\n  Ctrl+Y\n  Ctrl+D\n  Alt+Up/Down}}} {$::TEX} \
+  tex1  {{Any text:} {} {-h 3 -w 50 -wrap word -tabnext lbx1}} {$::TEX} \
   lbx1  {{Related: } {} {-h 3}} {"$::LBX" {my Father} Mother Son Daughter Brother Sister Uncle Aunt Cousin {Big Brother} "Second cousin" "1000th cousin"} \
-  opc1  {{Color:   }} {{$::OPT} {{color red green blue -- {{other colors} yellow magenta cyan \
+  opc1  {{Color:   } {-fill none -anchor w}} {{$::OPT} {{color red green blue -- {{other colors} yellow magenta cyan \
         | #52CB2F #FFA500 #CB2F6A | #FFC0CB #90EE90 #8B6914}} \
-        {hue dark medium light} -- {{opc widget example}} ok}} \
+        {hue dark medium light} -- {{opc widget example}} ok} {-width 16}} \
   tblSEL1  {{Table:   \n\nThe 'tbl' name\nis tblSEL* to\nreturn an item} {} {-h 4 -columns {16 {Name of widget} left \
       0 Type left 0 X right 0 Y right} }} {"$::TBL" {"but" "ttk::button" 1 1} \
       {"can" "canvas" 3 3} \

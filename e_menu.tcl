@@ -27,7 +27,7 @@
 package require Tk
 
 namespace eval ::em {
-  variable em_version "e_menu 3.2.7"
+  variable em_version "e_menu 3.2.8"
   variable solo [expr {[info exist ::argv0] && [file normalize $::argv0] eq \
     [file normalize [info script]]} ? 1 : 0]
   variable Argv0
@@ -171,7 +171,7 @@ namespace eval ::em {
   variable commands ""
   variable pause 0
   variable appN 0
-  variable tasks {} taski {} ipos 0 TN 0
+  variable tasks [list] taski [list] ex [list] ipos 0 TN 0
   variable isep 0
   variable start0 1
   variable prjset 0
@@ -267,14 +267,14 @@ proc ::em::theming_pave {} {
       $::em::clrbE $::em::clrfS $::em::clrbS grey $::em::clrbg \
       $::em::clrcc $::em::clrht $::em::clrhh $::em::fI $::em::bI \
       $::em::fM $::em::bM]
-    ::apave::paveObj themeWindow . {*}$themecolors false
+    ::apave::obj themeWindow . {*}$themecolors false
   } else {
     set themecolors [list $::em::clrinaf $::em::clrinab $::em::clrtitf \
       $::em::clrtitb $::em::clractf $::em::clractb grey $::em::clrinab \
       $::em::clrcurs $::em::clrhotk $::em::clrhelp $::em::fI $::em::bI \
       $::em::fM $::em::bM]
   }
-  ::apave::paveObj themeWindow . {*}$themecolors [expr {![::em::insteadCS]}]
+  ::apave::obj themeWindow . {*}$themecolors [expr {![::em::insteadCS]}]
   foreach clr $themecolors {append thclr "-theme $clr "}
   return $thclr
 }
@@ -1570,7 +1570,7 @@ proc ::em::prepare_buttons {refcommands} {
     }
     if {$::em::itviewed < 5} {set ::em::itviewed $::em::viewed}
   }
-  set fs [expr {min(9,[::apave::paveObj basicFontSize])}]
+  set fs [expr {min(9,[::apave::obj basicFontSize])}]
   set ::em::font1a "$::em::font_f1 -size $fs"
   set ::em::font2a "$::em::font_f2 -size $::em::fs"
   set ::em::font3a "$::em::font_f2 -size [expr {$::em::fs-1}]"
@@ -1788,7 +1788,7 @@ proc ::em::initcommands {lmc amc osm {domenu 0}} {
         z0= z1= z2= z3= z4= z5= z6= z7= z8= z9= \
         a= d= e= f= p= l= h= b= cs= c= t= g= n= \
         fg= bg= fE= bE= fS= bS= fI= bI= fM= bM= cc= gr= ht= hh= rt= \
-        m= om= ts= TF= yn= in=} { ;# the processing order is important
+        m= om= ts= TF= yn= in= ex=} { ;# the processing order is important
     if {($s1 in {o= s= m=}) && !($s1 in $osm)} {
       continue
     }
@@ -1836,7 +1836,7 @@ proc ::em::initcommands {lmc amc osm {domenu 0}} {
         sh= {set ::em::shadowed [::apave::getN $seltd 0]}
         cs= {  ;# user-defined CS
           if {[::em::insteadCS $seltd]} {
-            set ::em::ncolor [::apave::paveObj csAdd $seltd true]
+            set ::em::ncolor [::apave::obj csAdd $seltd true]
           }
         }
         c= {
@@ -1850,7 +1850,7 @@ proc ::em::initcommands {lmc amc osm {domenu 0}} {
         }
         o= {set ::em::ornament [::apave::getN $seltd 0 -1 3]
           if {$::em::ornament>1} {
-            set ::em::font_f2 "-family [::apave::paveObj basicTextFont]"
+            set ::em::font_f2 "-family [::apave::obj basicTextFont]"
           }
         }
         g= {
@@ -1900,7 +1900,7 @@ proc ::em::initcommands {lmc amc osm {domenu 0}} {
           set ::em::font_$s01 [font configure TkDefaultFont]
           set ::em::font_$s01 [dict replace [set ::em::font_$s01] -family $seltd]
         }}
-        f3= {::apave::paveObj basicTextFont $seltd}
+        f3= {::apave::obj basicTextFont $seltd}
         qq= {set ::em::qseltd [::eh::escape_quotes $seltd]}
         dd= {set ::em::dseltd [::eh::delete_specsyms $seltd]}
         ss= {set ::em::sseltd [string trim $seltd]}
@@ -1910,7 +1910,7 @@ proc ::em::initcommands {lmc amc osm {domenu 0}} {
           set ::em::$s01 [::apave::getN $seltd [set ::em::$s01]]
         }
         ed= {set ::em::editor $seltd}
-        tg= - om= - dk= {set ::em::$s01 $seltd}
+        tg= - om= - dk= - ex= {set ::em::$s01 $seltd}
         md= {set ::em::basedir $seltd}
         tf= {set ::em::tf [::apave::getN $seltd $::em::tf]}
         in= {
@@ -1972,9 +1972,9 @@ proc ::em::unsetdefaultcolors {} {
 proc ::em::initcolorscheme {{nothemed false}} {
   if {$nothemed} unsetdefaultcolors
   set clrs [::em::colorlist]
-  lassign [::apave::paveObj csGet $::em::ncolor] {*}$clrs
+  lassign [::apave::obj csGet $::em::ncolor] {*}$clrs
   foreach clr $clrs {set ::em::$clr [set $clr]}
-  ::apave::paveObj basicFontSize $::em::fs
+  ::apave::obj basicFontSize $::em::fs
   # set real colors, based on fg=, bg=, fS=, bS=, gr= arguments of e_menu
   if {[info exist ::em::clrfg]} {set ::em::clrinaf $::em::clrfg}
   if {[info exist ::em::clrbg]} {set ::em::clrinab $::em::clrbg}
@@ -2000,7 +2000,7 @@ proc ::em::initcolorscheme {{nothemed false}} {
 #=== set default colors if not set by call of e_menu
 proc ::em::initdefaultcolors {} {
   if {$::em::ncolor>=$::apave::_CS_(MINCS) && $::em::ncolor<=$::apave::_CS_(MAXCS)} {
-    lassign [::apave::paveObj csSet $::em::ncolor] \
+    lassign [::apave::obj csSet $::em::ncolor] \
       ::em::clrfg ::em::clrbg ::em::clrfE ::em::clrbE \
       ::em::clrfS ::em::clrbS ::em::clrhh ::em::clrgr ::em::clrcc
   }
@@ -2065,7 +2065,7 @@ proc ::em::initcomm {} {
       incr ::em::lasti $::em::begsel      ;# header was not, now is
     }
   }
- return yes
+  return yes
 }
 #=== initialize main properties
 proc ::em::initmain {} {
@@ -2106,10 +2106,10 @@ PbBCAPABKF9B+b41+J0AAAAASUVORK5CYII=}
   for {set i 0} {$i <=9} {incr i} {set ::em::ar_i09(i$i=) 1 }
   ::em::theming_pave
   if {[::em::insteadCS]} {
-    set ::em::ncolor [::apave::paveObj csCurrent]
+    set ::em::ncolor [::apave::obj csCurrent]
     ::em::initcolorscheme
   }
-  ::apave::paveObj untouchWidgets .em.fr.win* .em.fr.h* .em.fr.cb
+  ::apave::obj untouchWidgets .em.fr.win* .em.fr.h* .em.fr.cb
 }
 #=== initialize hotkeys for popup menu etc.
 proc ::em::inithotkeys {} {
@@ -2289,6 +2289,9 @@ proc ::em::run_it {i {hidden 0}} {
     lassign [lindex $::em::commhidden $i] name torun hot typ
   } else {
     lassign [lindex $::em::commands $i] name torun hot typ
+    if {[set sc [string first ";" $torun]]>-1} {
+      set torun [string range $torun 0 $sc-1]
+    }
   }
   {*}$torun
 }
@@ -2312,15 +2315,29 @@ proc ::em::run_autohidden {alist} {
     }
   }
 }
+#=== run commands of ::em::ex list and exit
+proc ::em::run_ex {} {
+  if {[llength $::em::ex]} {
+    foreach ex [split $::em::ex ,] {
+      if {[string match "h*" $ex] && $ex ne "h"} {
+        ::em::run_autohidden [string range $ex 1 end]
+      } else {
+        ::em::run_auto $ex
+      }
+    }
+    exit
+  }
+}
 #=== run tasks assigned in a= (by their hotkeys)
 proc ::em::initauto {} {
   if {"${::em::commandA1}${::em::commandA2}" ne ""} {
     catch {wm geometry .em $::em::geometry} ;# possible messages to be centered
   }
-  run_tcl_commands ::em::commandA1    ;# exec the command as first init
+  run_tcl_commands ::em::commandA1  ;# run the command as first init
   run_auto $::em::autorun
   run_autohidden $::em::autohidden
-  run_tcl_commands ::em::commandA2    ;# exec the command as last init
+  run_tcl_commands ::em::commandA2  ;# run the command as last init
+  run_ex                            ;# after all inits/autos, run "ex=" if any
   if {!$::em::solo} {
     # only 1st start for 1st window (non-solo)
     set ::em::Argv [::apave::removeOptions $::em::Argv a=* a0=* a1=* a2=* ah=*]
@@ -2342,23 +2359,10 @@ proc ::em::initauto {} {
 proc ::em::initbegin {} {
   encoding system "utf-8"
   option add *Menu.tearOff 1
-  set e_menu_icon {iVBORw0KGgoAAAANSUhEUgAAAFwAAAB3CAMAAAC5WtefAAAC91BMVEUAAQAABQkHCQUECg0HDRAJ
-DxEKEBIOExUTFxkVGRsRGxwVHh8ZIyMaKDcjKjAeLDElLDIiLzUnLjQjMTYkMjcmMzgoNjsrOT4s
-Oj89Oz4rRF0sRV4wRkotRV8vSFEvR2E5R0wwSGI1Sk42SV4ySmQyTFU3TVE6TWM6T1M8T2Q2UWU9
-UGU8UlY3UmY9U1dAU2g6VWlCVWo8V2tCWFw/WWJFWG0/Wm5FWl9HWW9CXGVIW3BCXXFGX2lKXXJL
-XnREYmVAY3dNYHZaX2FJY2xCZnlQY3lEZ3pLaGtNZ3BSZXtXZXdNa25Ia35aaHpPbXBKbYFcanxN
-b3dRb3FMb4NScHNdbH5fbX9Xb4pNdIFVc3Zgb4FPdoNicYNQd4RSdolYd3lSeYZbeXxmdYdce31V
-fIpod4lreYtagIJte41agY5ufY9cg5FvfpBwf5FehZJghohygZNzgpRgiJViiZd1hJZki4xki5lm
-jI53hphnjY9pj5F+ipdikp5pkZ6BjZqEj5xnl6Nvlpdwl6WGkp9rm6eLlqNwn5+Rlphvn6yNmKZw
-oK1yoaFto7R0o6Nyo6+Qm6iRnap2pqV1prJvqLNyp7l8otCVoK5xqrWWoa90qrtyrLd7q6uYpLF4
-rb+aprN2sLp/r698sLZ7sMKFq9qcqLWeqrd9s8V/tLmPr9mGtraBt8mmrraAusWJurqDvLupsbmT
-tN2Gu8CGu86Fvr2atdmIvcKKv8Wutr+Kv9KLwdOFxMeKxMKGxdaMxsSzu8OIx8uPxdePyce2v8eS
-y8q5wcmOzdG6w8uVz828xMyR0NST0dWV09fAyNCX1tnCy9PEzdWa2dyY29ic2t7Hz9eV3uDI0NjM
-0dSb39uY4OLK0trO09ae4t6b4+XQ1dic5efR19me5+nY2tag6evV292i6uzX3N+j6+3Z3uGk7e/a
-3+Lb4OOm7/Hc4uTe4+Xg5ejh5unj6evl6u3p7vHs8fTt8vXF//7v9ffw9vjy9/r4+vf3/P/6/Pn+
-//xHxg7hAAAAiUlEQVRo3u3aQQqAIBAFUE/Qvu5/LDfeJKKgVRjGGOj7B3gbZfwDphyYlNewHPgW
-FDg8Gi+1wEPw5SnwUyrwcfCg22K29MW9oXB4DS8fA3+FX8vdjbeuh3D4rLjZ8jPuDYXDdUVTsWtX
-bD1GOHxW3GzRFeFwuK6oK6oWcLiuqCvC4SPgkX9EA7MDEZgCNv53DCQAAAAASUVORK5CYII=}
+  set e_menu_icon {iVBORw0KGgoAAAANSUhEUgAAAFwAAAB3BAMAAAB8qjqeAAAAD1BMVEUrRF3Y2tab4+U9Oz4jKjDz
+nD2xAAAAfklEQVRYw+3YsQ2AMAxEUcMGlpjgsgFMgMT+MyFRAIpEkNPETu5XFK80V0RgStJmaJUk
+hsgr+KRZofhyvHLAd9VR+JPGupmsQP8q+f2tP7nkM4CLoxB5G+70Zj44V4y8742UQuRtuNOb4UaS
+cyNjDMdA3NXNcCP747a3VJg6ATkQ0OkoHNcZAAAAAElFTkSuQmCC}
   ::apave::setAppIcon .em $e_menu_icon
 }
 #=== end up inits
@@ -2418,8 +2422,8 @@ proc ::em::main {args} {
   }
   set ::em::Argv $args
   set ::em::Argc [llength $args]
-  set ::em::fs [::apave::paveObj basicFontSize]
-  set ::em::ncolor [::apave::paveObj csCurrent]
+  set ::em::fs [::apave::obj basicFontSize]
+  set ::em::ncolor [::apave::obj csCurrent]
   if {[winfo exists .em.fr]} {
     focus .em.fr
     return 0

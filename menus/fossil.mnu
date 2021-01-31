@@ -4,7 +4,7 @@ t4==%b-%Y/%U-week
 u=%s
 o=0
 in=1.0
-pos=2.0
+pos=122.116
 ::FSLUSER=aplsimple
 ::FSLBRANCH=TclOO forced
 ::FSLBRANCHCOLOR=#fe95ca
@@ -119,11 +119,11 @@ SW:fossil diff ? SW: cat "$::EMENUTMPFILE"
  R:fossil commit ? R: %I {} "TOUCH & COMMIT" { \
    lab1  {{} {} {-t {For TOUCH:} -font {-weight bold}}}  {} \
    fil1 {{   File(s):}} {"$::EM_T_FILE"} \
-   opc1 {{Time stamp:}} {{$::EM_T_TIME} {{none} {time --now --checkin --checkout}}} \
+   opc1 {{Time stamp:} {-fill none -anchor w}} {{$::EM_T_TIME} {{none} {time --now --checkin --checkout}} {-width 10}} \
    chb1 {{   Verbose:}} {$::EM_T_VERBOSE} \
    seh {} {} v_2 {{} {-pady 2}} {} \
    lab2  {{} {} {-t {For COMMIT:} -font {-weight bold}}}  {} \
-   cbx2 {{   Options:} {} {}} {"$::EM_COMOPT" --allow-conflict --allow-empty --allow-fork --allow-older --baseline {--bgcolor COLOR} {--branch NEW-BRANCH-NAME} {--branchcolor COLOR} --close --delta --integrate {--mimetype MIMETYPE} -n|--dry-run --no-prompt --nosign --override-lock --private --hash {--tag TAG-NAME} {--date-override YYYY-MM-DDTHH:MM:SS.SSS} {--user-override USER}} \
+   cbx2 {{   Options:}} {"$::EM_COMOPT" --allow-conflict --allow-empty --allow-fork --allow-older --baseline {--bgcolor COLOR} {--branch NEW-BRANCH-NAME} {--branchcolor COLOR} --close --delta --integrate {--mimetype MIMETYPE} -n|--dry-run --no-prompt --nosign --override-lock --private --hash {--tag TAG-NAME} {--date-override YYYY-MM-DDTHH:MM:SS.SSS} {--user-override USER}} \
    seh2 {} {} \
    texc {{Hint:} {} {-h 13 -w 70 -ro 1 -wrap word}} \
    { You can touch any file(s) before committing.\

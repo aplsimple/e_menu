@@ -46,7 +46,7 @@ namespace eval ::eh {
 #====== debug messages (several params)
 proc ddd {args} {
   set msg ""; foreach l $args {append msg " $l\n"}
-  ::apave::paveObj ok info DEBUG $msg -text 1 -h 10 -centerme .
+  ::apave::obj ok info DEBUG $msg -text 1 -h 10 -centerme .
 }
 
 #====== debug messages (array passed by name)
@@ -207,8 +207,10 @@ proc ::eh::fileAttributes {fname {attrs "-"} {atime ""} {mtime ""} } {
       return [list $attrs [file atime $fname] [file mtime $fname]]
     }
    # set file attributes
-   file atime $fname $atime
-   file mtime $fname $mtime
+   catch {
+     file atime $fname $atime
+     file mtime $fname $mtime
+   }
 }
 
 #=== Write data to a file with file attributes untouched
