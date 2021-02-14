@@ -28,7 +28,7 @@ pos=205.7
  R:git gui R: cd %PD
  R:git gui R: git gui
 
- R:  R: 3
+ R:  R: 1
 
  R:git difftool $::FILETAIL ? R: cd %PD
 RW:git difftool $::FILETAIL ? RW: git log --format=oneline -10 > $::EMENUTMPFILE
@@ -66,7 +66,7 @@ SW:git diff ? SW: cat "$::EMENUTMPFILE"
  R:git diff ? R: %C file delete "$::EMENUTMPFILE"
  S:git diff ? S: $::EMENUTMP
 
- R:  R: 3
+ R:  R: 1
 
  S:git merge S: cd %PD
  R:git merge R: %q "Merging changes" "Merge changes in\n\n  %PD ?"
@@ -79,7 +79,7 @@ SW:git diff ? SW: cat "$::EMENUTMPFILE"
  R:git checkout "%s" R: %q "Checkout" "Checkout to\n\n'%s' ?"
  S:git checkout "%s" S: git checkout "%s"
 
- R:  R: 3
+ R:  R: 1
 
  S:git add * S: cd %PD
  R:git add * R: %q "Adding changes" "Add all changes in\n\n%PD\n\nto a local repository ?"
@@ -98,7 +98,7 @@ SW:git diff ? SW: cat "$::EMENUTMPFILE"
  R:git commit -a ? R: %C if {"$::EMENUCOMMIT3" eq ""} exit
  S:git commit -a ? S: git commit -a "$::EMENUCOMMIT3"
 
- R:  R: 3
+ R:  R: 1
 
  S:git pull S: cd %PD
  R:git pull R: %q "Pulling changes" "Pull changes in\n\na remote repository\n\nto %PD ?"
@@ -108,13 +108,13 @@ SW:git diff ? SW: cat "$::EMENUTMPFILE"
  R:git push R: %q "Pushing changes" "Push all changes in\n\n%PD\n\nto a remote repository ?"
  S:git push S: git push
 
- R:  R: 3
+ R:  R: 2
 
  MW:Fossil MW: m=fossil.mnu w=50
  M:Git M: m=git.mnu
  M:Hg M: m=hg.mnu
 
- R: - R: 3
+ R: - R: 1
 
  M:Find by grep M: m=grep.mnu w=40
  M:Tcl/Tk M: m=tcltk.mnu w=20
@@ -124,7 +124,8 @@ SW:git diff ? SW: cat "$::EMENUTMPFILE"
 
 # utils menu for e_menu.tcl
 
- R: - R: 3
+ R: - R: 2
+
  R:caja %PD R: caja "%PD"
  R:xterm %PD R: cd %PD
  R:xterm %PD R: xterm -fa ru_RU.utf8 -fs 11 -geometry 90x30+400+150
@@ -140,7 +141,7 @@ SW:git diff ? SW: cat "$::EMENUTMPFILE"
  R:wget Web page R: cd %z5/WGET
  R:wget Web page R: %IF [::iswindows] %THEN explorer.exe "." %ELSE caja "."
 
- R: - R: 3
+ R: - R: 2
 
 SW:Save your stuff SW: cd %PD
  R:Save your stuff R: %C set ::EMENU7ZCNT [expr {($::EMENU7ZCNT+1)%4}]
@@ -180,7 +181,7 @@ SW:Save your stuff SW: $::EMENU7ZCOM $::EMENUTMP $::EMENU7ZDIR_LIST ; mplayer %m
   }}
  R:Save your stuff R: mplayer %ms/s1.wav
 
- R: - R: 3
+ R: - R: 1
 
  R:Google R: %b https://google.com
  R:Wikipedia.en R:%b https://en.wikipedia.org
@@ -188,7 +189,8 @@ SW:Save your stuff SW: $::EMENU7ZCOM $::EMENUTMP $::EMENU7ZDIR_LIST ; mplayer %m
  R:Wikipedia.ru R:%b https://ru.wikipedia.org
  R:Project Gutenberg R: %b https://www.gutenberg.org/
 
- R: - R: 3
+ R: - R: 1
+
  R:Pave wiki R: %b https://aplsimple.github.io/en/tcl/pave
  R:Doctest wiki R: %b https://aplsimple.github.io/en/tcl/doctest
  R:E_menu wiki R: %b https://aplsimple.github.io/en/tcl/e_menu
