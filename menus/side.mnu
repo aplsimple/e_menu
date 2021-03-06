@@ -206,5 +206,6 @@ RW: 5. APLinkee      RW: sleep 1
  R: 6. FVords        R: ~/PROGRAMS/C_COMM/commw /media/apl/KINGSTON/FVords_Prepare fvords.exe
  R: 7. poApps        R: # tclsh ~/UTILS/poApps-2/poApps.tcl --dirdiff
  R: 7. poApps        R: poApps-2.5.2-Linux64 --dirdiff
+RW: 8. geany         RW: sleep 1
  R: 8. geany         R: geany
- R: 9. caja          R: caja
+ R: 9. caja          R: caja -g +0+0 /home/apl/PG/github

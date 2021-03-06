@@ -1,6 +1,14 @@
 # Last changes:
 
 
+Version `3.3.1 (6 Mar'21)`
+
+  - submenu's geometry eq hidden parent's one
+  - o=-1 means "hint off"
+  - checking by ::apave::endWM
+  - apave upd.
+  - BUGFIX: ::apave::cs_Max instead of ::apave::_CS_(MAXCS)
+
 Version `3.2.8 (31 Jan'21)`
 
   - "ex=" argument to run a list of items and exit

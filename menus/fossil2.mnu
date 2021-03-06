@@ -118,7 +118,7 @@ SW:fossil uv sync %F SW: fossil uv add %F\nfossil uv sync
    v_} -head {\n This will COMMIT and create a new BRANCH \
    \n from a current check-in.\n} -weight bold == ::COMMES ::FSLBRANCH ::FSLBRANCHCOLOR
  R:fossil commit -m ? --branch ? R: %C if {"$::FSLBRANCH" eq {}} exit
- R:fossil commit -m ? --branch ? R: %C if {"$::FSLBRANCHCOLOR" eq {}} {set ::TMPBG ""} {set ::TMPBG "-bgcolor \"$::FSLBRANCHCOLOR\""}
+ R:fossil commit -m ? --branch ? R: %C if {"$::FSLBRANCHCOLOR" eq {}} {set ::TMPBG ""} {set ::TMPBG "--branchcolor \"$::FSLBRANCHCOLOR\""}
 SW:fossil commit -m ? --branch ? SW: fossil commit -m "$::COMMES" --branch "$::FSLBRANCH" $::TMPBG
 
  S:fossil checkout ? S: cd %PD

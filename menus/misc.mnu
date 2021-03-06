@@ -15,7 +15,7 @@ in=1.0
 ::EMENUMULSTRES1=~/PG/github/aplsimple.github.io/en/tcl/
 ::EMENUMULSTRES2=~/PG/github/aplsimple.github.io/en/tcl/transpops
 ::EMENUMULSTRES3=/home/apl/PG/github/aplsimple.github.io/en/tcl
-::EMENURUFFDIR=~/PG/github/pave apave\n~/PG/github/hl_tcl\n~/PG/github/klnd\n~/PG/github/bartabs\n~/PG/github/trimmer\n~/PG/github/mulster\n~/PG/github/transpops\n~/PG/github/screenshooter\n~/PG/github/baltip
+::EMENURUFFDIR=~/PG/github/pave apave\n~/PG/github/hl_tcl\n~/PG/github/klnd\n~/PG/github/bartabs\n~/PG/github/trimmer\n~/PG/github/mulster\n~/PG/github/transpops\n~/PG/github/screenshooter\n~/PG/github/baltip\n~/PG/github/aloupe
 ::EMENURUFFIT=~/PG/github/aplsimple.github.io/en/tcl/bartabs/index.html\n~/PG/github/aplsimple.github.io/en/tcl/booksum/index.html\n~/PG/github/aplsimple.github.io/en/tcl/doctest/index.html\n~/PG/github/aplsimple.github.io/en/tcl/pave/index.html
 ::EMENU7ZCNT=3
 ::EMENU7ZCOM=zip -r
@@ -123,7 +123,10 @@ SW: Ruff! all ... SW: %B file://$::EMENUMULSTRES3
 SW: Freewrap Tcl SW: tclsh mulster.tcl -b 0 tasks/mulster-freewrap
  R: Freewrap Tcl R: cd ~/PG/github/freewrap
  RW: Freewrap Tcl RW: ./linux64.672/freewrap ./screenshooter/screenshooter.tcl -w ./linux64.672/freewrap -forcewrap -o ./screenshooter/screenshooter
- R: Freewrap Tcl R: ./linux64.672/freewrap ./e_menu/s_menu.tcl -w ./linux64.672/freewrap -forcewrap -o ./e_menu/s_menu
+ RW: Freewrap Tcl RW: ./linux64.672/freewrap ./e_menu/s_menu.tcl -w ./linux64.672/freewrap -forcewrap -o ./e_menu/s_menu
+ RW: Freewrap Tcl RW: cp -f ./e_menu/s_menu.tcl ./TEST-kit/e_menu.vfs/e_menu/
+ RW: Freewrap Tcl RW: cd ~/PG/github/freewrap/TEST-kit
+ RW: Freewrap Tcl RW: ./e_m-linux.sh
 
 R: R: 3
 

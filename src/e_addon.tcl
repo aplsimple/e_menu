@@ -440,7 +440,7 @@ proc ::em::change_PD {} {
     set dkst "normal"
   }
   append em_message \
-    "\n 'Color scheme' is -1 .. $::apave::_CS_(MAXCS) selected with Up/Down key.  \n"
+    "\n 'Color scheme' is -1 .. [::apave::cs_Max] selected with Up/Down key.  \n"
   set sa [::apave::shadowAllowed 0]
   set ncolorsav $::em::ncolor
   set geo [wm geometry .em]
@@ -458,7 +458,7 @@ proc ::em::change_PD {} {
       {*}$fco1 \
       seh_1 {{} {-pady 10}} {} \
       Spx [list "    Color scheme:" {} \
-        [list -tvar ::em::ncolor -from -2 -to $::apave::_CS_(MAXCS) -w 5 \
+        [list -tvar ::em::ncolor -from -2 -to [::apave::cs_Max] -w 5 \
         -justify center -state $::em::noCS -msgLab {LabMsg {  Color Scheme 1}} \
         -command ::em::change_PD_Spx -tooltip $tip1]] {} \
       chb1 {{} {-padx 5} {-toprev 1 -state $::em::noCS -t "Use it"}} {0} \
@@ -483,7 +483,7 @@ proc ::em::change_PD {} {
     set r [lindex $res 0]
   }
   ::apave::shadowAllowed $sa
-  set ::em::ncolor [::apave::getN $::em::ncolor $ncolorsav -2 $::apave::_CS_(MAXCS)]
+  set ::em::ncolor [::apave::getN $::em::ncolor $ncolorsav -2 [::apave::cs_Max]]
   if {$r} {
     if {$::em::ncolor==-2} {set ::em::ncolor -1}
     if {$fco1 eq ""} {
@@ -850,10 +850,4 @@ proc ::em::IF {sel {callcommName ""}} {
   }
   return true
 }
-
 # *****************************   EOF   *****************************
-
-#=== get an external CS to put into apave CSs (sort of tuning CS list)
-#? proc ::em::testCS {} {
- #? ::apave::initWM; ::em::initall; set cc [::apave::obj csCurrent]; set ca [::apave::cs_Max]; if {[catch {::em::em_message "[::apave::obj csGetName $cc]: $cc of $ca:\n\n CS-$ca: [::apave::obj csGet $ca]\n\n[string map {{ } \n} $::em::Argv]" ok "CS" -text 1 -w 99 -h 15} e]} {puts "ERROR: $e"}
-#? }

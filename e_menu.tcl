@@ -27,7 +27,7 @@
 package require Tk
 
 namespace eval ::em {
-  variable em_version "e_menu 3.3"
+  variable em_version "e_menu 3.3.1"
   variable solo [expr {[info exist ::argv0] && [file normalize $::argv0] eq \
     [file normalize [info script]]} ? 1 : 0]
   variable Argv0
@@ -45,7 +45,7 @@ namespace eval ::em {
 if {[catch {source [file join $::em::srcdir e_help.tcl]} e]} {
   set ::em::srcdir [file join [pwd] src]
   if {[catch {source [file join $::em::srcdir e_help.tcl]} e2]} {
-    puts "$e\n\n$e2\n\nPossibly, there is an error in e_help.tcl"
+    puts "$e\n\n$e2\n\nPossibly, an error in e_help.tcl"
     exit
   }
 }
@@ -99,7 +99,7 @@ proc S {incomm} {
       } elseif {[set com1 [auto_execok $com0]] ne ""} {
         exec $com1 {*}[lrange $clst 1 end] &
       } else {
-        M Can't find $com0
+        M Can't find the command: \n$com0
       }
     }
   }
@@ -134,7 +134,7 @@ namespace eval ::em {
     "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ,./"
   variable hotkeys $::em::hotsall
   variable workdir "" PD "" prjname "" PN2 "" prjdirlist [list]
-  variable ornament 1  ;# 1 - header only; 2 - prompt only; 3 - both; 0 - none
+  variable ornament 1  ;# 1 - header only; 2 - prompt only; 3 - both; 0 - none; -1 - no hint
   variable inttimer 1  ;# interval to check the timed tasks
   variable bd 1 b0 0 b1 0 b2 1 b3 1 b4 1
   variable incwidth 15
@@ -267,21 +267,21 @@ proc ::em::theming_pave {} {
       $::em::clrbE $::em::clrfS $::em::clrbS grey $::em::clrbg \
       $::em::clrcc $::em::clrht $::em::clrhh $::em::fI $::em::bI \
       $::em::fM $::em::bM]
-    ::apave::obj themeWindow . {*}$themecolors false
+    ::apave::obj themeWindow . $themecolors false
   } else {
     set themecolors [list $::em::clrinaf $::em::clrinab $::em::clrtitf \
       $::em::clrtitb $::em::clractf $::em::clractb grey $::em::clrinab \
       $::em::clrcurs $::em::clrhotk $::em::clrhelp $::em::fI $::em::bI \
       $::em::fM $::em::bM]
   }
-  ::apave::obj themeWindow . {*}$themecolors [expr {![::em::insteadCS]}]
+  ::apave::obj themeWindow . $themecolors [expr {![::em::insteadCS]}]
   foreach clr $themecolors {append thclr "-theme $clr "}
   return $thclr
 }
 #=== own message/question box
 proc ::em::dialog_box {ttl mes {typ ok} {icon info} {defb OK} args} {
   return [::eh::dialog_box $ttl $mes $typ $icon $defb \
-    -centerme .em {*}$args {*}[::em::theming_pave]]
+    -centerme .em {*}$args] ;# {*}[::em::theming_pave]]
 }
 #=== own message box
 proc ::em::em_message {mes {typ ok} {ttl "Info"} args} {
@@ -294,7 +294,10 @@ proc ::em::em_question {ttl mes {typ okcancel} {icon warn} {defb OK} args} {
 }
 #=== check is there a header of menu
 proc ::em::isheader {} {
-  return [expr {$::em::ornament == 1 || $::em::ornament == 3} ? 1 : 0]
+  return [expr {$::em::ornament in {1 3}} ? 1 : 0]
+}
+proc ::em::isheader_nohint {} {
+  return [expr {[isheader] || $::em::ornament==-1} ? 1 : 0]
 }
 #=== get an item's color
 proc ::em::color_button {i {fgbg "fg"}} {
@@ -880,8 +883,8 @@ proc ::em::shell_run {from typ c1 s1 amp {inpsel ""}} {
 #=== run commands before a submenu
 proc ::em::before_callmenu {pars} {
   set cpwd [pwd]
-  set menupos [string last "::em::callmenu" $pars]
-  if {$menupos>0} {  ;# there are previous commands before callmenu
+  set menupos [string last "\n::em::callmenu" $pars]
+  if {$menupos>0} {  ;# there are previous commands (in M: ... M: lines)
     set commands [string range $pars 0 $menupos-1]
     foreach com [split $commands \r] {
       set com [lindex [split $com \n] 0]
@@ -905,23 +908,24 @@ proc ::em::callmenu {typ s1 {amp ""} {from ""}} {
   if {$pars eq ""} return
   set noME [expr {[string range $typ 0 1] ne "ME"}]
   set stay [expr {$noME || $::em::ontop}]
-  set cho ch=$stay
-  set pars "$::em::inherited a= a0= a1= a2= ah= n= pa=0 $pars"
+  set pars "ch=$stay $::em::inherited a= a0= a1= a2= ah= n= pa=0 $pars"
   set pars [string map [list "b=%b" "b=$::eh::my_browser"] $pars]
-  if {[string match "ME*" $typ]} {
-    lassign [regexp -inline {^.*([+].*[+].*)} [wm geometry .em]] -> geo
-  } else {
-    set geo "+[expr 10+[winfo x .em]]+[expr 15+[winfo y .em]]"
-  }
-  set pars "$cho g=$geo $pars"
   if {$::em::ontop} {
     append pars " t=1"    ;# "ontop" means also "all menus stay on"
   } elseif {!$::em::solo} {
     set stay [expr {$::em::remain || ($noME && [::em::pool_level])}]
   }
-  if {$::apave::_CS_(MAXCS) > $::apave::_CS_(STDCS)} {
-    append pars " \"cs=[lindex $::apave::_CS_(ALL) $::apave::_CS_(MAXCS)]\""
+  if {[::apave::cs_Max] > [::apave::cs_MaxBasic]} {
+    append pars " \"cs=[lindex $::apave::_CS_(ALL) [::apave::cs_Max]]\""
   }
+  set geo [wm geometry .em]
+  set geo [string range $geo [string first + $geo] end]
+  # shift the new menu if it's shown above the current one
+  if {$::em::solo && ($noME || $::em::ontop)} {
+    lassign [split $geo +] -> x y
+    set geo +[expr 20+$x]+[expr 30+$y]
+  }
+  set pars "g=$geo $pars"
   prepr_1 pars "in" [string range $s1 1 end]  ;# %in is menu's index
   set sel "\"$::em::Argv0\""
   prepr_win sel "M/"  ;# force converting
@@ -949,12 +953,16 @@ proc ::em::shell {typ s1 {amp ""} {from ""}} {
   save_options
   shell_run $from $typ shell1 $s1 $amp
 }
-#=== run by button pressing
-proc ::em::callmenu_button {typ s1 {amp ""}} {
-  callmenu $typ $s1 $amp "button"
-}
+#=== logging
 proc ::em::log {oper} {
   catch {puts "$::em::menuttl - $oper: $::em::lasti"}
+}
+#=== procs for HELP/EXEC/SHELL/MENU items run by button pressing
+proc ::em::help_button {help} {
+  ::eh::browse [::eh::html $help $::em::offline]
+  set ::em::lasti 1
+  save_options
+  on_exit 0
 }
 proc ::em::run_button {typ s1 {amp ""}} {
   run $typ $s1 $amp "button"
@@ -964,12 +972,8 @@ proc ::em::shell_button {typ s1 {amp ""}} {
   shell $typ $s1 $amp "button"
   log Shell
 }
-#=== browse a help page
-proc ::em::browse_button {help} {
-  ::eh::browse [::eh::html $help $::em::offline]
-  set ::em::lasti 1
-  save_options
-  on_exit 0
+proc ::em::callmenu_button {typ s1 {amp ""}} {
+  callmenu $typ $s1 $amp "button"
 }
 #=== run a command after keypressing
 proc ::em::pr_button {ib args} {
@@ -1577,11 +1581,9 @@ proc ::em::prepare_buttons {refcommands} {
   checkbutton .em.fr.cb -text "On top" -variable ::em::ontop -fg $::em::clrhotk \
     -bg $::em::clrtitb -takefocus 0 -command {::em::toggle_ontop} \
     -font $::em::font1a
-  if {$::em::ornament != -1} {
-    grid [label .em.fr.h0 -text [string repeat " " [expr $::em::itviewed -3]] \
-      -bg $::em::clrinab] -row 0 -column 0 -sticky nsew
-    grid .em.fr.cb -row 0 -column 1 -sticky ne
-  }
+  grid [label .em.fr.h0 -text [string repeat " " [expr $::em::itviewed -3]] \
+    -bg $::em::clrinab] -row 0 -column 0 -sticky nsew
+  grid .em.fr.cb -row 0 -column 1 -sticky ne
   label .em.fr.win -bg $::em::clrinab -fg $::em::clrinab -state disabled \
     -takefocus 0
   if {[isheader]} {
@@ -1594,7 +1596,7 @@ proc ::em::prepare_buttons {refcommands} {
   catch {
     ::baltip tip .em.fr.cb "Press Ctrl+T to toggle"
   }
-  if {[isheader]} {set hlist {.em.fr.h0 .em.fr.h1 .em.fr.h2}} {set hlist {.em.fr.h0}}
+  if {[isheader_nohint]} {set hlist {.em.fr.h0 .em.fr.h1 .em.fr.h2}} {set hlist {.em.fr.h0}}
   foreach l $hlist {
     if {[winfo exists $l]} {
       bind $l <ButtonPress-1>   {
@@ -1736,10 +1738,10 @@ proc ::em::init_header {s1 seltd} {
   init_swc
   set ::em::useltd [set ::em::pseltd [set ::em::qseltd \
     [set ::em::dseltd [set ::em::sseltd $::em::seltd]]]]
-  if {[isheader]} {
+  if {[isheader_nohint]} {
     set help [lindex $::em::seltd 0]  ;# 1st word is the page name
     lappend ::em::commands [list " HELP        \"$help\"" \
-        "::em::browse \"$help\""]
+        "::em::help \"$help\""]
     if {[::iswindows]} {
       prepr_win seltd "M/"
       set ::em::pars($s1) $seltd
@@ -1840,7 +1842,7 @@ proc ::em::initcommands {lmc amc osm {domenu 0}} {
           }
         }
         c= {
-          set nc [::apave::getN $seltd -2 -2 $::apave::_CS_(MAXCS)]
+          set nc [::apave::getN $seltd -2 -2 [::apave::cs_Max]]
           if {![::em::insteadCS] || $nc<0} {
             if {[set ::em::ncolor $nc]<0} {
               set ::em::insteadCSlist [list]
@@ -1999,7 +2001,7 @@ proc ::em::initcolorscheme {{nothemed false}} {
 }
 #=== set default colors if not set by call of e_menu
 proc ::em::initdefaultcolors {} {
-  if {$::em::ncolor>=$::apave::_CS_(MINCS) && $::em::ncolor<=$::apave::_CS_(MAXCS)} {
+  if {$::em::ncolor>=$::apave::_CS_(MINCS) && $::em::ncolor<=[::apave::cs_Max]} {
     lassign [::apave::obj csSet $::em::ncolor] \
       ::em::clrfg ::em::clrbg ::em::clrfE ::em::clrbE \
       ::em::clrfS ::em::clrbS ::em::clrhh ::em::clrgr ::em::clrcc
@@ -2411,23 +2413,28 @@ proc ::em::initall {} {
     ::em::initend
   }
 }
+#=== checks if the e_menu exists
+proc ::em::exists {} {
+  return [winfo exists .em]
+}
+#=== returns the e_menu's geometry
+proc ::em::geometry {} {
+  return [wm geometry .em]
+}
 #=== main procedure to run
 proc ::em::main {args} {
+  if {[winfo exists .em.fr]} {destroy .em}
   lassign [::apave::parseOptions $args -prior 0 -modal 0 -remain 0 -noCS 0] \
     prior modal ::em::remain ::em::noCS
   set args [::apave::removeOptions $args -prior -modal -remain -noCS]
   if {$::em::noCS} {set ::em::noCS "disabled"} {set ::em::noCS "normal"}
-  if {$prior} { ;# continue with variables of previous session
-    set ::em::empool []
+  if {$prior} {
+    set ::em::empool []  ;# continue with variables of previous session
   }
   set ::em::Argv $args
   set ::em::Argc [llength $args]
   set ::em::fs [::apave::obj basicFontSize]
   set ::em::ncolor [::apave::obj csCurrent]
-  if {[winfo exists .em.fr]} {
-    focus .em.fr
-    return 0
-  }
   if {[llength $::em::empool]==0} {
     pool_push  ;# makes a basic item ("clean variables") in the menu pool
   } else {
@@ -2437,15 +2444,11 @@ proc ::em::main {args} {
   ::apave::initWM
   ::apave::iconImage -init small
   set ::em::reallyexit false
-  while {!$::em::reallyexit} {
+  while {!$::em::reallyexit && ![::apave::endWM ?]} {
     pool_push
     initall
     if {!$::em::reallyexit} {  ;# may be set in autoruns
-      if {![::iswindows]} {tkwait visibility .em}
-      if {$modal} {grab set .em}
-      set ::em::em_win_var ""
-      tkwait variable ::em::em_win_var
-      if {$modal} {grab release .em}
+      ::apave::obj showWindow .em $modal $::em::ontop ::em::em_win_var
       destroy .em
       if {![::em::pool_pull]} break
     } elseif {$::em::reallyexit eq "2"} {
@@ -2457,8 +2460,7 @@ proc ::em::main {args} {
   return $::em::em_win_var
 }
 
-# ::em::addon testCS ;# uncomment this and testCS of e_addon.tcl to test
-
 if {$::em::solo} {::em::main -modal 0 -remain 0 {*}$::argv}
 
-# *****************************   EOF   *****************************
+# _____________________________ EOF _____________________________________ #
+#RUNF1: ../pave/tests/test2_pave.tcl 8 9 12 'small icons'

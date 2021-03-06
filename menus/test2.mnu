@@ -23,5 +23,6 @@
 
 [OPTIONS]
 in=1.0
-c=5
-pos=26.3
+om=1
+c=21
+pos=26.4
