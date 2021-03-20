@@ -108,7 +108,7 @@ SW:git diff ? SW: cat "$::EMENUTMPFILE"
  R:git push R: %q "Pushing changes" "Push all changes in\n\n%PD\n\nto a remote repository ?"
  S:git push S: git push
 
- R:  R: 2
+ R:  R: 1
 
  MW:Fossil MW: m=fossil.mnu w=50
  M:Git M: m=git.mnu
@@ -124,7 +124,7 @@ SW:git diff ? SW: cat "$::EMENUTMPFILE"
 
 # utils menu for e_menu.tcl
 
- R: - R: 2
+ R: - R: 1
 
  R:caja %PD R: caja "%PD"
  R:xterm %PD R: cd %PD
@@ -141,7 +141,7 @@ SW:git diff ? SW: cat "$::EMENUTMPFILE"
  R:wget Web page R: cd %z5/WGET
  R:wget Web page R: %IF [::iswindows] %THEN explorer.exe "." %ELSE caja "."
 
- R: - R: 2
+ R: - R: 1
 
 SW:Save your stuff SW: cd %PD
  R:Save your stuff R: %C set ::EMENU7ZCNT [expr {($::EMENU7ZCNT+1)%4}]
@@ -151,8 +151,8 @@ SW:Save your stuff SW: cd %PD
    fil1 {{ Archive file-$::EMENU7ZCNT:}} {"$::EMENU7ZARC"} \
    ent2 {{ ... its suffix:} {} {-tooltip {Add anything you think\nbe specific for this stuff\ne.g. "spec-edition"\n\navoid special characters:\nspaces, quotes, ?, *, \{, \}}}} {} \
    seh1 {{} {-pady 7} {}} {} \
-   tex1 {{    Directories \n      to backup:} {} {-h 8 -w 60 -wrap word}} {$::EMENU7ZDIR} \
-   tex2 {{    Directories \n      postponed:} {} {-h 8 -w 60 -wrap word}} {$::EMENU7ZSKIP} \
+   tex1 {{    Directories \n      to backup:} {} {-h 8 -w 60 -tabnext tex2}} {$::EMENU7ZDIR} \
+   tex2 {{    Directories \n      postponed:} {} {-h 8 -w 60 -tabnext entdir3}} {$::EMENU7ZSKIP} \
    seh2 {{} {-pady 7} {}} {} \
    dir3 {{        Save to:}} {"$::EMENU7ZBAK"} \
    } -head {\n This creates a backup of your directories.\n } -weight bold == ::EMENU7ZCOM ::EMENU7ZGIT ::EMENU7ZARC ::EMENU7ZSUFF ::EMENU7ZDIR ::EMENU7ZSKIP ::EMENU7ZBAK
