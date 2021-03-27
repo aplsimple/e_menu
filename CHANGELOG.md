@@ -1,12 +1,14 @@
 # Last changes:
 
 
-Version `3.3.1 (6 Mar'21)`
+Version `3.3.2b1 (27 Mar'21)`
 
-  - submenu's geometry eq hidden parent's one
+  - atrace.tcl in.
+  - trace/untrace items in test1.mnu
+  - submenu's geometry equals to hidden parent's
   - o=-1 means "hint off"
   - checking by ::apave::endWM
-  - apave upd.
+  - apave, baltip packages upd.
   - BUGFIX: ::apave::cs_Max instead of ::apave::_CS_(MAXCS)
 
 Version `3.2.8 (31 Jan'21)`
