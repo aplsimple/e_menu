@@ -27,7 +27,7 @@
 package require Tk
 
 namespace eval ::em {
-  variable em_version "e_menu 3.3.2b1"
+  variable em_version "e_menu 3.3.2b5"
   variable solo [expr {[info exist ::argv0] && [file normalize $::argv0] eq \
     [file normalize [info script]]} ? 1 : 0]
   variable Argv0
@@ -633,18 +633,25 @@ proc ::em::term {sel amp {term ""}} {
   if {[string match "xterm *" "$::em::linuxconsole "]} {
     ::em::xterm $sel $amp
   } else {
+    set sel2 [string map {\\n \n} $sel]
     if {[string match "qterminal *" "$::em::linuxconsole "]} {
       # bad style, for qterminal only
-      set sel2 [string map {\\n \n} $sel]
       set sel ""
       foreach l [split $sel2 \n] {
         set l2 [string trimleft $l]
         if {[string match "#*" $l2] || $l2 eq ""} continue
         if {[string match "if *" $l2] || [string match "then" $l2] || [string match "else" $l2] || [string match "while *" $l2] || [string match "for *" $l2]} {
-          append sel $l " "
+          append sel " $l "
         } else {
-          append sel $l " ; "
+          append sel " $l ; "
         }
+      }
+    } else {
+      set sel ""
+      foreach l [split $sel2 \n] {
+        set l2 [string trimleft $l]
+        if {[string match "#*" $l2] || $l2 eq ""} continue
+        append sel " $l \\n"
       }
     }
     set composite "$::em::lin_console $sel $amp"
