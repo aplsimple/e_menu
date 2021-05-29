@@ -27,11 +27,11 @@
 package require Tk
 
 namespace eval ::em {
-  variable em_version "e_menu 3.3.2"
-  variable solo [expr {[info exist ::argv0] && [file normalize $::argv0] eq \
-    [file normalize [info script]]} ? 1 : 0]
+  variable em_version "e_menu 3.3.3b5"
+  variable solo [expr {[info exist ::em::executable] || ( \
+  [info exist ::argv0] && [file normalize $::argv0] eq [file normalize [info script]])} ? 1 : 0]
   variable Argv0
-  if {[info exist ::argv0]} {set Argv0 [file normalize $::argv0]} {set Argv0 [info script]}
+  if {$solo} {set Argv0 [file normalize $::argv0]} {set Argv0 [info script]}
   if {[info exist ::em::executable]} {set Argv0 [file dirname $Argv0]}
   variable Argv; if {[info exist ::argv]} {set Argv $::argv} {set Argv [list]}
   variable Argc; if {[info exist ::argc]} {set Argc $::argc} {set Argc 0}
@@ -68,7 +68,7 @@ if {$::em::solo} {set ::em::ncolor 0}
 #   IF - conditional execution
 #   EXIT - close menu
 
-proc M {cme args} {
+proc ::M {cme args} {
   if {[regexp "^-centerme " $cme]} {
     set msg ""
   } else {
@@ -79,16 +79,16 @@ proc M {cme args} {
   foreach a $args {append msg "$a "}
   ::em::em_message $msg ok Info -ontop $ontop {*}$cme
 }
-proc Q {ttl mes {typ okcancel} {icon warn} {defb OK} args} {
+proc ::Q {ttl mes {typ okcancel} {icon warn} {defb OK} args} {
   if {[lsearch $args -centerme]<0} {lappend args -centerme .em}
   if {[set ontop [::apave::getOption -ontop {*}$args]] eq {}} {set ontop $::em::ontop}
   return [set ::em::Q [::em::em_question $ttl $mes $typ $icon $defb {*}$args -ontop $ontop]]
 }
-proc T {args} {
+proc ::T {args} {
   set cc ""; foreach c $args {set cc "$cc$c "}
   ::em::shell_run "Nobutt" "S:" shell1 - "&" [string map {"\\n" "\r"} $cc]
 }
-proc S {incomm} {
+proc ::S {incomm} {
   foreach comm [split [string map {\\n \n} $incomm] \n] {
     if {[set comm [string trim $comm]] ne ""} {
       set comm [string map {\\\\n \\n} $comm]
@@ -104,7 +104,7 @@ proc S {incomm} {
     }
   }
 }
-proc EXIT {} {::em::on_exit}
+proc ::EXIT {} {::em::on_exit}
 
 # *******************************************************************
 # e_menu's procedures
@@ -188,6 +188,7 @@ namespace eval ::em {
   variable source_addons true
   variable empool [list]
   variable hili no
+  variable ls ""
 }
 #=== creates an item for the menu pool
 proc ::em::pool_item_create {} {
@@ -625,7 +626,7 @@ proc ::em::xterm {sel amp {term ""}} {
   foreach {o v s} {-fs fs tf -geometry geo tg -title ttl _tmp} {
     if {[string first $o $tpars]>=0} {set $v ""} {set $v "$o [set ::em::$s]"}
   }
-  exec -ignorestderr {*}$term {*}$lang {*}$fs {*}$geo {*}$ttl {*}$tpars \
+  ::em::execcom {*}$term {*}$lang {*}$fs {*}$geo {*}$ttl {*}$tpars \
     -e {*}$composite
 }
 #=== call command in terminal
@@ -655,9 +656,23 @@ proc ::em::term {sel amp {term ""}} {
       }
     }
     set composite "$::em::lin_console $sel $amp"
-    exec -ignorestderr {*}$::em::linuxconsole -e {*}$composite
+    ::em::execcom {*}$::em::linuxconsole -e {*}$composite
   }
 }
+#=== exec for ex= parameter
+proc ::em::execcom {args} {
+  if {$::em::ex eq ""} {
+    exec -ignorestderr {*}$args
+  } else {
+    catch {
+      set com [string trim "$args" &]
+      set pid [pid [open "|$com"]]
+      set menudir [file dirname $::em::menufilename]
+      ::apave::writeTextFile "$menudir/.pid~" pid
+    }
+  }
+}
+
 #=== call command in shell
 proc ::em::shell0 {sel amp {silent -1}} {
   set ret true
@@ -967,8 +982,6 @@ proc ::em::log {oper} {
 #=== procs for HELP/EXEC/SHELL/MENU items run by button pressing
 proc ::em::help_button {help} {
   ::eh::browse [::eh::html $help $::em::offline]
-  set ::em::lasti 1
-  save_options
   on_exit 0
 }
 proc ::em::run_button {typ s1 {amp ""}} {
@@ -1236,6 +1249,7 @@ proc ::em::prepr_pn {refpn {dt 0}} {
   prepr_1 pn "dd" $::em::dseltd ;# %dd is %s with special simbols deleted
   prepr_1 pn "ss" $::em::sseltd ;# %ss is %s trimmed
   prepr_1 pn "lg" [::eh::get_language] ;# %lg is a locale (e.g. ru_RU.utf8)
+  prepr_1 pn "ls" $::em::ls            ;# %ls is a list of files
   lassign [get_AR] AR RF
   prepr_1 pn "AR" $AR                 ;# %AR is contents of #ARGS..: line
   prepr_1 pn "RF" $RF                 ;# %RF is contents of #RUNF..: line
@@ -1797,7 +1811,7 @@ proc ::em::initcommands {lmc amc osm {domenu 0}} {
         z0= z1= z2= z3= z4= z5= z6= z7= z8= z9= \
         a= d= e= f= p= l= h= b= cs= c= t= g= n= \
         fg= bg= fE= bE= fS= bS= fI= bI= fM= bM= cc= gr= ht= hh= rt= \
-        m= om= ts= TF= yn= in= ex=} { ;# the processing order is important
+        m= om= ts= TF= yn= in= ex= ls=} { ;# the processing order is important
     if {($s1 in {o= s= m=}) && !($s1 in $osm)} {
       continue
     }
@@ -1919,7 +1933,7 @@ proc ::em::initcommands {lmc amc osm {domenu 0}} {
           set ::em::$s01 [::apave::getN $seltd [set ::em::$s01]]
         }
         ed= {set ::em::editor $seltd}
-        tg= - om= - dk= - ex= {set ::em::$s01 $seltd}
+        tg= - om= - dk= - ex= - ls= {set ::em::$s01 $seltd}
         md= {set ::em::basedir $seltd}
         tf= {set ::em::tf [::apave::getN $seltd $::em::tf]}
         in= {
@@ -2280,6 +2294,7 @@ proc ::em::on_exit {{really 1} args} {
   }
   if {$::em::solo} exit
   ::em::pool_pull
+  set ::em::geometry [::em::geometry]
   set ::em::reallyexit $really
   set ::em::em_win_var 0
 }
@@ -2325,16 +2340,28 @@ proc ::em::run_autohidden {alist} {
   }
 }
 #=== run commands of ::em::ex list and exit
-proc ::em::run_ex {} {
-  if {[llength $::em::ex]} {
-    foreach ex [split $::em::ex ,] {
-      if {[string match "h*" $ex] && $ex ne "h"} {
+proc ::em::run_ex {{exe ""}} {
+  if {$exe eq ""} {set exe $::em::ex}
+  if {[llength $exe]} {
+    foreach ex [split $exe ,] {
+      if {$ex eq "Help"} {
+        ::em::help_button $::em::pseltd
+      } elseif {[string match "h*" $ex] && $ex ne "h"} {
         ::em::run_autohidden [string range $ex 1 end]
       } else {
         ::em::run_auto $ex
       }
     }
-    exit
+    ::em::on_exit 1
+  }
+}
+#=== set focus on .em window
+proc ::em::focus_em {} {
+  after 50 {
+    if {[winfo exists .em]} {
+      focus -force .em
+      ::em::focus_button $::em::lasti
+    }
   }
 }
 #=== run tasks assigned in a= (by their hotkeys)
@@ -2347,6 +2374,7 @@ proc ::em::initauto {} {
   run_autohidden $::em::autohidden
   run_tcl_commands ::em::commandA2  ;# run the command as last init
   run_ex                            ;# after all inits/autos, run "ex=" if any
+  if {$::em::reallyexit} return
   if {!$::em::solo} {
     # only 1st start for 1st window (non-solo)
     set ::em::Argv [::apave::removeOptions $::em::Argv a=* a0=* a1=* a2=* ah=*]
@@ -2357,12 +2385,7 @@ proc ::em::initauto {} {
     bind .em <Left> [::eh::ctrl_alt_off "::em::on_exit"]
   }
   if {$::em::lasti < $::em::begin} {set ::em::lasti $::em::begin}
-  after 50 {
-    if {[winfo exists .em]} {
-      focus -force .em
-      ::em::focus_button $::em::lasti
-    }
-  }
+  ::em::focus_em
 }
 #=== begin inits
 proc ::em::initbegin {} {
@@ -2417,6 +2440,7 @@ proc ::em::initall {} {
     ::em::initmain
     ::em::initmenu
     ::em::initauto
+    if {$::em::reallyexit} return
     ::em::initend
   }
 }
@@ -2436,7 +2460,7 @@ proc ::em::main {args} {
   set args [::apave::removeOptions $args -prior -modal -remain -noCS]
   if {$::em::noCS} {set ::em::noCS "disabled"} {set ::em::noCS "normal"}
   if {$prior} {
-    set ::em::empool []  ;# continue with variables of previous session
+    set ::em::empool [list]  ;# continue with variables of previous session
   }
   set ::em::Argv $args
   set ::em::Argc [llength $args]
@@ -2448,26 +2472,33 @@ proc ::em::main {args} {
     set ::em::empool [lrange $::em::empool 0 0]  ;# fetch the clean variables
     pool_item_activate 0
   }
-  ::apave::initWM
-  ::apave::iconImage -init small
   set ::em::reallyexit false
   while {!$::em::reallyexit && ![::apave::endWM ?]} {
     pool_push
     initall
+    if {$::em::reallyexit} {
+      pool_pull
+      return 1
+    }
     if {!$::em::reallyexit} {  ;# may be set in autoruns
       ::apave::obj showWindow .em $modal $::em::ontop ::em::em_win_var
       destroy .em
-      if {![::em::pool_pull]} break
+      if {![pool_pull]} break
     } elseif {$::em::reallyexit eq "2"} {
-      set ::em::empool []
+      set ::em::empool [list]
       set ::em::reallyexit false  ;# enter the newly created menu
     }
   }
+  set ::em::empool [list]
   if [winfo exists .em] {destroy .em}
   return $::em::em_win_var
 }
 
-if {$::em::solo} {::em::main -modal 0 -remain 0 {*}$::argv}
+if {$::em::solo} {
+  ::apave::initWM
+  ::apave::iconImage -init small
+  ::em::main -modal 0 -remain 0 {*}$::argv
+}
 
 # _____________________________ EOF _____________________________________ #
 #RUNF1: ../pave/tests/test2_pave.tcl 8 9 12 'small icons'
