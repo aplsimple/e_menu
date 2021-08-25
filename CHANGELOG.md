@@ -1,6 +1,20 @@
 # Last changes:
 
 
+Version `3.4.4 (25 Aug'21)`
+
+  - new options: -ls, -pk, -DF, -BF, -PI
+  - running e_menu (when sourced) to select an item
+  - em::read_f_file and em::menuof modified
+  - regexp for ARGS[0-9]= and RUNF[0-9]= corrected
+  - checkbutton's color toggles together with "on top"
+  - -ontop of dialogues added
+  - menu variables' initialization changed (\n, \ substitutions etc.)
+  - saving menu variables after question (%Q)
+  - .mnu modified
+  - apave package updated
+
+
 Version `3.3.2b1 (27 Mar'21)`
 
   - atrace.tcl in.
