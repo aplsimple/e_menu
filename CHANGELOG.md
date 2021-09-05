@@ -1,6 +1,13 @@
 # Last changes:
 
 
+Version `3.4.5a5 (5 Sep'21)`
+
+  - bugfix: ::em::font_f2 (-family) may be multi-word
+  - menu.mnu modified
+  - apave package updated
+
+
 Version `3.4.4 (25 Aug'21)`
 
   - new options: -ls, -pk, -DF, -BF, -PI
