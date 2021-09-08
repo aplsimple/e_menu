@@ -1,9 +1,11 @@
 # Last changes:
 
 
-Version `3.4.5a5 (5 Sep'21)`
+Version `3.4.5b1 (8 Sep'21)`
 
   - bugfix: ::em::font_f2 (-family) may be multi-word
+  - Tclexe to run Tcl executable at running tclsh & wish and at restarting
+  - EXEC (any command) joined to the RUNF, ARGS company
   - menu.mnu modified
   - apave package updated
 
