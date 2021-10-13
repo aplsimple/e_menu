@@ -1,7 +1,7 @@
 # Last changes:
 
 
-Version `3.4.5 (6 Oct'21)`
+Version `3.4.5.2 (10 Oct'21)`
 
   - bugfix: ::em::font_f2 (-family) may be multi-word
   - Tclexe to run Tcl executable at running tclsh & wish and at restarting
