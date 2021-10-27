@@ -395,7 +395,7 @@ proc ::em::reread_init {} {
 #___ destroy all e_menu apps
 proc ::em::destroy_emenus {} {
   if {[em_question "Clearance - $::em::appname" \
-  "\n  Destroy all e_menu applications?  \n"]} {
+  "\n  Destroy all e_menu applications?  \n" yesno ques NO -text 0]} {
     for {set i 0} {$i < 3} {incr i} {
       for {set nap 1} {$nap <= 64} {incr nap} {
         set app $::em::thisapp$nap
@@ -450,10 +450,10 @@ proc ::em::change_PD {} {
   set sa [::apave::shadowAllowed 0]
   set ncolorsav $::em::ncolor
   set geo [wm geometry .em]
-  set ornams [list {-1 None} { 0 Top line only} { 1 Header} { 2 Prompts} { 3 All}]
+  set ornams [list {-2 None} {-1 Top line only} { 0 Help/Exec/Shell} { 1 Help/Exec/Shell + Header} { 2 Help/Exec/Shell + Prompts} { 3 All}]
   switch $::em::ornament {
-    -1 - 0 - 1 - 2 - 3 {set ornam [lindex $ornams [expr {$::em::ornament+1}]]}
-    default {set ornam [lindex $ornams 0]}
+    -2 - -1 - 0 - 1 - 2 - 3 {set ornam [lindex $ornams [expr {$::em::ornament+2}]]}
+    default {set ornam [lindex $ornams 3]}
   }
   ::apave::APaveInput create ::em::dialog .em
   set r -1
