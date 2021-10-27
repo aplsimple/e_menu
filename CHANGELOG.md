@@ -1,7 +1,7 @@
 # Last changes:
 
 
-Version `3.4.6a2 (25 Oct'21)`
+Version `3.4.6a3 (27 Oct'21)`
 
   - bugfix: skipped last line of .mnu
   - bugfix: ::em::font_f2 (-family) may be multi-word
