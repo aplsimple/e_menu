@@ -1,16 +1,19 @@
 # Last changes:
 
 
-Version `3.4.6a4 (31 Oct'21)`
+Version `3.4.6b13 (24 Nov'21)`
 
+  - bugfix: checkForShell in shell0 (tclsh to tclkit)
+  - bugfix: o=-1 instead of o=0
   - bugfix: skipped last line of .mnu
   - bugfix: ::em::font_f2 (-family) may be multi-word
+  - SD= argument (path to src directory)
   - Tclexe to run Tcl executable at running tclsh & wish and at restarting
   - new option: NE=1 for dialogues (sets ::em::NE) to run dialogues repeatedly
   - changed option: o=-2 & o=-1 (no ornament & top line only)
   - EXEC (any command) joined to the RUNF, ARGS company
   - .mnu modified
-  - apave package updated
+  - apave, baltip, klnd packages updated
 
 
 Version `3.4.4 (25 Aug'21)`
