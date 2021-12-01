@@ -1,7 +1,7 @@
 # Last changes:
 
 
-Version `3.4.6b13 (24 Nov'21)`
+Version `3.4.6 (8 Dec'21)`
 
   - bugfix: checkForShell in shell0 (tclsh to tclkit)
   - bugfix: o=-1 instead of o=0
