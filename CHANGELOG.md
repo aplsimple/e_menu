@@ -1,7 +1,7 @@
 # Last changes:
 
 
-Version `3.4.6 (8 Dec'21)`
+Version `3.4.7a5 (5 Jan'22)`
 
   - bugfix: checkForShell in shell0 (tclsh to tclkit)
   - bugfix: o=-1 instead of o=0
@@ -12,7 +12,7 @@ Version `3.4.6 (8 Dec'21)`
   - new option: NE=1 for dialogues (sets ::em::NE) to run dialogues repeatedly
   - changed option: o=-2 & o=-1 (no ornament & top line only)
   - EXEC (any command) joined to the RUNF, ARGS company
-  - .mnu modified
+  - .mnu modified, fow Windows esp.
   - apave, baltip, klnd packages updated
 
 
