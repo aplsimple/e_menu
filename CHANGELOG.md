@@ -1,5 +1,11 @@
 # Last changes:
 
+Version `3.4.8a2 (2 Feb'22)`
+
+  - CHANGE: e_help.tcl: tiny-ups & html Tcl/Tk man pages allowed along with htm
+  - CHANGE: menu.mnu modified
+  - apave, klnd packages updated
+
 
 Version `3.4.7 (26 Jan'22)`
 
