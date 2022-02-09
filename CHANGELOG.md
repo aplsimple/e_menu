@@ -1,7 +1,10 @@
 # Last changes:
 
-Version `3.4.8a2 (2 Feb'22)`
+Version `3.4.8a4 (9 Feb'22)`
 
+  - BUGFIX: b4= option (-padx of items)
+  - NEW   : tc= option sets Tcl executable (for commands starting with tclsh/wish)
+  - NEW   : #ARGS1:/#RUNF1:/#EXEC1:OFF disables runs by these
   - CHANGE: e_help.tcl: tiny-ups & html Tcl/Tk man pages allowed along with htm
   - CHANGE: menu.mnu modified
   - apave, klnd packages updated
