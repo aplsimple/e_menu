@@ -1,12 +1,13 @@
 # Last changes:
 
-Version `3.4.8a7 (16 Feb'22)`
+Version `3.4.8b2 (27 Feb'22)`
 
   - BUGFIX: b4= option (-padx of items)
   - BUGFIX: ::EMENUFILE to be initialized in "internal" e_menu.tcl
   - BUGFIX: unnecessary 'wm geometry..' => possible issue with some tclkits
   - NEW   : tc= option sets Tcl executable (for commands starting with tclsh/wish)
   - NEW   : #ARGS1:/#RUNF1:/#EXEC1:OFF disables runs by these
+  - NEW   : matched quotes highlighted
   - CHANGE: running e_menu faster & tiny-ups
   - CHANGE: e_help.tcl: man pages checked for .html & .htm extensions
   - CHANGE: menu.mnu modified
