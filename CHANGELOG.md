@@ -1,6 +1,6 @@
 # Last changes:
 
-Version `3.4.8b2 (27 Feb'22)`
+Version `3.4.8b3 (5 Mar'22)`
 
   - BUGFIX: b4= option (-padx of items)
   - BUGFIX: ::EMENUFILE to be initialized in "internal" e_menu.tcl
