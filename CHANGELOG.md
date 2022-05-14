@@ -1,9 +1,9 @@
 # Last changes:
 
-Version `3.4.9 (20 Apr'22)`
+Version `3.4.10 (14 May'22)`
 
   - NEW   : in ::em::shell0, run Tcl files by the Tcl executable (that runs e_menu)
-  - CHANGE: apave package
+  - CHANGE: apave, klnd packages
 
 
 Version `3.4.8 (8 Mar'22)`
