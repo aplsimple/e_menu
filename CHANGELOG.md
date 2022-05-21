@@ -1,5 +1,11 @@
 # Last changes:
 
+
+Version `3.4.11 (20 May'22)`
+
+  - BUGFIX: rest colors for themeWindow (in ::em::theming_pave)
+
+
 Version `3.4.10 (14 May'22)`
 
   - NEW   : in ::em::shell0, run Tcl files by the Tcl executable (that runs e_menu)
