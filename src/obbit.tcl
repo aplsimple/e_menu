@@ -158,6 +158,7 @@ namespace eval ::apave {
   set ::apave::_CS_(old) -3
   set ::apave::_CS_(TONED) [list -2 no]
   set ::apave::_CS_(LABELBORDER) 0
+  set ::apave::_CS_(CURSORWIDTH) 2
   namespace eval ::tk { ; # just to get localized messages
     foreach m {&Abort &Cancel &Copy Cu&t &Delete E&xit &Filter &Ignore &No \
     OK Open P&aste &Quit &Retry &Save "Save As" &Yes Close "To clipboard" \
@@ -852,7 +853,7 @@ proc ::apave::logName {fname} {
 proc ::apave::logMessage {msg} {
   # Logs messages to a log file.
   #   msg - the message
-  # A log file's name is set by _PU_opts(_LOGFILE_). If it's blank, 
+  # A log file's name is set by _PU_opts(_LOGFILE_). If it's blank,
   # no logging is made.
 
   variable _PU_opts;
@@ -1535,7 +1536,7 @@ oo::class create ::apave::ObjectTheming {
   10-emfg 11-embg 12-- 13-menubg 14-winfg 15-winbg 16-itemHL2 ...reserved...
     #
     # See also: themeWindow
-  
+
     return [list 1 3 0 2 6 5 8 3 7 9 4 10 11 1 13 14 15 16 17 18 19 20 21]
   }
 
@@ -2288,7 +2289,7 @@ oo::class create ::apave::ObjectTheming {
 
 # ___________________________________ EOF _____________________________________ #
 
-#%   DOCTEST   SOURCE   tests/obbit_1.test
+#%   DOCTEST   SOURCE  ~/PG/github/pave/tests/obbit_1.test
 #RUNF1: ../../../src/alited.tcl LOG=~/TMP/alited-DEBUG.log DEBUG
 #-RUNF1: ./tests/test2_pave.tcl
 #RUNF1: ./tests/test2_pave.tcl 10 10 12 "small icons"

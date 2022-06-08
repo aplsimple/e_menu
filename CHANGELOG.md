@@ -1,6 +1,15 @@
 # Last changes:
 
 
+Version `3.4.12 (8 Jun'22)`
+
+  - BUGFIX: running an external editor with arguments (exec -- {*}$::em::editor)
+  - CHANGE: doctest_of_emenu.tcl (-DTs -s -DTv -v -DTb -b arguments)
+  - CHANGE: git.mnu, fossil.mnu (OK button focused), tests.mnu (DT* args)
+  - CHANGE: ::em::edit uses e_menu's editor for .mnu
+  - CHANGE: apave, baltip packages
+
+
 Version `3.4.11 (20 May'22)`
 
   - BUGFIX: rest colors for themeWindow (in ::em::theming_pave)
