@@ -6,6 +6,7 @@ Version `3.4.14 (18 Jun'22)`
   - BUGFIX: menu.mnu corrected ("Run" in Windows)
   - BUGFIX: test1.mnu, tests.mnu to display a tail file name
   - NEW   : forget installed in Tcl/Tk packages & namespaces used in e_menu
+  - CHANGE: edit button in Projects calls e_menu's editor
   - CHANGE: apave package
 
 
