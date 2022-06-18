@@ -27,7 +27,7 @@
 package require Tk
 
 namespace eval ::em {
-  variable em_version {e_menu 3.4.13}
+  variable em_version {e_menu 3.4.14}
   variable solo [expr {[info exist ::em::executable] || ( \
   [info exist ::argv0] && [file normalize $::argv0] eq [file normalize [info script]])} ? 1 : 0]
   variable Argv0
@@ -2244,7 +2244,7 @@ proc ::em::initmain {} {
   if {$::em::pause > 0} {after $::em::pause}  ;# pause before main inits
   if {$::em::appN > 0} {
     set ::em::appname $::em::thisapp$::em::appN     ;# set N of application
-  } else {
+  } elseif {$::em::solo} {
     ;# otherwise try to find it
     for {set ::em::appN 1} {$::em::appN < 64} {incr ::em::appN} {
       set ::em::appname $::em::thisapp$::em::appN

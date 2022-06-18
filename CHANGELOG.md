@@ -1,9 +1,9 @@
 # Last changes:
 
 
-Version `3.4.13 (15 Jun'22)`
+Version `3.4.14 (18 Jun'22)`
 
-  - BUGFIX: menu repainting corrected (Windows usage)
+  - BUGFIX: menu.mnu corrected ("Run" in Windows)
   - BUGFIX: test1.mnu, tests.mnu to display a tail file name
   - NEW   : forget installed in Tcl/Tk packages & namespaces used in e_menu
   - CHANGE: apave package
