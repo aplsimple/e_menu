@@ -1,10 +1,22 @@
 # Last changes:
 
 
-Version `3.4.15 (22 Jun'22)`
+Version `3.4.17 (27 Jun'22)`
+
+  - BUGFIX: "Projects" dialogue's font & window size
+  - NEW   : warning at running EXEC/SHELL items
+  - CHANGE: handling process ID
+  - CHANGE: F4 hot key in menu.mnu
+  - CHANGE: clearances, mostly of [expr ...]
+  - CHANGE: "solo" in "About" dialogue, for solo mode
+  - CHANGE: apave package
+
+
+Version `3.4.16 (23 Jun'22)`
 
   - BUGFIX: menu.mnu corrected ("Run" in Windows)
   - BUGFIX: test1.mnu, tests.mnu to display a tail file name
+  - NEW   : ee= option to run its value as a command in terminal
   - NEW   : forget installed in Tcl/Tk packages & namespaces used in e_menu
   - CHANGE: remove accompanying files of baltip package
   - CHANGE: edit button in Projects calls e_menu's editor
