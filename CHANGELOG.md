@@ -1,15 +1,17 @@
 # Last changes:
 
 
-Version `3.4.17 (27 Jun'22)`
+Version `3.5.0a1 (4 Jul'22)`
 
   - BUGFIX: "Projects" dialogue's font & window size
+  - BUGFIX: resizing e_menu's window to min.width/height
+  - NEW   : em::menuOption to set/get options of menus (now, geometry of menu exited)
   - NEW   : warning at running EXEC/SHELL items
   - CHANGE: handling process ID
   - CHANGE: F4 hot key in menu.mnu
   - CHANGE: clearances, mostly of [expr ...]
   - CHANGE: "solo" in "About" dialogue, for solo mode
-  - CHANGE: apave package
+  - CHANGE: packages: apave 3.5
 
 
 Version `3.4.16 (23 Jun'22)`
