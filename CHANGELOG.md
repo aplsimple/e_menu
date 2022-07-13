@@ -1,12 +1,13 @@
 # Last changes:
 
 
-Version `3.5.0a1 (4 Jul'22)`
+Version `3.5.0a2 (13 Jul'22)`
 
   - BUGFIX: "Projects" dialogue's font & window size
   - BUGFIX: resizing e_menu's window to min.width/height
   - NEW   : em::menuOption to set/get options of menus (now, geometry of menu exited)
   - NEW   : warning at running EXEC/SHELL items
+  - CHANGE: handling runs in Linux terminal
   - CHANGE: handling process ID
   - CHANGE: F4 hot key in menu.mnu
   - CHANGE: clearances, mostly of [expr ...]
