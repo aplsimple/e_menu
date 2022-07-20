@@ -1,7 +1,7 @@
 # Last changes:
 
 
-Version `3.5.0a3 (15 Jul'22)`
+Version `3.5.0a4 (20 Jul'22)`
 
   - BUGFIX: "Projects" dialogue's font & window size
   - BUGFIX: resizing e_menu's window to min.width/height
@@ -13,7 +13,7 @@ Version `3.5.0a3 (15 Jul'22)`
   - CHANGE: F4 hot key in menu.mnu
   - CHANGE: clearances, mostly of [expr ...]
   - CHANGE: "solo" in "About" dialogue, for solo mode
-  - CHANGE: packages: apave 3.5
+  - CHANGE: packages: apave 3.5, baltip 1.3.8
 
 
 Version `3.4.16 (23 Jun'22)`
