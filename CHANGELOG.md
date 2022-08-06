@@ -1,19 +1,20 @@
 # Last changes:
 
 
-Version `3.5.0a4 (20 Jul'22)`
+Version `3.5.1 (6 Aug'22)`
 
   - BUGFIX: "Projects" dialogue's font & window size
   - BUGFIX: resizing e_menu's window to min.width/height
   - NEW   : wt= option for Windows console
   - NEW   : em::menuOption to set/get options of menus (now, geometry of menu exited)
   - NEW   : warning at running EXEC/SHELL items
+  - CHANGE: git2.mnu (edit ~/.gitconfig)
   - CHANGE: handling runs in Linux terminal
   - CHANGE: handling process ID
   - CHANGE: F4 hot key in menu.mnu
   - CHANGE: clearances, mostly of [expr ...]
   - CHANGE: "solo" in "About" dialogue, for solo mode
-  - CHANGE: packages: apave 3.5, baltip 1.3.8
+  - CHANGE: packages: apave 3.5.1, baltip 1.4.0
 
 
 Version `3.4.16 (23 Jun'22)`
