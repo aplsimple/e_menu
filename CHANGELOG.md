@@ -1,7 +1,7 @@
 # Last changes:
 
 
-Version `3.5.1 (6 Aug'22)`
+Version `3.5.1 (10 Aug'22)`
 
   - BUGFIX: "Projects" dialogue's font & window size
   - BUGFIX: resizing e_menu's window to min.width/height
