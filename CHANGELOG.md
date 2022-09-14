@@ -1,6 +1,12 @@
 # Last changes:
 
 
+Version `3.5.5 (14 Sep'22)`
+
+  - CHANGE: continue code rearranging in alited's style
+  - CHANGE: packages: apave 3.5.5, baltip 1.4.1
+
+
 Version `3.5.4 (31 Aug'22)`
 
   - BUGFIX: "Projects" dialogue's font & window size
