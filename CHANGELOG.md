@@ -1,6 +1,14 @@
 # Last changes:
 
 
+Version `3.5.6 (5 Oct'22)`
+
+  - CHANGE: em::Tclexe gets path to Tcl executable
+  - CHANGE: tc= option: additional checks for full path to tclsh
+  - CHANGE: wt= option: additional checks for cmd.exe & powershell.exe
+  - CHANGE: packages: apave 3.5.6
+
+
 Version `3.5.5 (14 Sep'22)`
 
   - CHANGE: continue code rearranging in alited's style
