@@ -1,12 +1,12 @@
 # Last changes:
 
 
-Version `3.5.7 (11 Oct'22)`
+Version `3.5.7 (19 Oct'22)`
 
   - CHANGE: TF= option processed before m=, using in tests.mnu
   - CHANGE: -shiftX 8 option for baltip::tip
   - CHANGE: git.mnu: empty commit
-  - CHANGE: packages: apave 3.5.7, baltip 1.5
+  - CHANGE: packages: apave 3.5.7, baltip 1.5.1
 
 
 Version `3.5.6 (5 Oct'22)`
