@@ -1,6 +1,11 @@
 # Last changes:
 
 
+Version `3.5.9 (25 Oct'22)`
+
+  - CHANGE: packages: apave 3.5.9
+
+
 Version `3.5.7 (19 Oct'22)`
 
   - CHANGE: TF= option processed before m=, using in tests.mnu
