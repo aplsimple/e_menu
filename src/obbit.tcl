@@ -19,6 +19,7 @@ namespace eval ::apave {
   set ::apave::BGMAIN #d9d9d9
   set ::apave::FONTMAIN [font actual TkDefaultFont]
   set ::apave::FONTMAINBOLD [list {*}$::apave::FONTMAIN -weight bold]
+  set ::apave::BUTTOOL {-relief flat -overrelief raised -highlightthickness 0 -takefocus 0}
 
   # - common options/constants of apave utils
   variable _PU_opts;       array set _PU_opts [list -NONE =NONE=]
@@ -357,6 +358,20 @@ proc ::apave::splitGeometry {geom} {
   }
   return [list $w $h $x $y]
 }
+#_______________________
+
+proc ::apave::rootModalWindow {pwin} {
+  # Gets a parent modal window for a given one.
+  #   pwin - default parent
+
+  set root $pwin
+  foreach w [winfo children $pwin] {
+    if {[winfo ismapped $w] && [::apave::InfoFind $w yes] ne {}} {
+      set root [winfo toplevel $w]
+    }
+  }
+  return $root
+}
 
 ## ________________________ Inits _________________________ ##
 
@@ -376,41 +391,32 @@ proc ::apave::initPOP {w} {
 }
 #_______________________
 
-proc ::apave::initStyles {} {
+proc ::apave::initStyle {wt wbase args} {
+  # Initializes a style for a widget type, e.g. button's.
+  #   wt - target widget type
+  #   wbase - base widget type
+  #   args - options of the style
 
+  ttk::style configure $wt {*}[ttk::style configure $wbase]
+  ttk::style configure $wt {*}$args
+  ttk::style map       $wt {*}[ttk::style map $wbase]
+  ttk::style layout    $wt [ttk::style layout $wbase]
+}
+#_______________________
+
+proc ::apave::initStyles {} {
   # Initializes miscellaneous styles, e.g. button's.
 
-  ::apave::obj create_Fonts
-
-  ttk::style configure TButtonWest {*}[ttk::style configure TButton]
-  ttk::style configure TButtonWest -anchor w -font $::apave::FONTMAIN
-  ttk::style map       TButtonWest {*}[ttk::style map TButton]
-  ttk::style layout    TButtonWest [ttk::style layout TButton]
-
-  ttk::style configure TButtonBold {*}[ttk::style configure TButton]
-  ttk::style configure TButtonBold -font $::apave::FONTMAINBOLD
-  ttk::style map       TButtonBold {*}[ttk::style map TButton]
-  ttk::style layout    TButtonBold [ttk::style layout TButton]
-
-  ttk::style configure TButtonWestBold {*}[ttk::style configure TButton]
-  ttk::style configure TButtonWestBold -anchor w -font $::apave::FONTMAINBOLD
-  ttk::style map       TButtonWestBold {*}[ttk::style map TButton]
-  ttk::style layout    TButtonWestBold [ttk::style layout TButton]
-
-  ttk::style configure TButtonWestHL {*}[ttk::style configure TButton]
-  ttk::style configure TButtonWestHL -anchor w -foreground [lindex [obj csGet] 4]
-  ttk::style map       TButtonWestHL {*}[ttk::style map TButton]
-  ttk::style layout    TButtonWestHL [ttk::style layout TButton]
-
-  ttk::style configure TMenuButtonWest {*}[ttk::style configure TMenubutton]
-  ttk::style configure TMenuButtonWest -anchor w -font $::apave::FONTMAIN -relief raised
-  ttk::style map       TMenuButtonWest {*}[ttk::style map TMenubutton]
-  ttk::style layout    TMenuButtonWest [ttk::style layout TMenubutton]
+  obj create_Fonts
+  initStyle TButtonWest TButton -anchor w -font $::apave::FONTMAIN
+  initStyle TButtonBold TButton -font $::apave::FONTMAINBOLD
+  initStyle TButtonWestBold TButton -anchor w -font $::apave::FONTMAINBOLD
+  initStyle TButtonWestHL TButton -anchor w -foreground [lindex [obj csGet] 4]
+  initStyle TMenuButtonWest TMenubutton -anchor w -font $::apave::FONTMAIN -relief raised
 }
 #_______________________
 
 proc ::apave::initStylesFS {args} {
-
   # Initializes miscellaneous styles, e.g. button's.
   #   args - font options ("name value" pairs)
 
@@ -418,40 +424,13 @@ proc ::apave::initStylesFS {args} {
   set font  "$::apave::FONTMAIN $args"
   set fontB "$::apave::FONTMAINBOLD $args"
 
-  ttk::style configure TLabelFS {*}[ttk::style configure TLabel]
-  ttk::style configure TLabelFS -font $font
-  ttk::style map       TLabelFS {*}[ttk::style map TLabel]
-  ttk::style layout    TLabelFS [ttk::style layout TLabel]
-
-  ttk::style configure TCheckbuttonFS {*}[ttk::style configure TCheckbutton]
-  ttk::style configure TCheckbuttonFS -font $font
-  ttk::style map       TCheckbuttonFS {*}[ttk::style map TCheckbutton]
-  ttk::style layout    TCheckbuttonFS [ttk::style layout TCheckbutton]
-
-  ttk::style configure TComboboxFS {*}[ttk::style configure TCombobox]
-  ttk::style configure TComboboxFS -font $font
-  ttk::style map       TComboboxFS {*}[ttk::style map TCombobox]
-  ttk::style layout    TComboboxFS [ttk::style layout TCombobox]
-
-  ttk::style configure TRadiobuttonFS {*}[ttk::style configure TRadiobutton]
-  ttk::style configure TRadiobuttonFS -font $font
-  ttk::style map       TRadiobuttonFS {*}[ttk::style map TRadiobutton]
-  ttk::style layout    TRadiobuttonFS [ttk::style layout TRadiobutton]
-
-  ttk::style configure TButtonWestFS {*}[ttk::style configure TButton]
-  ttk::style configure TButtonWestFS -anchor w -font $font
-  ttk::style map       TButtonWestFS {*}[ttk::style map TButton]
-  ttk::style layout    TButtonWestFS [ttk::style layout TButton]
-
-  ttk::style configure TButtonBoldFS {*}[ttk::style configure TButton]
-  ttk::style configure TButtonBoldFS -font $fontB
-  ttk::style map       TButtonBoldFS {*}[ttk::style map TButton]
-  ttk::style layout    TButtonBoldFS [ttk::style layout TButton]
-
-  ttk::style configure TButtonWestBoldFS {*}[ttk::style configure TButton]
-  ttk::style configure TButtonWestBoldFS -anchor w -font $fontB
-  ttk::style map       TButtonWestBoldFS {*}[ttk::style map TButton]
-  ttk::style layout    TButtonWestBoldFS [ttk::style layout TButton]
+  initStyle TLabelFS TLabel -font $font
+  initStyle TCheckbuttonFS TCheckbutton -font $font
+  initStyle TComboboxFS TCombobox -font $font
+  initStyle TRadiobuttonFS TRadiobutton -font $font
+  initStyle TButtonWestFS TButton -anchor w -font $font
+  initStyle TButtonBoldFS TButton -font $fontB
+  initStyle TButtonWestBoldFS TButton -anchor w -font $fontB
 }
 #_______________________
 
@@ -510,6 +489,75 @@ proc ::apave::InitTheme {intheme libdir} {
 }
 #_______________________
 
+proc ::apave::iconifyOption {args} {
+  # Gets/sets "-iconify" option.
+  #   args - if contains no arguments, gets "-iconify" option; otherwise sets it
+  # Option values mean:
+  #   none - do nothing: no withdraw/deiconify
+  #   Linux - do withdraw/deiconify for Linux
+  #   Windows - do withdraw/deiconify for Windows
+  #   default - do withdraw/deiconify depending on the platform
+  # See also: withdraw, deiconify
+
+  if {[llength $args]} {
+    set iconify [::apave::obj setShowOption -iconify $args]
+  } else {
+    set iconify [::apave::obj getShowOption -iconify]
+  }
+  return $iconify
+}
+#_______________________
+
+proc ::apave::withdraw {w} {
+  # Does 'withdraw' for a window.
+  #   w - the window's path
+  # See also: iconifyOption
+
+  switch -- [iconifyOption] {
+    none {          ; # no withdraw/deiconify actions
+    }
+    Linux {         ; # do it for Linux
+      wm withdraw $w
+    }
+    Windows {       ; # do it for Windows
+      wm withdraw $w
+      wm attributes $w -alpha 0.0
+    }
+    default {       ; # do it depending on the platform
+      wm withdraw $w
+      if {[::iswindows]} {
+        wm attributes $w -alpha 0.0
+      }
+    }
+  }
+}
+#_______________________
+
+proc ::apave::deiconify {w} {
+  # Does 'deiconify' for a window.
+  #   w - the window's path
+  # See also: iconifyOption
+
+  switch -- [iconifyOption] {
+    none {          ; # no withdraw/deiconify actions
+    }
+    Linux {         ; # do it for Linux
+      catch {wm deiconify $w ; raise $w}
+    }
+    Windows {       ; # do it for Windows
+      if {[wm attributes $w -alpha] < 0.1} {wm attributes $w -alpha 1.0}
+      catch {wm deiconify $w ; raise $w}
+    }
+    default {       ; # do it depending on the platform
+      if {[::iswindows]} {
+        if {[wm attributes $w -alpha] < 0.1} {wm attributes $w -alpha 1.0}
+      }
+      catch {wm deiconify $w ; raise $w}
+    }
+  }
+}
+#_______________________
+
 proc ::apave::initWM {args} {
 
   # Initializes Tcl/Tk session. Used to be called at the beginning of it.
@@ -522,10 +570,7 @@ proc ::apave::initWM {args} {
   set ::apave::_CS_(initWM) 0
   set ::apave::_CS_(CURSORWIDTH) $cursorwidth
   set ::apave::_CS_(LABELBORDER) $labelborder
-  wm withdraw .
-  if {$::tcl_platform(platform) eq {windows}} {
-    wm attributes . -alpha 0.0
-  }
+  ::apave::withdraw .
   # for default theme: only most common settings
   set tfg1 $::apave::_CS_(!FG)
   set tbg1 $::apave::_CS_(!BG)
@@ -1594,21 +1639,23 @@ oo::class create ::apave::ObjectTheming {
     foreach i [my csMapTheme] {
       set color [lindex $CS $i]
       if {$i in $mainc} {
-        set color [string map {black #000000 white #ffffff grey #808080 \
-          red #ff0000 yellow #ffff00 orange #ffa500 #000 #000000 #fff #ffffff} $color]
-        scan $color #%2x%2x%2x R G B
-        foreach valname {R G B} {
-          set val [expr {int([set $valname]*$hue)}]
-          set $valname [expr {max(min($val,255),0)}]
+        catch {  ;# for CS=-1 not working
+          set clr [string map {black #000000 white #ffffff grey #808080 \
+            red #ff0000 yellow #ffff00 \
+            orange #ffa500 #000 #000000 #fff #ffffff} $color]
+          scan $clr #%2x%2x%2x R G B
+          foreach valname {R G B} {
+            set val [expr {int([set $valname]*$hue)}]
+            set $valname [expr {max(min($val,255),0)}]
+          }
+          set color [format #%02x%02x%02x $R $G $B]
         }
-        set color [format #%02x%02x%02x $R $G $B]
       }
       lappend TWargs $color
     }
     my themeWindow . $TWargs no
     set ::apave::_CS_(TONED) [list $cs [my csCurrent]]
     return yes
-
   }
 
 # _______________________________________________________________________ #
@@ -1680,7 +1727,7 @@ oo::class create ::apave::ObjectTheming {
         set ::apave::_CS_(def_bclr) $bclr
       }
       return [list default \
-           $fg    $fg     $bA    $bg     $fg2    $bS     $fS    #444  grey   #4f6379 $fS $bS - $bg $fW $bW $bg2]
+           $fg    $fg     $bA    $bg     $fg2    $bS     $fS    #444  grey   #4f6379 $fS $bS - $bg $fW $bW $bg2 #a20000 #76b2f1 #005 #006 #007]
       # clrtitf clrinaf clrtitb clrinab clrhelp clractb clractf clrcurs clrgrey clrhotk fI  bI fM bM fW bW
     }
     return [lindex $::apave::_CS_(ALL) $ncolor]
@@ -2389,6 +2436,6 @@ oo::class create ::apave::ObjectTheming {
 # ___________________________________ EOF _____________________________________ #
 
 #%   DOCTEST   SOURCE  ~/PG/github/pave/tests/obbit_1.test
-#RUNF1: ../../../src/alited.tcl LOG=~/TMP/alited-DEBUG.log DEBUG
+#-RUNF1: ../../../src/alited.tcl LOG=~/TMP/alited-DEBUG.log DEBUG
 #-RUNF1: ./tests/test2_pave.tcl
 #RUNF1: ./tests/test2_pave.tcl alt 41 9 12 "small icons"

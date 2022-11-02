@@ -109,9 +109,9 @@ proc ::klnd::my::ShowMonth {m y} {
   set iday [set p(icurr) 0]
   for {set i 1} {$i<43} {incr i} {
     if {$i<=$i0 || $iday>=$lday} {
-      set att "-takefocus 0 -text {    } -activebackground $p(bg1)"
+      set att "-takefocus 0 -text {    } -activebackground $p(bg1) -overrelief flat"
     } else {
-      set att "-takefocus 1 -text {[incr iday]} -activeforeground $p(fg0) -activebackground $p(bg0)"
+      set att "-takefocus 1 -text {[incr iday]} -activeforeground $p(fg0) -activebackground $p(bg0) -overrelief raised"
       if {$iday==$p(dvis) || ($iday==$lday && $iday<$p(dvis))} {
         if {[info exists p(after)]} {set af 20} {set af 200} ;# less at key pressing tight
         catch {after cancel $p(after)}
@@ -122,7 +122,7 @@ proc ::klnd::my::ShowMonth {m y} {
         set p(icurr) $i  ;# button's index of the current date
       }
     }
-    [$p(obj) BuT_KLNDSTD$i] configure {*}$att -fg $p(fg1) -bg $p(bg1) -relief flat -overrelief flat
+    [$p(obj) BuT_KLNDSTD$i] configure {*}$att -fg $p(fg1) -bg $p(bg1) -relief flat
   }
   set p(mvis) $m  ;# month & year currently visible
   set p(yvis) $y
@@ -305,13 +305,13 @@ proc ::klnd::my::MainWidgets {} {
     {fra - - 1 7 {-st new} {}} \
     {.frATool - - 1 7 {-st new} {-bg $::klnd::my::p(bg1)}}
     {.frATool.tool - - - - {pack -side top} {-array {
-      IM_KLND_0 {::klnd::my::SetCurrentDay} sev 6
-      IM_KLND_1 {{::klnd::my::GoYear -1} -tip "$::klnd::my::prevY\n(Home)@@-under 5"} h_ 2
-      IM_KLND_2 {{::klnd::my::GoMonth -1} -tip "$::klnd::my::prevM\n(PageUp)@@-under 5"} h_ 3
-      LabMonth {"" {-fill x -expand 1} {-anchor center -w 14}} h_ 2
-      IM_KLND_3 {{::klnd::my::GoMonth 1} -tip "$::klnd::my::nextM\n(PageDown)@@-under 5"} h_ 3
-      IM_KLND_4 {{::klnd::my::GoYear 1} -tip "$::klnd::my::nextY\n(End)@@-under 5"} h_ 2
-    }}}
+      IM_KLND_0 {::klnd::my::SetCurrentDay} sev 2
+      IM_KLND_1 {{::klnd::my::GoYear -1} -tip "$::klnd::my::prevY\n(Home)@@-under 5"} h_ 1
+      IM_KLND_2 {{::klnd::my::GoMonth -1} -tip "$::klnd::my::prevM\n(PageUp)@@-under 5"} h_ 2
+      LabMonth {"" {-fill x -expand 1} {-anchor center -w 14}} h_ 1
+      IM_KLND_3 {{::klnd::my::GoMonth 1} -tip "$::klnd::my::nextM\n(PageDown)@@-under 5"} h_ 2
+      IM_KLND_4 {{::klnd::my::GoYear 1} -tip "$::klnd::my::nextY\n(End)@@-under 5"}
+      }}}
     {.frADays .frATool T - - {-st nsew} {-bg $::klnd::my::p(bg1)}}
     {.frADays.tcl {
       # make headers and buttons of days
@@ -327,7 +327,7 @@ proc ::klnd::my::MainWidgets {} {
         if {$i<8} {
           set lwid "$cur $pw $p 1 1 {-st ew} {-anchor center -foreground $::klnd::my::p(fgh) -background $::klnd::my::p(bg1)}"
         } else {
-          set lwid "$cur $pw $p 1 1 {-st ew} {-relief flat -overrelief flat -bd 0 -takefocus 0 -padx 8 -pady 4 -font {$::apave::FONTMAIN} -com {::klnd::my::Enter [expr {$i-7}] 1} $::klnd::TMPTIP $att -w 3 -background $::klnd::my::p(bg1)}"
+          set lwid "$cur $pw $p 1 1 {-st ew} {-relief flat -overrelief raised -takefocus 0 -padx 8 -pady 1 -font {$::apave::FONTMAIN} -com {::klnd::my::Enter [expr {$i-7}] 1} $::klnd::TMPTIP $att -w 2 -background $::klnd::my::p(bg1)}"
         }
         %C $lwid
         set pr $cur
@@ -452,8 +452,8 @@ proc ::klnd::calendar {args} {
   $my::p(obj) makeWindow $win.fra $title
   $my::p(obj) paveWindow $win.fra [list \
     {*}[my::MainWidgets] \
-    {seh fra T 1 7 {-pady 4}} \
-    {fraBottom seh T 1 7 {-st ew}} \
+    {seh fra T 1 7 {-pady 0}} \
+    {fraBottom seh T 1 7 {-st ew -pady 1}} \
     {fraBottom.h_ - - - - {pack -fill both -expand 1 -side left} {}} \
     {fraBottom.But_KLNDCLOSE - - - - {pack -side left} {-t "Close" -com "$::klnd::my::p(obj) res $win 0"}} \
   ]

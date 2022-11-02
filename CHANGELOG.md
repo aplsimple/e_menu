@@ -1,6 +1,13 @@
 # Last changes:
 
 
+Version `3.6.0a1 (2 Nov'22)`
+
+  - CHANGE: fossil.mnu: filtering files for timeline
+  - CHANGE: test1.mnu: writeable cbx
+  - CHANGE: packages: apave 3.6.0
+
+
 Version `3.5.9 (25 Oct'22)`
 
   - CHANGE: packages: apave 3.5.9
