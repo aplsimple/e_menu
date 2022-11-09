@@ -1,10 +1,11 @@
 # Last changes:
 
 
-Version `3.6.0a1 (2 Nov'22)`
+Version `3.6.0b1 (9 Nov'22)`
 
   - CHANGE: fossil.mnu: filtering files for timeline
   - CHANGE: test1.mnu: writeable cbx
+  - CHANGE: menu.mnu: check for selection in "Run Tcl"
   - CHANGE: packages: apave 3.6.0
 
 
