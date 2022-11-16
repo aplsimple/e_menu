@@ -414,6 +414,78 @@ proc ::apave::focusFirst {w {dofocus yes} {res {}}} {
 
 ## ________________________ Inits _________________________ ##
 
+proc ::apave::initWM {args} {
+
+  # Initializes Tcl/Tk session. Used to be called at the beginning of it.
+  #   args - options ("name value" pairs)
+
+  if {!$::apave::_CS_(initWM)} return
+  lassign [::apave::parseOptions $args -cursorwidth $::apave::cursorwidth -theme {clam} \
+    -buttonwidth -8 -buttonborder 1 -labelborder 0 -padding 1 -cs -2] \
+    cursorwidth theme buttonwidth buttonborder labelborder padding cs
+  set ::apave::_CS_(initWM) 0
+  set ::apave::_CS_(CURSORWIDTH) $cursorwidth
+  set ::apave::_CS_(LABELBORDER) $labelborder
+  ::apave::withdraw .
+  # for default theme: only most common settings
+  set tfg1 $::apave::_CS_(!FG)
+  set tbg1 $::apave::_CS_(!BG)
+  if {$theme ne {} && [catch {ttk::style theme use $theme}]} {
+    catch {ttk::style theme use default}
+  }
+  ttk::style map . \
+    -selectforeground [list !focus $tfg1 {focus active} $tfg1] \
+    -selectbackground [list !focus $tbg1 {focus active} $tbg1]
+  ttk::style configure . -selectforeground	$tfg1 -selectbackground	$tbg1
+
+  # configure separate widget types
+  ttk::style configure TButton -anchor center -width $buttonwidth \
+    -relief raised -borderwidth $buttonborder -padding $padding
+  ttk::style configure TMenubutton -width 0 -padding 0
+  # TLabel's standard style saved for occasional uses
+  ::apave::initStyle TLabelSTD TLabel -anchor w
+  # ... TLabel new style
+  ttk::style configure TLabel -borderwidth $labelborder -padding $padding
+  # ... Treeview colors
+  set twfg [ttk::style map Treeview -foreground]
+  set twfg [::apave::putOption selected $tfg1 {*}$twfg]
+  set twbg [ttk::style map Treeview -background]
+  set twbg [::apave::putOption selected $tbg1 {*}$twbg]
+  ttk::style map Treeview -foreground $twfg
+  ttk::style map Treeview -background $twbg
+  # ... TCombobox colors
+  ttk::style map TCombobox -fieldforeground [list {active focus} $tfg1 readonly $tfg1 disabled grey]
+  ttk::style map TCombobox -fieldbackground [list {active focus} $tbg1 {readonly focus} $tbg1 {readonly !focus} white]
+  initStyles
+  initPOP .
+  if {$cs!=-2} {obj csSet $cs}
+}
+#_______________________
+
+proc ::apave::endWM {args} {
+
+  # Finishes the window management by apave, closing and clearing all.
+  #   args - if any set, means "ask if apave's WM is finished"
+
+  variable _PU_opts
+  if {[llength $args]} {
+    return [expr {[info exists _PU_opts(_ENDWM_)]}]
+  }
+  # Check existing windows, except for the first one.
+  while {1} {
+    set i [expr {[llength $_PU_opts(_MODALWIN_)] - 1}]
+    if {$i>0} {
+      lassign [lindex $_PU_opts(_MODALWIN_) $i] w var
+      if {[winfo exists $w]} {set $var 0}
+      catch {set _PU_opts(_MODALWIN_) [lreplace $_PU_opts(_MODALWIN_) $i $i]}
+    } else {
+      break
+    }
+  }
+  set _PU_opts(_ENDWM_) yes
+}
+#_______________________
+
 proc ::apave::initPOP {w} {
 
   # Initializes system popup menu (if possible) to call it in a window.
@@ -430,19 +502,6 @@ proc ::apave::initPOP {w} {
 }
 #_______________________
 
-proc ::apave::initStyle {wt wbase args} {
-  # Initializes a style for a widget type, e.g. button's.
-  #   wt - target widget type
-  #   wbase - base widget type
-  #   args - options of the style
-
-  ttk::style configure $wt {*}[ttk::style configure $wbase]
-  ttk::style configure $wt {*}$args
-  ttk::style map       $wt {*}[ttk::style map $wbase]
-  ttk::style layout    $wt [ttk::style layout $wbase]
-}
-#_______________________
-
 proc ::apave::ttkToolbutton {} {
   # Initializes Toolbutton's style, depending on CS.
   # Creates also btt / brt / blt widget types to be paved,
@@ -454,6 +513,19 @@ proc ::apave::ttkToolbutton {} {
   defaultAttrs btt {} {-style Toolbutton -compound top -takefocus 0} ttk::button
   defaultAttrs brt {} {-style Toolbutton -compound right -takefocus 0} ttk::button
   defaultAttrs blt {} {-style Toolbutton -compound left -takefocus 0} ttk::button
+}
+#_______________________
+
+proc ::apave::initStyle {wt wbase args} {
+  # Initializes a style for a widget type, e.g. button's.
+  #   wt - target widget type
+  #   wbase - base widget type
+  #   args - options of the style
+
+  ttk::style configure $wt {*}[ttk::style configure $wbase]
+  ttk::style configure $wt {*}$args
+  ttk::style map       $wt {*}[ttk::style map $wbase]
+  ttk::style layout    $wt [ttk::style layout $wbase]
 }
 #_______________________
 
@@ -611,76 +683,6 @@ proc ::apave::deiconify {w} {
 }
 #_______________________
 
-proc ::apave::initWM {args} {
-
-  # Initializes Tcl/Tk session. Used to be called at the beginning of it.
-  #   args - options ("name value" pairs)
-
-  if {!$::apave::_CS_(initWM)} return
-  lassign [::apave::parseOptions $args -cursorwidth $::apave::cursorwidth -theme {clam} \
-    -buttonwidth -8 -buttonborder 1 -labelborder 0 -padding 1 -cs -2] \
-    cursorwidth theme buttonwidth buttonborder labelborder padding cs
-  set ::apave::_CS_(initWM) 0
-  set ::apave::_CS_(CURSORWIDTH) $cursorwidth
-  set ::apave::_CS_(LABELBORDER) $labelborder
-  ::apave::withdraw .
-  # for default theme: only most common settings
-  set tfg1 $::apave::_CS_(!FG)
-  set tbg1 $::apave::_CS_(!BG)
-  if {$theme ne {}} {catch {ttk::style theme use $theme}}
-  ttk::style map . \
-    -selectforeground [list !focus $tfg1 {focus active} $tfg1] \
-    -selectbackground [list !focus $tbg1 {focus active} $tbg1]
-  ttk::style configure . -selectforeground	$tfg1 -selectbackground	$tbg1
-
-  # configure separate widget types
-  ttk::style configure TButton -anchor center -width $buttonwidth \
-    -relief raised -borderwidth $buttonborder -padding $padding
-  ttk::style configure TMenubutton -width 0 -padding 0
-  # TLabel's standard style saved for occasional uses
-  ::apave::initStyle TLabelSTD TLabel -anchor w
-  # ... TLabel new style
-  ttk::style configure TLabel -borderwidth $labelborder -padding $padding
-  # ... Treeview colors
-  set twfg [ttk::style map Treeview -foreground]
-  set twfg [::apave::putOption selected $tfg1 {*}$twfg]
-  set twbg [ttk::style map Treeview -background]
-  set twbg [::apave::putOption selected $tbg1 {*}$twbg]
-  ttk::style map Treeview -foreground $twfg
-  ttk::style map Treeview -background $twbg
-  # ... TCombobox colors
-  ttk::style map TCombobox -fieldforeground [list {active focus} $tfg1 readonly $tfg1 disabled grey]
-  ttk::style map TCombobox -fieldbackground [list {active focus} $tbg1 {readonly focus} $tbg1 {readonly !focus} white]
-  initStyles
-  initPOP .
-  if {$cs!=-2} {obj csSet $cs}
-}
-#_______________________
-
-proc ::apave::endWM {args} {
-
-  # Finishes the window management by apave, closing and clearing all.
-  #   args - if any set, means "ask if apave's WM is finished"
-
-  variable _PU_opts
-  if {[llength $args]} {
-    return [expr {[info exists _PU_opts(_ENDWM_)]}]
-  }
-  # Check existing windows, except for the first one.
-  while {1} {
-    set i [expr {[llength $_PU_opts(_MODALWIN_)] - 1}]
-    if {$i>0} {
-      lassign [lindex $_PU_opts(_MODALWIN_) $i] w var
-      if {[winfo exists $w]} {set $var 0}
-      catch {set _PU_opts(_MODALWIN_) [lreplace $_PU_opts(_MODALWIN_) $i $i]}
-    } else {
-      break
-    }
-  }
-  set _PU_opts(_ENDWM_) yes
-}
-#_______________________
-
 proc ::apave::cs_Active {{flag ""}} {
 
   # Gets/sets "is changing CS possible" flag for a whole application.
@@ -730,7 +732,7 @@ proc ::apave::getProperty {name {defvalue ""}} {
   return $defvalue
 }
 
-## ________________________ Color schemes _________________________ ##
+## ________________________ CS procs _________________________ ##
 
 proc ::apave::cs_Non {} {
 
@@ -1321,7 +1323,7 @@ oo::class create ::apave::ObjectTheming {
 
   mixin ::apave::ObjectProperty
 
-## ________________________ Inits _________________________ ##
+## ________________________ Obj theming Inits _________________________ ##
 
   constructor {args} {
 
@@ -1671,14 +1673,15 @@ oo::class create ::apave::ObjectTheming {
   }
   #_______________________
 
-  method csToned {cs hue} {
+  method csToned {cs hue {doit no}} {
     # Make an external CS that has tones (hues) of colors for a CS.
     #   cs - internal apave CS to be toned
     #   hue - a percent to get light (> 0) or dark (< 0) tones
+    #   doit - flag "do it anyway"
     # This method allows only one external CS, eliminating others.
     # Returns: "yes" if the CS was toned
 
-    if {[my csCurrent] > $::apave::_CS_(NONCS)} {
+    if {!$doit && [my csCurrent] > $::apave::_CS_(NONCS)} {
       puts [set msg "\napave method csToned must be run before csSet!\n"]
       return -code error $msg
     }
@@ -1738,7 +1741,7 @@ oo::class create ::apave::ObjectTheming {
 
 # ________________________ Theming _________________________ #
 
-## ________________________ Common procs _________________________ ##
+## ________________________ Theme procs _________________________ ##
 
   method ColorScheme {{ncolor ""}} {
     # Gets a full record of color scheme from a list of available ones
@@ -2444,11 +2447,11 @@ oo::class create ::apave::ObjectTheming {
 
     if {[info commands ::apave::_TK_TOPLEVEL] ne ""} return
     rename ::toplevel ::apave::_TK_TOPLEVEL
-    proc ::toplevel {args} {
+  ; proc ::toplevel {args} {
       set res [eval ::apave::_TK_TOPLEVEL $args]
       set w [lindex $args 0]
       rename $w ::apave::_W_TOPLEVEL$w
-      proc ::$w {args} " \
+    ; proc ::$w {args} " \
         set cs \[::apave::obj csCurrent\] ;\
         if {{configure -menu} eq \$args} {set args {configure}} ;\
         if {\$cs>-2 && \[string first {configure} \$args\]==0} { \
@@ -2460,12 +2463,12 @@ oo::class create ::apave::ObjectTheming {
       return $res
     }
     rename ::canvas ::apave::_TK_CANVAS
-    proc ::canvas {args} {
+  ; proc ::canvas {args} {
       set res [eval ::apave::_TK_CANVAS $args]
       set w [lindex $args 0]
       if {[string match "*cHull.canvas" $w]} {
         rename $w ::apave::_W_CANVAS$w
-        proc ::$w {args} " \
+      ; proc ::$w {args} " \
           set cs \[::apave::obj csCurrent\] ;\
           lassign \[::apave::obj csGet \$cs\] fg - bg ;\
           if {\$cs>-2} { \
