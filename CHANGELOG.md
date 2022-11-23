@@ -1,7 +1,7 @@
 # Last changes:
 
 
-Version `3.6.0b6 (16 Nov'22)`
+Version `3.6.0 (22 Nov'22)`
 
   - CHANGE: fossil.mnu: filtering files for timeline
   - CHANGE: test1.mnu: writeable cbx
