@@ -1,9 +1,9 @@
 # Last changes:
 
 
-Version `3.6.1 (14 Dec'22)`
+Version `3.6.2 (17 Dec'22)`
 
-  - CHANGE: packages: apave 3.6.1
+  - CHANGE: packages: apave 3.6.2
 
 
 Version `3.6.0 (7 Dec'22)`
