@@ -1,8 +1,9 @@
 # Last changes:
 
 
-Version `3.6.2 (17 Dec'22)`
+Version `3.6.2 (28 Dec'22)`
 
+  - CHANGE: clearance: frame instead of ttk::frame & label, bg of checkbox
   - CHANGE: packages: apave 3.6.2
 
 
