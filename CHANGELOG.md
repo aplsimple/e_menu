@@ -1,6 +1,12 @@
 # Last changes:
 
 
+Version `3.6.3 (4 Jan'23)`
+
+  - CHANGE: pointer set by event -warp
+  - CHANGE: doctest_of_emenu.tcl: "package require Tk"
+
+
 Version `3.6.2 (28 Dec'22)`
 
   - CHANGE: clearance: frame instead of ttk::frame & label, bg of checkbox
