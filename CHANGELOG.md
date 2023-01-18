@@ -1,8 +1,9 @@
 # Last changes:
 
 
-Version `3.6.4 (11 Jan'23)`
+Version `3.6.4 (18 Jan'23)`
 
+  - CHANGE: fossil.mnu (commit -m --branch), utils.mnu (clearance)
   - CHANGE: packages: apave 3.6.4
 
 
