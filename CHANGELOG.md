@@ -1,6 +1,19 @@
 # Last changes:
 
 
+Version `3.6.5 (25 Jan'23)`
+
+  - NEW   : "SH=1" option to run writeable commands ("%#s") without dialogue
+  - NEW   : writeable command: only saving after Ctrl+W / "Save & Exit" of popup menu
+  - DELETE: "sh=" option and other shadowing stuff
+  - DELETE: "for_buttons" proc
+  - DELETE: "center_window" proc
+  - CHANGE: "lappend $var" instead of "{*}$lappend"
+  - CHANGE: corrected some "catch" and similar clearance
+  - CHANGE: test1.mnu, fossil2.mnu
+  - CHANGE: packages: apave 3.6.5
+
+
 Version `3.6.4 (18 Jan'23)`
 
   - CHANGE: fossil.mnu (commit -m --branch), utils.mnu (clearance)
