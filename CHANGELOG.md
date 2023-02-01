@@ -1,6 +1,19 @@
 # Last changes:
 
 
+Version `3.7.0a1 (1 Feb'23)`
+
+  - NEW   : em::isbaltip to dismiss baltip etc. at SH=1 ("shell actions")
+  - CHANGE: utils.mnu
+  - CHANGE: packages: apave 3.7.0
+
+
+Version `3.6.6 (27 Jan'23)`
+
+  - BUGFIX: find a project dir in "PD list" file, passed with PD= argument
+  - CHANGE: packages: apave 3.6.6
+
+
 Version `3.6.5 (25 Jan'23)`
 
   - NEW   : "SH=1" option to run writeable commands ("%#s") without dialogue
