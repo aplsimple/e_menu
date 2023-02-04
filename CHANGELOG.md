@@ -1,10 +1,12 @@
 # Last changes:
 
 
-Version `3.7.0a1 (1 Feb'23)`
+Version `3.7.0a2 (4 Feb'23)`
 
-  - NEW   : em::isbaltip to dismiss baltip etc. at SH=1 ("shell actions")
-  - CHANGE: utils.mnu
+  - NEW   : SH= option: geometry of a caller to center dialogues on it
+  - NEW   : em::isbaltip to dismiss baltip etc. at SH= not {} ("shell actions")
+  - NEW   : results > file: made by e_menu (in wish & tclkit.exe not working)
+  - CHANGE: utils.mnu, fossil.mnu, git.mnu, menu.mnu
   - CHANGE: packages: apave 3.7.0
 
 

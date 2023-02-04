@@ -27,7 +27,7 @@
 package require Tk
 
 namespace eval ::em {
-  variable em_version {e_menu 3.7.0}
+  variable em_version {e_menu 3.7.0a2}
   variable solo [expr {[info exist ::em::executable] || ( \
   [info exist ::argv0] && [file normalize $::argv0] eq [file normalize [info script]])} ? 1 : 0]
   variable Argv0
@@ -41,10 +41,8 @@ namespace eval ::em {
   if {$solo} {
     # remove all possible installed packages that are used by e_menu
     foreach _ {apave baltip} {
-      catch {
-        package forget $_
-        namespace delete ::${_}
-      }
+      catch {package forget $_}
+      catch {namespace delete ::${_}}
     }
   } else {
     append em_version " / [file tail $::em::Argv0]"
@@ -205,10 +203,10 @@ namespace eval ::em {
   variable hili no
   variable ls {} pk {}
   variable DF kdiff3 BF {}
-  variable PI 0 NE 0 SH 0
+  variable PI 0 NE 0
   variable th {alt} td {} g1 {} g2 {}
   variable ee {}
-  variable isbaltip yes
+  variable SH {} isbaltip yes
 }
 
 
@@ -391,7 +389,7 @@ proc ::em::focus_button {i {doit false}} {
 proc ::em::mouse_button {i} {
   focus_button $i
   set i [next_button $i]
-  if {![winfo exists .em.fr.win.fr$i.butt]} return
+  if {!$::em::isbaltip || ![winfo exists .em.fr.win.fr$i.butt]} return
   lassign [split [winfo geom .em.fr.win] +] -> x1 y1
   lassign [split [winfo geom .em.fr.win.fr$i] +x] w h x2 y2
   if {$::em::solo} {
@@ -824,6 +822,21 @@ proc ::em::execom {comm} {
   if {$comm1 eq {%O}} {
     ::apave::openDoc $argm
   } elseif {![string match #* $comm1]} {
+    if {[lindex $argm end-1] eq {>}} {
+      # redirecting results to a file: do it here (in wish & tclkit.exe not working)
+      set fname [lindex $argm end]     ;# file name
+      set com2 [lrange $argm 0 end-2]  ;# command without "> file name"
+      if {[lindex $com2 0] in {/c -nologo}} {
+        set com2 [lrange $com2 1 end]  ;# in Windows: cmd.exe / powershell.exe... command
+      } else {
+        set com2 [linsert $com2 0 $comm1] ;# in Linux: command
+      }
+      if {![catch {set res [exec -- {*}$com2]}]} {
+        if {[::apave::writeTextFile $fname res]} {
+          return {}
+        }
+      }
+    }
     set comm2 [::apave::autoexec $comm1]
     if {[catch {exec -- $comm2 {*}$argm} e]} {
       if {$comm2 eq {}} {
@@ -2279,7 +2292,9 @@ proc ::em::initcomm {} {
     catch {cd $cpwd}  ;# may be deleted by commands
     set ::em::reallyexit yes
   }
-  if {!$::em::isbaltip} {return yes}
+  if {![llength [array names ::em::ar_macros]] && !$::em::isbaltip} {
+    return [expr {!$::em::reallyexit}]
+  }
   if {$::em::reallyexit} {return no}
   if {[set lmc [llength $::em::menuoptions]] > 1} {
       # o=, s=, m= options define menu contents & are processed particularly
@@ -2732,12 +2747,12 @@ proc ::em::main {args} {
 
 if {$::em::solo} {
   # theming at the app's start: th= a theme name, td= a theme directory
-  foreach ::em::TMP1 {th td} {
+  foreach ::em::TMP1 {th td SH} {
     if {[set ::em::TMP2 [lsearch -glob $::argv $::em::TMP1=*]]>-1} {
       set ::em::$::em::TMP1 [string range [lindex $::argv $::em::TMP2] 3 end]
     }
   }
-  set ::em::isbaltip [expr {{SH=1} ni $::argv}]
+  set ::em::isbaltip [expr {$::em::SH eq {}}]
   if {$::em::th eq {} || $::em::td eq {}} {
     ::apave::initWM -isbaltip $::em::isbaltip
   } else {
