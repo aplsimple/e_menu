@@ -1,12 +1,28 @@
 # Last changes:
 
 
+Version `4.0.0b6 (14 Feb'23)`
+
+  - NEW   : .em - new format of menus, more simple & viewable
+  - NEW   : ornamental EXEC/SHELL allow to edit commands; no exit if "on top"
+  - NEW   : mp=1 argument to enable the mouse pointer set on a last item (default 0)
+  - DELETE: arguments: bd=, t4=..t9= (unusable), s0=..s9 (x*=, y*=, z=* enough)
+  - DELETE: delegating wildcards
+  - CHANGE: restarting Projects dialogue after editing the projects' file
+  - CHANGE: item names with $::globalvar are updated after runs
+  - CHANGE: tiny-up: fossil.em, fossil2.em, template.em
+  - CHANGE: restored em::for_buttons
+  - CHANGE: F1-F9 hot keys (an example in menu.em)
+  - CHANGE: packages: apave 4.0.0
+
+
 Version `3.7.0 (8 Feb'23)`
 
+  - OLD   : v3.7.0 moved to a separate branch, for possible bugfixes only
   - NEW   : SH= option: geometry of a caller to center dialogues on it
   - NEW   : em::isbaltip to dismiss baltip etc. at SH= not {} ("shell actions")
   - NEW   : results > file: made by e_menu (in wish & tclkit.exe not working)
-  - CHANGE: m=menu.mnu may be shorted to m=menu
+  - CHANGE: m=menu.mnu may be shortened to m=menu
   - CHANGE: menu.mnu, utils.mnu, fossil.mnu, git.mnu, misc.mnu
   - CHANGE: packages: apave 3.7.0
 
