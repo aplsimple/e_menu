@@ -1,13 +1,20 @@
 # Last changes:
 
 
-Version `4.0.0b6 (14 Feb'23)`
+Version `4.0.0 (22 Feb'23)`
 
   - NEW   : .em - new format of menus, more simple & viewable
   - NEW   : ornamental EXEC/SHELL allow to edit commands; no exit if "on top"
   - NEW   : mp=1 argument to enable the mouse pointer set on a last item (default 0)
-  - DELETE: arguments: bd=, t4=..t9= (unusable), s0=..s9 (x*=, y*=, z=* enough)
+  - NEW   : ms= argument to revive e_menu executables
+  - NEW   : highlighting a current line at editing menus
+  - NEW   : .em made Windows compatible
+  - NEW   : %UF, %UD wildcards
+  - DELETE: arguments: bd=, t4=..t9= (unusable)
   - DELETE: delegating wildcards
+  - CHANGE: cancel repeating an old timer at starting the new one
+  - CHANGE: s_menu.tcl to handle with ttk themes
+  - CHANGE: em::prepr_win: skip \n and \t at mapping Windows' menu items
   - CHANGE: restarting Projects dialogue after editing the projects' file
   - CHANGE: item names with $::globalvar are updated after runs
   - CHANGE: tiny-up: fossil.em, fossil2.em, template.em
