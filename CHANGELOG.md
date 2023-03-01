@@ -1,7 +1,7 @@
 # Last changes:
 
 
-Version `4.0.0 (22 Feb'23)`
+Version `4.0.0 (1 Mar'23)`
 
   - NEW   : .em - new format of menus, more simple & viewable
   - NEW   : ornamental EXEC/SHELL allow to edit commands; no exit if "on top"

@@ -1,7 +1,7 @@
 [OPTIONS]
 
 in=1.0
-w=30
+w=25
 pos=122.77
 ::EMENUTMPFILE=%mn.tmp~
 %C if {![info exist ::EMENU_FOSGIT]} {set ::EMENU_FOSGIT Fossil}
