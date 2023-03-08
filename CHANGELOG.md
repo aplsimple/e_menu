@@ -1,6 +1,13 @@
 # Last changes:
 
 
+Version `4.0.1 (6 Mar'23)`
+
+  - BUGFIX: in em::template::help, \\n were mapped to \n (+ "Find")
+  - CHANGE: misc.em
+  - CHANGE: packages: apave 4.0.1
+
+
 Version `4.0.0 (1 Mar'23)`
 
   - NEW   : .em - new format of menus, more simple & viewable
