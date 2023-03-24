@@ -1,6 +1,11 @@
 # Last changes:
 
 
+Version `4.0.4 (24 Mar'23)`
+
+  - BUGFIX: after running "ee=" command, do exit
+
+
 Version `4.0.3 (22 Mar'23)`
 
   - CHANGE: menu.em, fossil.em
