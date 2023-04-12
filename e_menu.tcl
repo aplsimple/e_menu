@@ -28,7 +28,7 @@ package require Tk
 wm withdraw .
 
 namespace eval ::em {
-  variable em_version {e_menu 4.0.4}
+  variable em_version {e_menu 4.0.6}
   variable em_script [file normalize [info script]]
   variable solo [expr {[info exist ::em::executable] || ( \
   [info exist ::argv0] && [file normalize $::argv0] eq $em_script)} ? 1 : 0]
@@ -981,7 +981,7 @@ proc ::em::Tclexe {{tclok "tclsh"}} {
 proc ::em::execWithPID {com} {
   # exec with getting process ID
 
-  set ::eh::pID [pid [open "|$com"]]
+  set ::eh::pID [pid [open |[list {*}$com]]]
   if {$::em::solo} {
     ::apave::writeTextFile "$::em::menudir/.pid~" ::eh::pID
   }

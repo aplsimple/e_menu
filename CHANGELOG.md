@@ -1,9 +1,16 @@
 # Last changes:
 
 
-Version `4.0.4 (24 Mar'23)`
+Version `4.0.6 (12 Apr'23)`
+
+  - CHANGE: grep.em
+  - CHANGE: packages: apave 4.0.6
+
+
+Version `4.0.5 (31 Mar'23)`
 
   - BUGFIX: after running "ee=" command, do exit
+  - CHANGE: packages: apave 4.0.5
 
 
 Version `4.0.3 (22 Mar'23)`
