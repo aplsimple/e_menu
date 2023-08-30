@@ -1,6 +1,13 @@
 # Last changes:
 
 
+Version `4.1.2 (30 Aug'23)`
+
+  - BUGFIX: %b wildcard + quoted argument in %IF .. %THEN %b ..
+  - CHANGE: menu.em
+  - CHANGE: packages: apave 4.1.2
+
+
 Version `4.1.1 (21 Jun'23)`
 
   - CHANGE: packages: apave 4.1.1
