@@ -1,8 +1,10 @@
 # Last changes:
 
-Version `4.1.3 (6 Sep'23)`
+Version `4.1.6 (27 Sep'23)`
 
-  - CHANGE: packages: apave 4.1.3
+  - BUGFIX: (esp. for Windows) some issues with the grabbing windows
+  - CHANGE: fossil2.em
+  - CHANGE: packages: apave 4.1.6
 
 
 Version `4.1.2 (30 Aug'23)`
