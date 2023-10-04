@@ -1,5 +1,10 @@
 # Last changes:
 
+Version `4.1.7 (4 Oct'23)`
+
+  - CHANGE: packages: apave 4.1.7
+
+
 Version `4.1.6 (27 Sep'23)`
 
   - BUGFIX: (esp. for Windows) some issues with the grabbing windows
