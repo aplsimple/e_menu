@@ -1,8 +1,10 @@
 # Last changes:
 
-Version `4.2.2 (22 Nov'23)`
+Version `4.3.0 (29 Nov'23)`
 
-  - CHANGE: packages: apave 4.2.2
+  - NEW   : %H wildcard in .em files (home dir)
+  - CHANGE: *.em files: %H instead of ~ and clearances
+  - CHANGE: packages: apave 4.3.0
 
 
 Version `4.2.0 (8 Nov'23)`
