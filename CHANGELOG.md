@@ -1,6 +1,12 @@
 # Last changes:
 
-Version `4.3.0 (29 Nov'23)`
+Version `4.3.2 (5 Dec'23)`
+
+  - BUGFIX: pass "-ontop 1" option to "Edit menu / Template"
+  - CHANGE: packages: apave 4.3.2
+
+
+Version `4.3.0 (30 Nov'23)`
 
   - NEW   : %H wildcard in .em files (home dir)
   - CHANGE: *.em files: %H instead of ~ and clearances
