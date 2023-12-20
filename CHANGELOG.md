@@ -1,5 +1,11 @@
 # Last changes:
 
+Version `4.3.4 (20 Dec'23)`
+
+  - NEW   : for ee= option: %% wildcard
+  - CHANGE: packages: apave 4.3.4
+
+
 Version `4.3.3 (13 Dec'23)`
 
   - BUGFIX: pass "-ontop 1" option to "Edit menu / Template"
