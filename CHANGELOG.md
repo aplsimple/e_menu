@@ -1,7 +1,14 @@
 # Last changes:
 
-Version `4.3.5 (27 Dec'23)`
+Version `4.3.6 (3 Jan'24)`
 
+  - CHANGE: packages: apave 4.3.6
+
+
+Version `4.3.5 (30 Dec'23)`
+
+  - CHANGE: for Tcl 9.0: catch {glob ...} patterns changed, to insure against errors
+  - CHANGE: fossil.em and fossil2.em exchanged items
   - CHANGE: packages: apave 4.3.5
 
 Version `4.3.4 (20 Dec'23)`
