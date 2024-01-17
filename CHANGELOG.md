@@ -1,8 +1,8 @@
 # Last changes:
 
-Version `4.3.6 (3 Jan'24)`
+Version `4.3.7 (17 Jan'24)`
 
-  - CHANGE: packages: apave 4.3.6
+  - CHANGE: packages: apave 4.3.7
 
 
 Version `4.3.5 (30 Dec'23)`
