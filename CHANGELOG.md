@@ -1,8 +1,9 @@
 # Last changes:
 
-Version `4.3.9 (7 Feb'24)`
+Version `4.3.10 (28 Feb'24)`
 
-  - CHANGE: packages: apave 4.3.9
+  - NEW   : if a dialogue set "topmost" manually, reopen it on executing its command
+  - CHANGE: packages: apave 4.3.10
 
 
 Version `4.3.8 (18 Jan'24)`
