@@ -1,11 +1,19 @@
 # Last changes:
 
-Version `4.4.2 (17 Apr'24)`
+Version `4.4.4 (24 Apr'24)`
+
+  - BUGFIX: font size of editor text after changing it in "Project"
+  - CHANGE: massive renaming & clearance
+  - CHANGE: packages: apave 4.4.4
+
+
+Version `4.4.3 (22 Apr'24)`
 
   - NEW   : if a dialogue set "topmost" manually, reopen it on executing its command
   - DELETE: HC= option
   - CHANGE: misc.em, tests.em
-  - CHANGE: packages: apave 4.4.2
+  - CHANGE: clearances
+  - CHANGE: packages: apave 4.4.3
 
 
 Version `4.3.8 (18 Jan'24)`
