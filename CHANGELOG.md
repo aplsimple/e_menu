@@ -1,5 +1,12 @@
 # Last changes:
 
+Version `4.4.6 (29 Jun'24)`
+
+  - NEW   : em::checkXfce4 to correct terminal command for xfce4-terminal
+  - CHANGE: menu.em (.tcl .tm .test extensions to run tclsh)
+  - CHANGE: packages: apave 4.4.6
+
+
 Version `4.4.4 (24 Apr'24)`
 
   - BUGFIX: font size of editor text after changing it in "Project"
