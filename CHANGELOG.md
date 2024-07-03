@@ -1,8 +1,10 @@
 # Last changes:
 
-Version `4.4.6 (29 Jun'24)`
+Version `4.4.6 (3 Jul'24)`
 
   - NEW   : em::checkXfce4 to correct terminal command for xfce4-terminal
+  - NEW   : ee= command can include %s, %H wildcards
+  - NEW   : #RUNF: / #EXEC: / #ARGS: comments can include %f, %d, %pd, %s, %H, %% wildcards
   - CHANGE: menu.em (.tcl .tm .test extensions to run tclsh)
   - CHANGE: packages: apave 4.4.6
 
