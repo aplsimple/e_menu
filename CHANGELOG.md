@@ -1,6 +1,6 @@
 # Last changes:
 
-Version `4.4.6 (3 Jul'24)`
+Version `4.4.6 (4 Jul'24)`
 
   - NEW   : em::checkXfce4 to correct terminal command for xfce4-terminal
   - NEW   : ee= command can include %s, %H wildcards
