@@ -28,7 +28,7 @@ package require Tk
 wm withdraw .
 
 namespace eval ::em {
-  variable em_version {e_menu 4.4.6}
+  variable em_version {e_menu 4.4.7}
   variable em_script [file normalize [info script]]
   variable solo [expr {[info exist ::em::executable] || ( \
   [info exist ::argv0] && [file normalize $::argv0] eq $em_script)} ? 1 : 0]
@@ -1320,10 +1320,9 @@ proc ::em::callmenu {typ s1 {amp ""} {from ""}} {
     append pars " \"cs=[lindex $::apave::_CS_(ALL) [::apave::cs_Max]]\""
   }
   set geo [wm geometry .em]
-  set geo [string range $geo [string first + $geo] end]
   # shift the new menu if it's shown above the current one
   if {$::em::solo && ($noME || $::em::ontop)} {
-    lassign [split $geo +] -> x y
+    lassign [apave::splitGeometry $geo] - - x y
     set geo +[expr {20+$x}]+[expr {30+$y}]
   }
   if {$::em::ex eq {}} {set pars "g=$geo $pars"}
