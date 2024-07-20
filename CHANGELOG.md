@@ -1,9 +1,9 @@
 # Last changes:
 
-Version `4.4.7 (17 Jul'24)`
+Version `4.4.8 (20 Jul'24)`
 
   - BUGFIX: in em::callmenu, submenu's geometry for geo=1x2-3-4 (thanks to George)
-  - CHANGE: packages: apave 4.4.7
+  - CHANGE: packages: apave 4.4.8
 
 
 Version `4.4.6 (4 Jul'24)`
