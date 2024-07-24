@@ -1,8 +1,9 @@
 # Last changes:
 
-Version `4.4.8 (20 Jul'24)`
+Version `4.4.8 (24 Jul'24)`
 
   - BUGFIX: in em::callmenu, submenu's geometry for geo=1x2-3-4 (thanks to George)
+  - CHANGE: tiny clearance
   - CHANGE: packages: apave 4.4.8
 
 
