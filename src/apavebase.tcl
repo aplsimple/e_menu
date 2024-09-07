@@ -1266,7 +1266,7 @@ oo::class create ::apave::APaveBase {
     lassign [::apave::extractOptions attrs -t {} -text {}] t text
     if {$t ne {} || $text ne {}} {
       if {$text eq {}} {set text $t}
-      set attrs [dict set attrs -t [my MC $text]]
+      dict set attrs -t [my MC $text]
     }
     return $attrs
   }
@@ -1491,7 +1491,7 @@ oo::class create ::apave::APaveBase {
       return
     }
     if {$canvas eq {}} {
-      event generate $txt <Configure> ;# repaints the gutter
+      catch {{*}[bind $txt <Configure>]} ;# update gutter
       return
     }
     set oper [lindex $args 0 1]

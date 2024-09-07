@@ -1,5 +1,13 @@
 # Last changes:
 
+
+Version `4.4.10 (7 Sep'24)`
+
+  - CHANGE: menu.em (running tcl files)
+  - CHANGE: tiny clearance
+  - CHANGE: packages: apave 4.4.10
+
+
 Version `4.4.9 (7 Aug'24)`
 
   - BUGFIX: in em::callmenu, submenu's geometry for geo=1x2-3-4 (thanks to George)
