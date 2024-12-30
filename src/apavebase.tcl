@@ -1684,7 +1684,8 @@ oo::class create ::apave::APaveBase {
     } elseif {$choosname in {tk_getOpenFile tk_getSaveFile}} {
       set vargeo $filvar
       set widname [my AuxSetChooserGeometry $vargeo $dirvar $parent __tk_filedialog]
-      if {[set fn [set $tvar]] eq {}} {
+      if {[catch {set fn [set $tvar]}]} {set fn {}}
+      if {$fn eq {}} {
         set dn [pwd]
       } else {
         set dn [file dirname $fn]
@@ -2494,7 +2495,7 @@ oo::class create ::apave::APaveBase {
         -entrypop - -entrypopRO - -textpop - -textpopRO - -ListboxSel - \
         -callF2 - -timeout - -bartabs - -onReturn - -linkcom - -selcombobox - \
         -afteridle - -gutter - -propagate - -columnoptions - -selborderwidth -
-        -selected - -popup - -bindEC - -tags - -debug - -clearcom {
+        -selected - -popup - -bindEC - -tags - -debug - -clearcom - -onevent {
           # attributes specific to apave, processed below in "Post"
           set v2 [string trimleft $v \{]
           set v2 [string range $v2 0 end-[expr {[string length $v]-[string length $v2]}]]
@@ -2698,6 +2699,12 @@ oo::class create ::apave::APaveBase {
               set method {}
             }
             puts "WIDGET: $w $method"
+          }
+        }
+        -onevent {
+          set v [string map [list %w $w] $v]
+          foreach {ev proc} $v {
+            after idle [list bind $w $ev [subst $proc]]
           }
         }
       }
@@ -3066,7 +3073,7 @@ oo::class create ::apave::APaveBase {
           return -code break
         }
       }
-    braceright {
+    braceright - "\}" {
         # right brace pressed: shift the brace to left
         set idx1 [$w index insert]
         set st [$w get "$idx1 linestart" "$idx1 lineend"]

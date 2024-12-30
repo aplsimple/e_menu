@@ -1,6 +1,12 @@
 # Last changes:
 
 
+Version `4.4.11 (29 Dec'24)`
+
+  - CHANGE: menu.em (.tk file extension recognized as Tcl's)
+  - CHANGE: packages: apave 4.4.11
+
+
 Version `4.4.10 (7 Sep'24)`
 
   - CHANGE: menu.em (running tcl files)
