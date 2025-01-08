@@ -1,8 +1,10 @@
 # Last changes:
 
 
-Version `4.4.11 (29 Dec'24)`
+Version `4.4.11 (6 Jan'25)`
 
+  - BUGFIX: rare & weird bug of opening tcltk.em from alited's Preferences
+  - CHANGE: tcltk.em ("rlwrap tclsh" added)
   - CHANGE: menu.em (.tk file extension recognized as Tcl's)
   - CHANGE: packages: apave 4.4.11
 
