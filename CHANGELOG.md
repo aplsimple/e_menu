@@ -1,6 +1,11 @@
 # Last changes:
 
 
+Version `4.5 (29 Jan'25)`
+
+  - CHANGE: packages: apave 4.5
+
+
 Version `4.4.11 (6 Jan'25)`
 
   - BUGFIX: rare & weird bug of opening tcltk.em from alited's Preferences
