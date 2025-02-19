@@ -1,9 +1,10 @@
 # Last changes:
 
 
-Version `4.5.2 (12 Feb'25)`
+Version `4.5.3 (19 Feb'25)`
 
-  - CHANGE: packages: apave 4.5.2
+  - NEW   : doctest: code may include #< comments to execute by doctest
+  - CHANGE: packages: apave 4.5.3
 
 
 Version `4.4.11 (6 Jan'25)`
