@@ -1,9 +1,18 @@
 # Last changes:
 
+Version `4.6.5 (2 Aug'25)`
 
-Version `4.6.1 (23 Apr'25)`
+  - BUGFIX: aftershocks of previous
 
-  - CHANGE: packages: apave 4.6.1
+
+Version `4.6.4 (29 Jul'25)`
+
+  - CHANGE: packages: apave 4.6.4
+
+
+Version `4.6.2 (29 May'25)`
+
+  - CHANGE: packages: apave 4.6.2
 
 
 Version `4.5.3 (19 Feb'25)`
