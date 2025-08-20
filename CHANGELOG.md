@@ -1,5 +1,11 @@
 # Last changes:
 
+Version `4.6.6 (15 Aug'25)`
+
+  - CHANGE: menu.em & fossil.em to comply with apave 4.6.6 (focusing OK button)
+  - CHANGE: packages: apave 4.6.6
+
+
 Version `4.6.5 (2 Aug'25)`
 
   - BUGFIX: aftershocks of previous
