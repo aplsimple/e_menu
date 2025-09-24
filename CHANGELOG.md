@@ -1,10 +1,10 @@
 # Last changes:
 
 
-Version `4.7.2 (21 Sep'25)`
+Version `4.7.3 (24 Sep'25)`
 
   - BUGFIX: Escape key at editing menus
-  - CHANGE: packages: apave 4.7.2
+  - CHANGE: packages: apave 4.7.3
 
 
 Version `4.7.1 (10 Sep'25)`
