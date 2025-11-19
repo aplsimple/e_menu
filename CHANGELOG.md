@@ -1,15 +1,16 @@
 # Last changes:
 
 
+Version `4.8.0 (19 Nov'25)`
+
+  - BUGFIX: Escape key at editing menus
+  - CHANGE: packages: apave 4.8.0
+
+
 Version `4.7.3 (24 Sep'25)`
 
   - BUGFIX: Escape key at editing menus
   - CHANGE: packages: apave 4.7.3
-
-
-Version `4.7.1 (10 Sep'25)`
-
-  - CHANGE: packages: apave 4.7.1
 
 
 Version `4.6.6 (15 Aug'25)`
@@ -21,16 +22,7 @@ Version `4.6.6 (15 Aug'25)`
 Version `4.6.5 (2 Aug'25)`
 
   - BUGFIX: aftershocks of previous
-
-
-Version `4.6.4 (29 Jul'25)`
-
   - CHANGE: packages: apave 4.6.4
-
-
-Version `4.6.2 (29 May'25)`
-
-  - CHANGE: packages: apave 4.6.2
 
 
 Version `4.5.3 (19 Feb'25)`
@@ -86,11 +78,6 @@ Version `4.4.3 (22 Apr'24)`
   - CHANGE: packages: apave 4.4.3
 
 
-Version `4.3.8 (18 Jan'24)`
-
-  - CHANGE: packages: apave 4.3.8
-
-
 Version `4.3.5 (30 Dec'23)`
 
   - CHANGE: for Tcl 9.0: catch {glob ...} patterns changed, to insure against errors
@@ -116,21 +103,6 @@ Version `4.3.0 (30 Nov'23)`
   - CHANGE: packages: apave 4.3.0
 
 
-Version `4.2.0 (8 Nov'23)`
-
-  - CHANGE: packages: apave 4.2.0
-
-
-Version `4.1.9 (1 Nov'23)`
-
-  - CHANGE: packages: apave 4.1.9
-
-
-Version `4.1.7 (4 Oct'23)`
-
-  - CHANGE: packages: apave 4.1.7
-
-
 Version `4.1.6 (27 Sep'23)`
 
   - BUGFIX: (esp. for Windows) some issues with the grabbing windows
@@ -143,16 +115,6 @@ Version `4.1.2 (30 Aug'23)`
   - BUGFIX: %b wildcard + quoted argument in %IF .. %THEN %b ..
   - CHANGE: menu.em
   - CHANGE: packages: apave 4.1.2
-
-
-Version `4.1.1 (21 Jun'23)`
-
-  - CHANGE: packages: apave 4.1.1
-
-
-Version `4.1.0 (26 Apr'23)`
-
-  - CHANGE: packages: apave 4.1.0
 
 
 Version `4.0.6 (12 Apr'23)`
@@ -256,11 +218,6 @@ Version `3.6.0 (7 Dec'22)`
   - CHANGE: test1.mnu: writeable cbx
   - CHANGE: menu.mnu: check for selection in "Run Tcl"
   - CHANGE: packages: apave 3.6.0
-
-
-Version `3.5.9 (25 Oct'22)`
-
-  - CHANGE: packages: apave 3.5.9
 
 
 Version `3.5.7 (19 Oct'22)`
