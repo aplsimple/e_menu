@@ -1,10 +1,10 @@
 # Last changes:
 
 
-Version `4.8.4 (27 Dec'25)`
+Version `4.8.4 (21 Jan'26)`
 
   - BUGFIX: Escape key at editing menus
-  - CHANGE: packages: apave 4.8.4, baltip 1.6.6
+  - CHANGE: packages: apave 4.8.4, baltip 1.6.7
 
 
 Version `4.7.3 (24 Sep'25)`
