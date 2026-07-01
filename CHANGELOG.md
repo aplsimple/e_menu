@@ -1,6 +1,11 @@
 # Last changes:
 
 
+Version `4.9.0 (1 Jul'26)`
+
+  - CHANGE: packages: apave 4.9.0
+
+
 Version `4.8.4 (21 Jan'26)`
 
   - BUGFIX: Escape key at editing menus
