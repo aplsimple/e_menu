@@ -3,6 +3,7 @@
 
 Version `4.9.0 (1 Jul'26)`
 
+  - BUGFIX: (potential) even slow double click not allowed
   - CHANGE: packages: apave 4.9.0
 
 
