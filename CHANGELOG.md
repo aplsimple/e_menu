@@ -1,6 +1,11 @@
 # Last changes:
 
 
+Version `4.9.3 (7 Oct'26)`
+
+  - CHANGE: packages: apave 4.9.3
+
+
 Version `4.9.0 (1 Jul'26)`
 
   - BUGFIX: (potential) even slow double click not allowed
