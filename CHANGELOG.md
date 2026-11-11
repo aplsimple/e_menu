@@ -1,9 +1,9 @@
 # Last changes:
 
 
-Version `4.9.3 (7 Oct'26)`
+Version `4.9.4 (11 Nov'26)`
 
-  - CHANGE: packages: apave 4.9.3
+  - CHANGE: packages: apave 4.9.4
 
 
 Version `4.9.0 (1 Jul'26)`
